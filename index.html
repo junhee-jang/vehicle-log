@@ -1,424 +1,557 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>진천팀 차량운행일지</title>
+  <title>차량운행일지 | 제한진천팀</title>
   <style>
+    :root {
+      color-scheme: dark;
+      --bg: #111318;
+      --panel: #1b1f27;
+      --panel-2: #232832;
+      --border: #343b47;
+      --text: #f3f5f7;
+      --muted: #9ba5b3;
+      --green: #79d7b0;
+      --green-dark: #20372e;
+      --red: #f19b9b;
+      --blue: #91b9ff;
+    }
     * { box-sizing: border-box; }
-
     body {
-      margin: 0;
-      padding: 20px;
-      background: #f3f5f7;
-      color: #202b36;
-      font-family: Arial, sans-serif;
+      margin: 0; padding: 18px;
+      background: var(--bg); color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
-
-    .container {
-      max-width: 680px;
-      margin: auto;
-    }
-
+    .container { max-width: 760px; margin: 0 auto; }
     header {
-      background: #174c3c;
-      color: white;
-      padding: 22px;
-      border-radius: 14px;
-      margin-bottom: 18px;
+      display: flex; align-items: center; gap: 13px;
+      padding: 22px; margin-bottom: 16px;
+      border: 1px solid var(--border); border-radius: 16px;
+      background: linear-gradient(135deg, #1b2823, #1b1f27 72%);
     }
-
-    header h1 {
-      font-size: 23px;
-      margin: 0 0 8px;
+    .brand-icon {
+      width: 48px; height: 48px; flex: 0 0 48px;
+      display: grid; place-items: center; border-radius: 13px;
+      background: #263a31; color: var(--green); font-size: 25px;
     }
-
-    header p {
-      margin: 0;
-      font-size: 14px;
-      opacity: 0.9;
-    }
-
+    h1 { font-size: 23px; margin: 0 0 5px; }
+    header p { color: #b5c5bd; margin: 0; font-size: 14px; }
     .card {
-      background: white;
-      border-radius: 14px;
-      padding: 20px;
-      margin-bottom: 16px;
-      box-shadow: 0 2px 8px #0000000a;
+      background: var(--panel); border: 1px solid var(--border);
+      border-radius: 15px; padding: 19px; margin-bottom: 15px;
     }
-
-    h2 {
-      font-size: 17px;
-      margin: 0 0 18px;
-    }
-
-    label {
-      display: block;
-      font-size: 14px;
-      font-weight: bold;
-      margin: 14px 0 7px;
-    }
-
+    h2 { font-size: 17px; margin: 0 0 16px; }
+    label { display: block; font-size: 13px; font-weight: 650; color: #d7dce3; margin: 13px 0 7px; }
     input, select, textarea, button {
-      width: 100%;
-      font: inherit;
-      border-radius: 9px;
+      width: 100%; font: inherit; border-radius: 10px;
     }
-
     input, select, textarea {
-      padding: 12px;
-      border: 1px solid #d5dce1;
-      background: white;
-      min-height: 44px;
+      min-height: 45px; padding: 11px 12px;
+      border: 1px solid #3b4350; background: #14171d; color: var(--text);
     }
-
-    textarea {
-      resize: vertical;
-      min-height: 75px;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
+    input::placeholder, textarea::placeholder { color: #77818f; }
+    input:focus, select:focus, textarea:focus { outline: 2px solid #427e65; border-color: var(--green); }
+    textarea { resize: vertical; min-height: 80px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     .distance {
-      margin-top: 14px;
-      padding: 14px;
-      background: #edf6f1;
-      border-radius: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      margin-top: 15px; padding: 14px;
+      border: 1px solid #345746; background: #1b2a24;
+      border-radius: 11px; display: flex; align-items: center;
+      justify-content: space-between; gap: 12px;
     }
-
-    .distance strong {
-      color: #176344;
-      font-size: 20px;
+    .distance-label { font-weight: 650; }
+    .hint { display: block; margin-top: 4px; color: var(--muted); font-size: 11px; font-weight: 400; }
+    .distance strong { color: var(--green); font-size: 21px; white-space: nowrap; }
+    button { border: 0; min-height: 45px; padding: 11px 13px; cursor: pointer; font-weight: 700; }
+    button:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+    .primary { background: var(--green); color: #102219; font-size: 16px; }
+    .secondary { background: #26372f; border: 1px solid #3d6855; color: #baf0d5; }
+    .soft { background: var(--panel-2); border: 1px solid var(--border); color: var(--text); }
+    .danger { background: #3b2529; border: 1px solid #674047; color: var(--red); }
+    .route-line {
+      display: flex; align-items: center; flex-wrap: wrap; gap: 7px;
+      min-height: 46px; padding: 9px; margin-top: 8px;
+      border: 1px solid var(--border); background: #15181e; border-radius: 11px;
     }
-
-    button {
-      border: none;
-      padding: 13px;
-      cursor: pointer;
-      font-weight: bold;
-      min-height: 46px;
+    .route-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      border: 1px solid #3d6855; background: #20372e; color: #baf0d5;
+      border-radius: 9px; padding: 8px 10px; cursor: pointer;
+      font-size: 13px; font-weight: 650; width: auto; min-height: 0;
     }
-
-    .add {
-      margin-top: 12px;
-      background: #e7f1ec;
-      color: #174c3c;
+    .route-dash { color: #788392; }
+    .empty-route { color: var(--muted); font-size: 13px; padding: 3px; }
+    .route-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 11px; }
+    .small-note { color: var(--muted); font-size: 12px; line-height: 1.5; margin: 10px 0 0; }
+    .event-list { display: grid; gap: 9px; margin-top: 12px; }
+    .event-item {
+      display: flex; justify-content: space-between; align-items: center; gap: 12px;
+      padding: 11px 12px; background: #15181e; border: 1px solid var(--border); border-radius: 10px;
     }
-
-    .save {
-      background: #174c3c;
-      color: white;
-      font-size: 16px;
+    .event-item strong { display: block; font-size: 13px; }
+    .event-item span { display: block; color: var(--muted); font-size: 12px; margin-top: 3px; }
+    .event-item button { width: auto; min-height: 35px; padding: 7px 10px; }
+    #message { text-align: center; color: var(--green); font-size: 13px; line-height: 1.5; }
+    dialog {
+      width: min(430px, calc(100% - 28px)); max-height: 82vh; overflow: auto;
+      border: 1px solid #424b58; border-radius: 16px; padding: 0;
+      background: #1b1f27; color: var(--text);
     }
-
-    .waypoint {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-top: 8px;
+    dialog::backdrop { background: #000b; backdrop-filter: blur(3px); }
+    .dialog-inner { padding: 19px; }
+    .dialog-inner h3 { margin: 0 0 7px; font-size: 18px; }
+    .dialog-subtitle { margin: 0 0 14px; color: var(--muted); font-size: 12px; }
+    .option-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .option-list button { text-align: left; background: #252b35; border: 1px solid #3a4350; color: var(--text); }
+    .option-list button:active { background: #294236; }
+    .scroll-list { max-height: 42vh; overflow-y: auto; padding-right: 3px; }
+    .dialog-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 16px; }
+    .dialog-actions.single { grid-template-columns: 1fr; }
+    .hidden { display: none !important; }
+    .fuel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 520px) {
+      body { padding: 10px; }
+      header { padding: 17px; }
+      h1 { font-size: 21px; }
+      .card { padding: 15px; }
+      .grid, .fuel-grid { grid-template-columns: 1fr 1fr; gap: 9px; }
+      .distance { align-items: flex-start; }
+      .distance strong { font-size: 19px; }
+      .route-actions { grid-template-columns: 1fr; }
+      .option-list { grid-template-columns: 1fr 1fr; }
     }
-
-    .waypoint span {
-      flex: 1;
-      padding: 10px;
-      background: #f3f5f7;
-      border-radius: 8px;
-      overflow-wrap: anywhere;
-    }
-
-    .waypoint button {
-      width: auto;
-      min-width: 60px;
-      background: #fbeaea;
-      color: #9c3030;
-      padding: 10px;
-    }
-
-    #message {
-      margin-top: 12px;
-      font-size: 14px;
-      text-align: center;
-    }
-
-    @media (max-width: 480px) {
-      body { padding: 12px; }
-      .card { padding: 16px; }
-      header { padding: 19px; }
-      header h1 { font-size: 21px; }
+    @media print {
+      :root { color-scheme: light; --bg: #fff; --panel: #fff; --panel-2: #f5f5f5; --border: #ccc; --text: #111; --muted: #555; }
+      body { background: #fff !important; color: #111 !important; padding: 0; }
+      header, .card, .distance { background: #fff !important; color: #111 !important; border: 1px solid #bbb; box-shadow: none; }
+      header p, .hint, .small-note { color: #555 !important; }
+      input, select, textarea { background: #fff !important; color: #111 !important; border-color: #bbb; }
+      button, dialog, .route-actions, #message { display: none !important; }
+      .route-line, .event-item { background: #fff !important; color: #111 !important; }
+      .route-chip { background: #fff !important; color: #111 !important; border-color: #aaa; }
+      .distance strong { color: #111 !important; }
     }
   </style>
 </head>
 <body>
-  <main class="container">
-    <header>
+<main class="container">
+  <header>
+    <div class="brand-icon" aria-hidden="true">🚚</div>
+    <div>
       <h1>차량운행일지</h1>
-      <p>진천 제한·단속팀</p>
-    </header>
+      <p>제한진천팀</p>
+    </div>
+  </header>
 
-    <form id="logForm">
-      <section class="card">
-        <h2>📅 운행 기본정보</h2>
+  <form id="logForm">
+    <section class="card">
+      <h2>📅 운행 기본정보</h2>
+      <label for="date">운행일자</label>
+      <input type="date" id="date" required>
 
-        <label for="date">운행일자</label>
-        <input type="date" id="date" required>
+      <label for="weather">날씨</label>
+      <select id="weather">
+        <option>맑음</option><option>흐림</option><option>비</option><option>눈</option>
+        <option value="기타">기타 (직접 입력)</option>
+      </select>
+      <input id="customWeather" class="hidden" type="text" placeholder="날씨 직접 입력" style="margin-top:9px;">
 
-        <label for="status">운행 상태</label>
-        <select id="status">
-          <option value="운행">운행</option>
-          <option value="미운행">미운행</option>
-          <option value="차량수리">차량수리</option>
-        </select>
-
-        <label for="weather">날씨</label>
-        <select id="weather">
-          <option>맑음</option>
-          <option>흐림</option>
-          <option>비</option>
-          <option>눈</option>
-          <option value="기타">기타 (직접 입력)</option>
-        </select>
-
-        <input id="customWeather" type="text"
-          placeholder="날씨 직접 입력"
-          style="display:none; margin-top:10px;">
-
-        <div class="grid">
-          <div>
-            <label for="startKm">출발 주행거리 (km)</label>
-            <input type="number" id="startKm" min="0"
-              step="0.1" placeholder="예: 12500">
-          </div>
-          <div>
-            <label for="endKm">도착 주행거리 (km)</label>
-            <input type="number" id="endKm" min="0"
-              step="0.1" placeholder="예: 12650">
-          </div>
+      <div class="grid">
+        <div>
+          <label for="startKm">출발 주행거리 (km)</label>
+          <input type="text" inputmode="decimal" id="startKm" placeholder="예: 12,500" autocomplete="off">
         </div>
-
-        <div class="distance">
-          <span>총 운행거리</span>
-          <strong><span id="distance">0</span> km</strong>
+        <div>
+          <label for="endKm">도착 주행거리 (km)</label>
+          <input type="text" inputmode="decimal" id="endKm" placeholder="예: 12,650" autocomplete="off">
         </div>
-      </section>
+      </div>
+      <div class="distance">
+        <div class="distance-label">총 운행거리<span class="hint">(도착 주행거리 입력 시 자동계산)</span></div>
+        <strong><span id="distance">0</span> km</strong>
+      </div>
+    </section>
 
-      <section class="card">
-        <h2>📍 운행 경로</h2>
-
-        <label for="origin">출발지</label>
-        <input id="origin" placeholder="출발지 입력">
-
-        <label for="destination">최종 도착지</label>
-        <input id="destination" placeholder="최종 도착지 입력">
-
-        <label>경유지 순서</label>
-        <div id="waypoints"></div>
-
-        <div class="grid" style="margin-top:12px;">
-          <select id="branch">
-            <option value="">지사 선택</option>
-            <option>진천지사</option>
-            <option>보은지사</option>
-            <option>상주지사</option>
-            <option>기타 (직접 입력)</option>
-          </select>
-          <select id="office">
-            <option value="">영업소 선택</option>
-          </select>
+    <section class="card">
+      <h2>📍 운행 경로</h2>
+      <div class="grid">
+        <div>
+          <label for="origin">출발지</label>
+          <input id="origin" value="남청주" autocomplete="off">
         </div>
+        <div>
+          <label for="destination">최종 도착지</label>
+          <input id="destination" value="남청주" autocomplete="off">
+        </div>
+      </div>
 
-        <input id="customOffice" placeholder="경유지 직접 입력"
-          style="display:none; margin-top:10px;">
+      <label>경유지 순서</label>
+      <div id="waypoints" class="route-line" aria-live="polite">
+        <span class="empty-route">출발지를 기준으로 경유지를 추가해 주세요.</span>
+      </div>
 
-        <button type="button" class="add" id="addWaypoint">
-          + 경유지 추가
-        </button>
+      <div class="route-actions">
+        <button type="button" class="secondary" id="openOfficePicker">＋ 영업소 경유지 추가</button>
+        <button type="button" class="soft" id="addCustomWaypoint">＋ 기타 경유지 직접 입력</button>
+      </div>
+      <p class="small-note">영업소를 누르면 순서 변경 대신 해당 영업소 이름을 수정하거나 삭제할 수 있어요. 경유지는 월말 자료에 남청주-대소-서청주 형식으로 정리됩니다.</p>
+    </section>
 
-        <p style="font-size:12px;color:#65727e;">
-          선택한 순서대로 월말 자료에 대소-문의-회인 형식으로 기록합니다.
-        </p>
-      </section>
+    <section class="card">
+      <h2>⛽ 주유 · 요소수 기록</h2>
+      <p class="small-note" style="margin-top:-7px;">운행 중 발생한 기록을 필요한 만큼 추가하세요.</p>
+      <div class="fuel-grid">
+        <div>
+          <label for="fuelDate">기록 시각</label>
+          <input type="datetime-local" id="fuelDate">
+        </div>
+        <div>
+          <label for="eventType">종류</label>
+          <select id="eventType"><option value="주유">주유</option><option value="요소수">요소수</option></select>
+        </div>
+        <div>
+          <label for="eventAmount">주입량 (L)</label>
+          <input type="text" inputmode="decimal" id="eventAmount" placeholder="예: 45.2">
+        </div>
+        <div>
+          <label for="eventCost">금액 (원)</label>
+          <input type="text" inputmode="numeric" id="eventCost" placeholder="예: 80,000">
+        </div>
+      </div>
+      <label for="eventMemo">주유소 / 메모 (선택)</label>
+      <input id="eventMemo" placeholder="주유소명 또는 특이사항">
+      <button type="button" class="secondary" id="addEvent" style="margin-top:12px;">＋ 기록 추가</button>
+      <div id="eventList" class="event-list"></div>
+    </section>
 
-      <section class="card">
-        <h2>📝 비고 및 메모</h2>
-        <textarea id="memo" placeholder="특이사항이나 메모 입력"></textarea>
-      </section>
+    <section class="card">
+      <h2>📝 비고 및 메모</h2>
+      <textarea id="memo" placeholder="특이사항이나 메모 입력"></textarea>
+    </section>
 
-      <button class="save" type="submit">입력 내용 확인</button>
-      <p id="message"></p>
-    </form>
-  </main>
+    <button class="primary" type="submit">입력 내용 확인</button>
+    <p id="message" role="status"></p>
+  </form>
+</main>
 
-  <script>
-    const offices = {
-      "진천지사": [
-        "남이천", "일죽", "대소", "진천",
-        "증평", "오창", "서청주"
-      ],
-      "보은지사": [
-        "문의", "회인", "보은", "속리산",
-        "화서", "남상주"
-      ],
-      "상주지사": [
-        "상주", "북상주", "점촌함창", "문경새재"
-      ]
-    };
+<dialog id="branchDialog">
+  <div class="dialog-inner">
+    <h3>1단계 · 지사 선택</h3>
+    <p class="dialog-subtitle">지사를 선택하면 해당 지사의 영업소가 나옵니다.</p>
+    <div id="branchOptions" class="option-list"></div>
+    <div class="dialog-actions single"><button type="button" class="soft" data-close="branchDialog">취소</button></div>
+  </div>
+</dialog>
 
-    const $ = id => document.getElementById(id);
-    const waypointList = [];
+<dialog id="officeDialog">
+  <div class="dialog-inner">
+    <h3 id="officeDialogTitle">2단계 · 영업소 선택</h3>
+    <p class="dialog-subtitle">목록에서 영업소를 선택하세요. 목록은 스크롤할 수 있습니다.</p>
+    <div id="officeOptions" class="option-list scroll-list"></div>
+    <div class="dialog-actions single">
+      <button type="button" class="soft" id="backToBranches">← 지사 다시 선택</button>
+      <button type="button" class="soft" data-close="officeDialog">취소</button>
+    </div>
+  </div>
+</dialog>
 
-    $("date").value =
-      new Date().toLocaleDateString("en-CA");
+<dialog id="customWaypointDialog">
+  <div class="dialog-inner">
+    <h3>기타 경유지 추가</h3>
+    <p class="dialog-subtitle">영업소 외 장소를 직접 입력하세요.</p>
+    <label for="customWaypointName">장소 이름</label>
+    <input id="customWaypointName" placeholder="예: 정비소, 주차장" autocomplete="off">
+    <div class="dialog-actions">
+      <button type="button" class="secondary" id="saveCustomWaypoint">추가</button>
+      <button type="button" class="soft" data-close="customWaypointDialog">취소</button>
+    </div>
+  </div>
+</dialog>
 
-    $("weather").addEventListener("change", () => {
-      $("customWeather").style.display =
-        $("weather").value === "기타" ? "block" : "none";
+<script>
+  const offices = {
+    "진천지사": ["남이천", "일죽", "대소", "진천", "증평", "오창", "서청주"],
+    "보은지사": ["문의", "회인", "보은", "속리산", "화서", "남상주"],
+    "상주지사": ["상주", "북상주", "점촌함창", "문경새재"]
+  };
+  const $ = id => document.getElementById(id);
+  const waypointList = [];
+  const eventList = [];
+  let selectedBranch = "";
+  // activeWaypointIndex가 -1이면 새 경유지 추가, 0 이상이면 해당 경유지 변경
+  let activeWaypointIndex = -1;
+
+  $("date").value = localDateString(new Date());
+  $("fuelDate").value = localDateTimeString(new Date());
+  renderWaypoints();
+
+  function localDateString(date) {
+    const offset = date.getTimezoneOffset();
+    return new Date(date.getTime() - offset * 60000).toISOString().slice(0, 10);
+  }
+  function localDateTimeString(date) {
+    const offset = date.getTimezoneOffset();
+    return new Date(date.getTime() - offset * 60000).toISOString().slice(0, 16);
+  }
+  function parseNumber(value) {
+    return Number(String(value).replace(/,/g, "").trim());
+  }
+  function formatIntegerInput(input) {
+    const raw = input.value.replace(/,/g, "").replace(/[^\d.]/g, "");
+    const parts = raw.split(".");
+    const integer = (parts[0] || "").replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    input.value = parts.length > 1 ? integer + "." + parts.slice(1).join("") : integer;
+  }
+  ["startKm", "endKm", "eventCost"].forEach(id => {
+    $(id).addEventListener("input", () => {
+      const el = $(id);
+      const pos = el.selectionStart;
+      const before = el.value;
+      formatIntegerInput(el);
+      if (pos !== null && before.length === el.value.length) el.setSelectionRange(pos, pos);
+      if (id === "startKm" || id === "endKm") updateDistance();
+    });
+    $(id).addEventListener("blur", () => {
+      if (id === "startKm" || id === "endKm") updateDistance();
+    });
+  });
+  $("eventAmount").addEventListener("input", () => {
+    $("eventAmount").value = $("eventAmount").value.replace(/[^\d.]/g, "");
+  });
+  function updateDistance() {
+    const startRaw = $("startKm").value.trim();
+    const endRaw = $("endKm").value.trim();
+    const start = parseNumber(startRaw);
+    const end = parseNumber(endRaw);
+    const valid = startRaw !== "" && endRaw !== "" && Number.isFinite(start) && Number.isFinite(end) && end >= start;
+    const distance = valid ? end - start : 0;
+    $("distance").textContent = distance.toLocaleString("ko-KR", { maximumFractionDigits: 1 });
+    $("distance").style.color = startRaw !== "" && endRaw !== "" && end < start ? "var(--red)" : "var(--green)";
+  }
+
+  $("weather").addEventListener("change", () => {
+    $("customWeather").classList.toggle("hidden", $("weather").value !== "기타");
+  });
+
+  document.querySelectorAll("[data-close]").forEach(button => {
+    button.addEventListener("click", () => $(button.dataset.close).close());
+  });
+
+  function openBranchPicker(editIndex = -1) {
+    activeWaypointIndex = editIndex;
+    $("branchOptions").innerHTML = "";
+    const title = $("branchDialog").querySelector("h3");
+    title.textContent = editIndex >= 0 ? "1단계 · 경유지 변경 - 지사 선택" : "1단계 · 지사 선택";
+
+    Object.keys(offices).forEach(branch => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = branch;
+      button.addEventListener("click", () => {
+        selectedBranch = branch;
+        $("branchDialog").close();
+        renderOfficeOptions();
+        $("officeDialog").showModal();
+      });
+      $("branchOptions").appendChild(button);
     });
 
-    function updateDistance() {
-      const start = parseFloat($("startKm").value);
-      const end = parseFloat($("endKm").value);
-      const distance = $("startKm").value !== "" &&
-        $("endKm").value !== "" && end >= start
-        ? end - start : 0;
-      $("distance").textContent =
-        distance.toLocaleString("ko-KR");
+    const custom = document.createElement("button");
+    custom.type = "button";
+    custom.textContent = "기타 (직접 입력)";
+    custom.addEventListener("click", () => {
+      $("branchDialog").close();
+      $("customWaypointName").value = editIndex >= 0 ? waypointList[editIndex] : "";
+      $("customWaypointDialog").showModal();
+    });
+    $("branchOptions").appendChild(custom);
+    $("branchDialog").showModal();
+  }
+
+  function renderOfficeOptions() {
+    $("officeDialogTitle").textContent =
+      (activeWaypointIndex >= 0 ? "2단계 · 변경할 " : "2단계 · ") + selectedBranch + " 영업소 선택";
+    $("officeOptions").innerHTML = "";
+
+    (offices[selectedBranch] || []).forEach(name => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = name;
+      button.addEventListener("click", () => {
+        if (activeWaypointIndex >= 0) {
+          waypointList[activeWaypointIndex] = name;
+        } else {
+          waypointList.push(name);
+        }
+        renderWaypoints();
+        $("officeDialog").close();
+        activeWaypointIndex = -1;
+      });
+      $("officeOptions").appendChild(button);
+    });
+  }
+
+  $("openOfficePicker").addEventListener("click", () => openBranchPicker(-1));
+  $("backToBranches").addEventListener("click", () => {
+    $("officeDialog").close();
+    openBranchPicker(activeWaypointIndex);
+  });
+
+  function renderWaypoints() {
+    const holder = $("waypoints");
+    holder.innerHTML = "";
+
+    // 경로 맨 앞은 출발지 입력값을 그대로 사용한다.
+    const route = [];
+    const origin = $("origin").value.trim();
+    if (origin) route.push({ name: origin, type: "origin" });
+    waypointList.forEach((name, index) => route.push({ name, type: "waypoint", index }));
+
+    if (!route.length) {
+      const empty = document.createElement("span");
+      empty.className = "empty-route";
+      empty.textContent = "출발지를 입력한 뒤 경유지를 추가해 주세요.";
+      holder.appendChild(empty);
+      return;
     }
 
-    $("startKm").addEventListener("input", updateDistance);
-    $("endKm").addEventListener("input", updateDistance);
-
-    $("branch").addEventListener("change", () => {
-      const branch = $("branch").value;
-      const office = $("office");
-      office.innerHTML = '<option value="">영업소 선택</option>';
-
-      if (branch === "기타 (직접 입력)") {
-        $("customOffice").style.display = "block";
-        office.style.display = "none";
-        return;
+    route.forEach((item, routeIndex) => {
+      if (routeIndex > 0) {
+        const dash = document.createElement("span");
+        dash.className = "route-dash";
+        dash.textContent = "-";
+        holder.appendChild(dash);
       }
 
-      $("customOffice").style.display = "none";
-      office.style.display = "block";
-
-      (offices[branch] || []).forEach(name => {
-        const option = document.createElement("option");
-        option.value = name;
-        option.textContent = name;
-        office.appendChild(option);
-      });
-
-      if (branch) {
-        const option = document.createElement("option");
-        option.value = "기타";
-        option.textContent = "기타 (직접 입력)";
-        office.appendChild(option);
-      }
-    });
-
-    $("office").addEventListener("change", () => {
-      const custom = $("office").value === "기타";
-      $("customOffice").style.display = custom ? "block" : "none";
-      if (custom) $("customOffice").placeholder = "영업소 이름 직접 입력";
-    });
-
-    $("addWaypoint").addEventListener("click", () => {
-      const branch = $("branch").value;
-      const office = $("office").value;
-      const custom = $("customOffice").value.trim();
-
-      let name = "";
-
-      if (branch === "기타 (직접 입력)") {
-        name = custom;
-      } else if (office === "기타") {
-        name = custom;
+      if (item.type === "origin") {
+        const chip = document.createElement("span");
+        chip.className = "route-chip";
+        chip.style.cursor = "default";
+        chip.textContent = item.name;
+        chip.title = "출발지 입력란에서 변경할 수 있습니다.";
+        holder.appendChild(chip);
       } else {
-        name = office;
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "route-chip";
+        chip.textContent = item.name;
+        chip.title = "눌러서 지사·영업소 선택 또는 직접 입력으로 변경";
+        chip.addEventListener("click", () => openBranchPicker(item.index));
+        holder.appendChild(chip);
       }
+    });
+  }
 
-      if (!name) {
-        alert("지사와 영업소를 선택하거나 경유지를 직접 입력해 주세요.");
-        return;
-      }
+  $("origin").addEventListener("input", renderWaypoints);
+  $("saveWaypointEdit").addEventListener("click", () => {
+    const name = $("editWaypointName").value.trim();
+    if (!name) { alert("영업소 이름을 입력해 주세요."); return; }
+    if (activeWaypointIndex >= 0) waypointList[activeWaypointIndex] = name;
+    renderWaypoints();
+    $("waypointDialog").close();
+  });
+  $("deleteWaypoint").addEventListener("click", () => {
+    if (activeWaypointIndex >= 0) waypointList.splice(activeWaypointIndex, 1);
+    renderWaypoints();
+    $("waypointDialog").close();
+  });
+  $("addCustomWaypoint").addEventListener("click", () => {
+    $("customWaypointName").value = "";
+    $("customWaypointDialog").showModal();
+  });
+  $("saveCustomWaypoint").addEventListener("click", () => {
+    const name = $("customWaypointName").value.trim();
+    if (!name) { alert("장소 이름을 입력해 주세요."); return; }
 
+    if (activeWaypointIndex >= 0) {
+      waypointList[activeWaypointIndex] = name;
+    } else {
       waypointList.push(name);
-      renderWaypoints();
-
-      $("branch").value = "";
-      $("office").innerHTML = '<option value="">영업소 선택</option>';
-      $("customOffice").value = "";
-      $("customOffice").style.display = "none";
-      $("office").style.display = "block";
-    });
-
-    function renderWaypoints() {
-      $("waypoints").innerHTML = "";
-
-      waypointList.forEach((name, index) => {
-        const row = document.createElement("div");
-        row.className = "waypoint";
-
-        const text = document.createElement("span");
-        text.textContent = (index + 1) + ". " + name;
-
-        const remove = document.createElement("button");
-        remove.type = "button";
-        remove.textContent = "삭제";
-        remove.addEventListener("click", () => {
-          waypointList.splice(index, 1);
-          renderWaypoints();
-        });
-
-        row.append(text, remove);
-        $("waypoints").appendChild(row);
-      });
     }
+    renderWaypoints();
+    $("customWaypointDialog").close();
+    activeWaypointIndex = -1;
+  });
+  $("customWaypointName").addEventListener("keydown", event => {
+    if (event.key === "Enter") { event.preventDefault(); $("saveCustomWaypoint").click(); }
+  });
 
-    $("logForm").addEventListener("submit", event => {
-      event.preventDefault();
-
-      const start = $("startKm").value;
-      const end = $("endKm").value;
-
-      if (start !== "" && end !== "" &&
-          Number(end) < Number(start)) {
-        alert("도착 주행거리는 출발 주행거리보다 작을 수 없습니다.");
-        return;
-      }
-
-      const weather = $("weather").value === "기타"
-        ? $("customWeather").value.trim()
-        : $("weather").value;
-
-      const result = {
-        date: $("date").value,
-        status: $("status").value,
-        weather,
-        startKm: start,
-        endKm: end,
-        distance: $("distance").textContent,
-        origin: $("origin").value.trim(),
-        destination: $("destination").value.trim(),
-        waypoints: waypointList.join("-"),
-        memo: $("memo").value.trim()
-      };
-
-      $("message").textContent =
-        "입력 확인 완료 — 경유지: " +
-        (result.waypoints || "없음") +
-        " / 실제 저장 기능은 다음 단계에서 연결합니다.";
-
-      console.log(result);
+  $("addEvent").addEventListener("click", () => {
+    const type = $("eventType").value;
+    const amountText = $("eventAmount").value.trim();
+    const costText = $("eventCost").value.trim();
+    const memo = $("eventMemo").value.trim();
+    if (!amountText && !costText && !memo) {
+      alert("주입량, 금액 또는 메모 중 하나는 입력해 주세요.");
+      return;
+    }
+    eventList.push({
+      time: $("fuelDate").value,
+      type,
+      amount: amountText ? parseNumber(amountText) : null,
+      cost: costText ? parseNumber(costText) : null,
+      memo
     });
-  </script>
+    renderEvents();
+    $("eventAmount").value = "";
+    $("eventCost").value = "";
+    $("eventMemo").value = "";
+    $("fuelDate").value = localDateTimeString(new Date());
+  renderWaypoints();
+  });
+  function renderEvents() {
+    const holder = $("eventList");
+    holder.innerHTML = "";
+    eventList.forEach((item, index) => {
+      const row = document.createElement("div");
+      row.className = "event-item";
+      const detail = document.createElement("div");
+      const title = document.createElement("strong");
+      title.textContent = `${index + 1}. ${item.type}`;
+      const desc = document.createElement("span");
+      const amount = item.amount !== null ? `${item.amount.toLocaleString("ko-KR")} L` : "";
+      const cost = item.cost !== null ? `${item.cost.toLocaleString("ko-KR")}원` : "";
+      desc.textContent = [item.time.replace("T", " "), amount, cost, item.memo].filter(Boolean).join(" · ");
+      detail.append(title, desc);
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "danger";
+      remove.textContent = "삭제";
+      remove.addEventListener("click", () => { eventList.splice(index, 1); renderEvents(); });
+      row.append(detail, remove);
+      holder.appendChild(row);
+    });
+  }
+
+  $("logForm").addEventListener("submit", event => {
+    event.preventDefault();
+    const startRaw = $("startKm").value.trim();
+    const endRaw = $("endKm").value.trim();
+    const start = startRaw ? parseNumber(startRaw) : null;
+    const end = endRaw ? parseNumber(endRaw) : null;
+    if (start !== null && end !== null && end < start) {
+      alert("도착 주행거리는 출발 주행거리보다 작을 수 없습니다.");
+      return;
+    }
+    const weather = $("weather").value === "기타" ? $("customWeather").value.trim() : $("weather").value;
+    const result = {
+      date: $("date").value,
+      weather,
+      startKm: start,
+      endKm: end,
+      distance: start !== null && end !== null ? end - start : null,
+      origin: $("origin").value.trim(),
+      destination: $("destination").value.trim(),
+      waypoints: waypointList.join("-"),
+      fuelAndAdBlue: eventList,
+      memo: $("memo").value.trim()
+    };
+    $("message").textContent =
+      `입력 확인 완료 · 경로: ${[result.origin, ...waypointList, result.destination].filter(Boolean).join("-") || "없음"} · 주유/요소수 기록 ${eventList.length}건. 현재는 화면 입력 확인 단계이며 서버에 영구 저장되지는 않습니다.`;
+    console.log("차량운행일지 입력 확인:", result);
+  });
+</script>
 </body>
 </html>
