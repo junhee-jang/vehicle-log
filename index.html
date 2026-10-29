@@ -1,0 +1,424 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>진천팀 차량운행일지</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #f3f5f7;
+      color: #202b36;
+      font-family: Arial, sans-serif;
+    }
+
+    .container {
+      max-width: 680px;
+      margin: auto;
+    }
+
+    header {
+      background: #174c3c;
+      color: white;
+      padding: 22px;
+      border-radius: 14px;
+      margin-bottom: 18px;
+    }
+
+    header h1 {
+      font-size: 23px;
+      margin: 0 0 8px;
+    }
+
+    header p {
+      margin: 0;
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px #0000000a;
+    }
+
+    h2 {
+      font-size: 17px;
+      margin: 0 0 18px;
+    }
+
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: bold;
+      margin: 14px 0 7px;
+    }
+
+    input, select, textarea, button {
+      width: 100%;
+      font: inherit;
+      border-radius: 9px;
+    }
+
+    input, select, textarea {
+      padding: 12px;
+      border: 1px solid #d5dce1;
+      background: white;
+      min-height: 44px;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 75px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .distance {
+      margin-top: 14px;
+      padding: 14px;
+      background: #edf6f1;
+      border-radius: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .distance strong {
+      color: #176344;
+      font-size: 20px;
+    }
+
+    button {
+      border: none;
+      padding: 13px;
+      cursor: pointer;
+      font-weight: bold;
+      min-height: 46px;
+    }
+
+    .add {
+      margin-top: 12px;
+      background: #e7f1ec;
+      color: #174c3c;
+    }
+
+    .save {
+      background: #174c3c;
+      color: white;
+      font-size: 16px;
+    }
+
+    .waypoint {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .waypoint span {
+      flex: 1;
+      padding: 10px;
+      background: #f3f5f7;
+      border-radius: 8px;
+      overflow-wrap: anywhere;
+    }
+
+    .waypoint button {
+      width: auto;
+      min-width: 60px;
+      background: #fbeaea;
+      color: #9c3030;
+      padding: 10px;
+    }
+
+    #message {
+      margin-top: 12px;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    @media (max-width: 480px) {
+      body { padding: 12px; }
+      .card { padding: 16px; }
+      header { padding: 19px; }
+      header h1 { font-size: 21px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <header>
+      <h1>차량운행일지</h1>
+      <p>진천 제한·단속팀</p>
+    </header>
+
+    <form id="logForm">
+      <section class="card">
+        <h2>📅 운행 기본정보</h2>
+
+        <label for="date">운행일자</label>
+        <input type="date" id="date" required>
+
+        <label for="status">운행 상태</label>
+        <select id="status">
+          <option value="운행">운행</option>
+          <option value="미운행">미운행</option>
+          <option value="차량수리">차량수리</option>
+        </select>
+
+        <label for="weather">날씨</label>
+        <select id="weather">
+          <option>맑음</option>
+          <option>흐림</option>
+          <option>비</option>
+          <option>눈</option>
+          <option value="기타">기타 (직접 입력)</option>
+        </select>
+
+        <input id="customWeather" type="text"
+          placeholder="날씨 직접 입력"
+          style="display:none; margin-top:10px;">
+
+        <div class="grid">
+          <div>
+            <label for="startKm">출발 주행거리 (km)</label>
+            <input type="number" id="startKm" min="0"
+              step="0.1" placeholder="예: 12500">
+          </div>
+          <div>
+            <label for="endKm">도착 주행거리 (km)</label>
+            <input type="number" id="endKm" min="0"
+              step="0.1" placeholder="예: 12650">
+          </div>
+        </div>
+
+        <div class="distance">
+          <span>총 운행거리</span>
+          <strong><span id="distance">0</span> km</strong>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>📍 운행 경로</h2>
+
+        <label for="origin">출발지</label>
+        <input id="origin" placeholder="출발지 입력">
+
+        <label for="destination">최종 도착지</label>
+        <input id="destination" placeholder="최종 도착지 입력">
+
+        <label>경유지 순서</label>
+        <div id="waypoints"></div>
+
+        <div class="grid" style="margin-top:12px;">
+          <select id="branch">
+            <option value="">지사 선택</option>
+            <option>진천지사</option>
+            <option>보은지사</option>
+            <option>상주지사</option>
+            <option>기타 (직접 입력)</option>
+          </select>
+          <select id="office">
+            <option value="">영업소 선택</option>
+          </select>
+        </div>
+
+        <input id="customOffice" placeholder="경유지 직접 입력"
+          style="display:none; margin-top:10px;">
+
+        <button type="button" class="add" id="addWaypoint">
+          + 경유지 추가
+        </button>
+
+        <p style="font-size:12px;color:#65727e;">
+          선택한 순서대로 월말 자료에 대소-문의-회인 형식으로 기록합니다.
+        </p>
+      </section>
+
+      <section class="card">
+        <h2>📝 비고 및 메모</h2>
+        <textarea id="memo" placeholder="특이사항이나 메모 입력"></textarea>
+      </section>
+
+      <button class="save" type="submit">입력 내용 확인</button>
+      <p id="message"></p>
+    </form>
+  </main>
+
+  <script>
+    const offices = {
+      "진천지사": [
+        "남이천", "일죽", "대소", "진천",
+        "증평", "오창", "서청주"
+      ],
+      "보은지사": [
+        "문의", "회인", "보은", "속리산",
+        "화서", "남상주"
+      ],
+      "상주지사": [
+        "상주", "북상주", "점촌함창", "문경새재"
+      ]
+    };
+
+    const $ = id => document.getElementById(id);
+    const waypointList = [];
+
+    $("date").value =
+      new Date().toLocaleDateString("en-CA");
+
+    $("weather").addEventListener("change", () => {
+      $("customWeather").style.display =
+        $("weather").value === "기타" ? "block" : "none";
+    });
+
+    function updateDistance() {
+      const start = parseFloat($("startKm").value);
+      const end = parseFloat($("endKm").value);
+      const distance = $("startKm").value !== "" &&
+        $("endKm").value !== "" && end >= start
+        ? end - start : 0;
+      $("distance").textContent =
+        distance.toLocaleString("ko-KR");
+    }
+
+    $("startKm").addEventListener("input", updateDistance);
+    $("endKm").addEventListener("input", updateDistance);
+
+    $("branch").addEventListener("change", () => {
+      const branch = $("branch").value;
+      const office = $("office");
+      office.innerHTML = '<option value="">영업소 선택</option>';
+
+      if (branch === "기타 (직접 입력)") {
+        $("customOffice").style.display = "block";
+        office.style.display = "none";
+        return;
+      }
+
+      $("customOffice").style.display = "none";
+      office.style.display = "block";
+
+      (offices[branch] || []).forEach(name => {
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = name;
+        office.appendChild(option);
+      });
+
+      if (branch) {
+        const option = document.createElement("option");
+        option.value = "기타";
+        option.textContent = "기타 (직접 입력)";
+        office.appendChild(option);
+      }
+    });
+
+    $("office").addEventListener("change", () => {
+      const custom = $("office").value === "기타";
+      $("customOffice").style.display = custom ? "block" : "none";
+      if (custom) $("customOffice").placeholder = "영업소 이름 직접 입력";
+    });
+
+    $("addWaypoint").addEventListener("click", () => {
+      const branch = $("branch").value;
+      const office = $("office").value;
+      const custom = $("customOffice").value.trim();
+
+      let name = "";
+
+      if (branch === "기타 (직접 입력)") {
+        name = custom;
+      } else if (office === "기타") {
+        name = custom;
+      } else {
+        name = office;
+      }
+
+      if (!name) {
+        alert("지사와 영업소를 선택하거나 경유지를 직접 입력해 주세요.");
+        return;
+      }
+
+      waypointList.push(name);
+      renderWaypoints();
+
+      $("branch").value = "";
+      $("office").innerHTML = '<option value="">영업소 선택</option>';
+      $("customOffice").value = "";
+      $("customOffice").style.display = "none";
+      $("office").style.display = "block";
+    });
+
+    function renderWaypoints() {
+      $("waypoints").innerHTML = "";
+
+      waypointList.forEach((name, index) => {
+        const row = document.createElement("div");
+        row.className = "waypoint";
+
+        const text = document.createElement("span");
+        text.textContent = (index + 1) + ". " + name;
+
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.textContent = "삭제";
+        remove.addEventListener("click", () => {
+          waypointList.splice(index, 1);
+          renderWaypoints();
+        });
+
+        row.append(text, remove);
+        $("waypoints").appendChild(row);
+      });
+    }
+
+    $("logForm").addEventListener("submit", event => {
+      event.preventDefault();
+
+      const start = $("startKm").value;
+      const end = $("endKm").value;
+
+      if (start !== "" && end !== "" &&
+          Number(end) < Number(start)) {
+        alert("도착 주행거리는 출발 주행거리보다 작을 수 없습니다.");
+        return;
+      }
+
+      const weather = $("weather").value === "기타"
+        ? $("customWeather").value.trim()
+        : $("weather").value;
+
+      const result = {
+        date: $("date").value,
+        status: $("status").value,
+        weather,
+        startKm: start,
+        endKm: end,
+        distance: $("distance").textContent,
+        origin: $("origin").value.trim(),
+        destination: $("destination").value.trim(),
+        waypoints: waypointList.join("-"),
+        memo: $("memo").value.trim()
+      };
+
+      $("message").textContent =
+        "입력 확인 완료 — 경유지: " +
+        (result.waypoints || "없음") +
+        " / 실제 저장 기능은 다음 단계에서 연결합니다.";
+
+      console.log(result);
+    });
+  </script>
+</body>
+</html>
