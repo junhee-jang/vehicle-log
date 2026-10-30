@@ -55,6 +55,22 @@
     input:focus, select:focus, textarea:focus { outline: 2px solid #427e65; border-color: var(--green); }
     textarea { resize: vertical; min-height: 80px; }
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .destination-control {
+      display: flex;
+      align-items: stretch;
+      gap: 7px;
+    }
+    .destination-control input {
+      min-width: 0;
+      flex: 1;
+    }
+    .apply-destination {
+      width: auto;
+      flex: 0 0 auto;
+      padding: 8px 11px;
+      white-space: nowrap;
+      font-size: 12px;
+    }
     .distance {
       margin-top: 15px; padding: 14px;
       border: 1px solid #345746; background: #1b2a24;
@@ -183,7 +199,10 @@
         </div>
         <div>
           <label for="destination">최종 도착지</label>
-          <input id="destination" value="남청주" autocomplete="off">
+          <div class="destination-control">
+            <input id="destination" value="남청주" autocomplete="off">
+            <button type="button" class="secondary apply-destination" id="applyDestination">도착지 적용</button>
+          </div>
         </div>
       </div>
 
@@ -445,17 +464,25 @@
   }
 
   $("origin").addEventListener("input", renderWaypoints);
-  $("saveWaypointEdit").addEventListener("click", () => {
-    const name = $("editWaypointName").value.trim();
-    if (!name) { alert("영업소 이름을 입력해 주세요."); return; }
-    if (activeWaypointIndex >= 0) waypointList[activeWaypointIndex] = name;
+
+  // 최종 도착지를 경유지 맨 마지막에 적용
+  $("applyDestination").addEventListener("click", () => {
+    const destination = $("destination").value.trim();
+
+    if (!destination) {
+      alert("최종 도착지를 입력해 주세요.");
+      $("destination").focus();
+      return;
+    }
+
+    // 마지막 경유지와 같을 때만 중복 방지
+    if (waypointList[waypointList.length - 1] === destination) {
+      alert("이미 마지막 경유지에 적용된 장소입니다.");
+      return;
+    }
+
+    waypointList.push(destination);
     renderWaypoints();
-    $("waypointDialog").close();
-  });
-  $("deleteWaypoint").addEventListener("click", () => {
-    if (activeWaypointIndex >= 0) waypointList.splice(activeWaypointIndex, 1);
-    renderWaypoints();
-    $("waypointDialog").close();
   });
   $("addCustomWaypoint").addEventListener("click", () => {
     $("customWaypointName").value = "";
@@ -548,8 +575,18 @@
       fuelAndAdBlue: eventList,
       memo: $("memo").value.trim()
     };
+    const finalRoute = [...waypointList];
+
+    // 도착지를 아직 적용하지 않았다면 최종 경로에만 표시
+    if (
+      result.destination &&
+      finalRoute[finalRoute.length - 1] !== result.destination
+    ) {
+      finalRoute.push(result.destination);
+    }
+
     $("message").textContent =
-      `입력 확인 완료 · 경로: ${[result.origin, ...waypointList, result.destination].filter(Boolean).join("-") || "없음"} · 주유/요소수 기록 ${eventList.length}건. 현재는 화면 입력 확인 단계이며 서버에 영구 저장되지는 않습니다.`;
+      `입력 확인 완료 · 경로: ${[result.origin, ...finalRoute].filter(Boolean).join("-") || "없음"} · 주유/요소수 기록 ${eventList.length}건. 현재는 화면 입력 확인 단계이며 서버에 영구 저장되지는 않습니다.`;
     console.log("차량운행일지 입력 확인:", result);
   });
 </script>
