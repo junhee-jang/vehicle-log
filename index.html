@@ -123,6 +123,59 @@
     .option-list button { text-align: left; background: #252b35; border: 1px solid #3a4350; color: var(--text); }
     .option-list button:active { background: #294236; }
     .scroll-list { max-height: 42vh; overflow-y: auto; padding-right: 3px; }
+    .picker-layout {
+      display: grid;
+      grid-template-columns: 0.85fr 1.15fr;
+      gap: 10px;
+      margin-top: 17px;
+    }
+    .picker-heading {
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .branch-options {
+      display: grid;
+      gap: 8px;
+    }
+    .branch-options button {
+      text-align: center;
+      background: #252b35;
+      border: 1px solid #3a4350;
+      color: var(--text);
+    }
+    .branch-options button.selected {
+      background: #20372e;
+      border-color: var(--green);
+      color: #baf0d5;
+    }
+    .office-options {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 7px;
+      max-height: 225px;
+      overflow-y: auto;
+      padding-right: 3px;
+    }
+    .office-options button {
+      text-align: center;
+      background: #252b35;
+      border: 1px solid #3a4350;
+      color: var(--text);
+    }
+    .office-placeholder {
+      min-height: 110px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 10px;
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+    }
     .dialog-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 16px; }
     .dialog-actions.single { grid-template-columns: 1fr; }
     .hidden { display: none !important; }
@@ -137,6 +190,15 @@
       .distance strong { font-size: 19px; }
       .route-actions { grid-template-columns: 1fr; }
       .option-list { grid-template-columns: 1fr 1fr; }
+      .picker-layout {
+        grid-template-columns: 0.85fr 1.15fr;
+        gap: 8px;
+      }
+      .branch-options button,
+      .office-options button {
+        padding: 9px 5px;
+        font-size: 12px;
+      }
     }
     @media print {
       :root { color-scheme: light; --bg: #fff; --panel: #fff; --panel-2: #f5f5f5; --border: #ccc; --text: #111; --muted: #555; }
@@ -212,11 +274,9 @@
       </div>
 
       <div class="route-actions">
-        <button type="button" class="secondary" id="openOfficePicker">＋ 영업소 경유지 추가</button>
-        <button type="button" class="soft" id="addCustomWaypoint">＋ 기타 경유지 직접 입력</button>
+        <button type="button" class="secondary" id="openOfficePicker">＋ 경유지 추가</button>
       </div>
-      <p class="small-note">영업소를 누르면 순서 변경 대신 해당 영업소 이름을 수정하거나 삭제할 수 있어요. 경유지는 월말 자료에 남청주-대소-서청주 형식으로 정리됩니다.</p>
-    </section>
+      <p class="small-note">경로 목록의 장소를 누르면 변경·추가·삭제할 수 있습니다. 첫 번째 출발지도 같은 방식으로 관리합니다.</p>    </section>
 
     <section class="card">
       <h2>⛽ 주유 · 요소수 기록</h2>
@@ -255,36 +315,46 @@
   </form>
 </main>
 
-<dialog id="branchDialog">
+<dialog id="routePickerDialog">
   <div class="dialog-inner">
-    <h3>1단계 · 지사 선택</h3>
-    <p class="dialog-subtitle">지사를 선택하면 해당 지사의 영업소가 나옵니다.</p>
-    <div id="branchOptions" class="option-list"></div>
-    <div class="dialog-actions single"><button type="button" class="soft" data-close="branchDialog">취소</button></div>
-  </div>
-</dialog>
+    <h3>경유지 선택</h3>
+    <p class="dialog-subtitle">장소를 직접 입력하거나 지사를 선택하세요.</p>
 
-<dialog id="officeDialog">
-  <div class="dialog-inner">
-    <h3 id="officeDialogTitle">2단계 · 영업소 선택</h3>
-    <p class="dialog-subtitle">목록에서 영업소를 선택하세요. 목록은 스크롤할 수 있습니다.</p>
-    <div id="officeOptions" class="option-list scroll-list"></div>
+    <div class="destination-control">
+      <input id="routeSearchInput" placeholder="영업소명 또는 장소 직접 입력" autocomplete="off">
+      <button type="button" class="secondary apply-destination" id="addTypedPlace">입력</button>
+    </div>
+
+    <div class="picker-layout">
+      <div>
+        <p class="picker-heading">지사 선택</p>
+        <div id="branchOptions" class="branch-options"></div>
+      </div>
+
+      <div>
+        <p class="picker-heading">영업소 목록</p>
+        <div id="officePlaceholder" class="office-placeholder">
+          지사를 선택하면<br>목록이 표시됩니다.
+        </div>
+        <div id="officeOptions" class="office-options hidden"></div>
+      </div>
+    </div>
+
     <div class="dialog-actions single">
-      <button type="button" class="soft" id="backToBranches">← 지사 다시 선택</button>
-      <button type="button" class="soft" data-close="officeDialog">취소</button>
+      <button type="button" class="soft" data-close="routePickerDialog">취소</button>
     </div>
   </div>
 </dialog>
 
-<dialog id="customWaypointDialog">
+<dialog id="routeActionDialog">
   <div class="dialog-inner">
-    <h3>기타 경유지 추가</h3>
-    <p class="dialog-subtitle">영업소 외 장소를 직접 입력하세요.</p>
-    <label for="customWaypointName">장소 이름</label>
-    <input id="customWaypointName" placeholder="예: 정비소, 주차장" autocomplete="off">
-    <div class="dialog-actions">
-      <button type="button" class="secondary" id="saveCustomWaypoint">추가</button>
-      <button type="button" class="soft" data-close="customWaypointDialog">취소</button>
+    <h3 id="routeActionTitle">경로 편집</h3>
+    <p class="dialog-subtitle">원하는 작업을 선택하세요.</p>
+    <div class="dialog-actions single">
+      <button type="button" class="secondary" id="routeChange">변경</button>
+      <button type="button" class="secondary" id="routeInsert">이 위치 앞에 경유지 추가</button>
+      <button type="button" class="danger" id="routeDelete">삭제</button>
+      <button type="button" class="soft" data-close="routeActionDialog">취소</button>
     </div>
   </div>
 </dialog>
@@ -299,8 +369,10 @@
   const waypointList = [];
   const eventList = [];
   let selectedBranch = "";
-  // activeWaypointIndex가 -1이면 새 경유지 추가, 0 이상이면 해당 경유지 변경
-  let activeWaypointIndex = -1;
+  let routeEditMode = "add";
+  let routeEditIndex = -1;
+  let routeActionType = "";
+  let routeActionIndex = -1;
 
   $("date").value = localDateString(new Date());
   $("fuelDate").value = localDateTimeString(new Date());
@@ -358,80 +430,167 @@
     button.addEventListener("click", () => $(button.dataset.close).close());
   });
 
-  function openBranchPicker(editIndex = -1) {
-    activeWaypointIndex = editIndex;
+  // 경로 선택 팝업 열기
+  function openRoutePicker(mode = "add", index = -1) {
+    routeEditMode = mode;
+    routeEditIndex = index;
+    selectedBranch = "";
+
+    $("routeSearchInput").value = "";
     $("branchOptions").innerHTML = "";
-    const title = $("branchDialog").querySelector("h3");
-    title.textContent = editIndex >= 0 ? "1단계 · 경유지 변경 - 지사 선택" : "1단계 · 지사 선택";
+    $("officeOptions").innerHTML = "";
+    $("officeOptions").classList.add("hidden");
+    $("officePlaceholder").classList.remove("hidden");
 
     Object.keys(offices).forEach(branch => {
       const button = document.createElement("button");
       button.type = "button";
       button.textContent = branch;
+
       button.addEventListener("click", () => {
         selectedBranch = branch;
-        $("branchDialog").close();
+
+        document.querySelectorAll("#branchOptions button")
+          .forEach(item => item.classList.remove("selected"));
+        button.classList.add("selected");
+
         renderOfficeOptions();
-        $("officeDialog").showModal();
       });
+
       $("branchOptions").appendChild(button);
     });
 
-    const custom = document.createElement("button");
-    custom.type = "button";
-    custom.textContent = "기타 (직접 입력)";
-    custom.addEventListener("click", () => {
-      $("branchDialog").close();
-      $("customWaypointName").value = editIndex >= 0 ? waypointList[editIndex] : "";
-      $("customWaypointDialog").showModal();
-    });
-    $("branchOptions").appendChild(custom);
-    $("branchDialog").showModal();
+    $("routePickerDialog").showModal();
+    $("routeSearchInput").focus();
   }
 
+  // 선택한 지사의 영업소 목록 표시
   function renderOfficeOptions() {
-    $("officeDialogTitle").textContent =
-      (activeWaypointIndex >= 0 ? "2단계 · 변경할 " : "2단계 · ") + selectedBranch + " 영업소 선택";
     $("officeOptions").innerHTML = "";
+    $("officePlaceholder").classList.add("hidden");
+    $("officeOptions").classList.remove("hidden");
 
     (offices[selectedBranch] || []).forEach(name => {
       const button = document.createElement("button");
       button.type = "button";
       button.textContent = name;
+
       button.addEventListener("click", () => {
-        if (activeWaypointIndex >= 0) {
-          waypointList[activeWaypointIndex] = name;
-        } else {
-          waypointList.push(name);
-        }
-        renderWaypoints();
-        $("officeDialog").close();
-        activeWaypointIndex = -1;
+        applyRoutePlace(name);
       });
+
       $("officeOptions").appendChild(button);
     });
   }
 
-  $("openOfficePicker").addEventListener("click", () => openBranchPicker(-1));
-  $("backToBranches").addEventListener("click", () => {
-    $("officeDialog").close();
-    openBranchPicker(activeWaypointIndex);
+  // 장소를 경로에 반영
+  function applyRoutePlace(name) {
+    name = name.trim();
+    if (!name) return;
+
+    if (routeEditMode === "origin") {
+      $("origin").value = name;
+    } else if (routeEditMode === "change") {
+      waypointList[routeEditIndex] = name;
+    } else if (routeEditMode === "insert") {
+      waypointList.splice(routeEditIndex, 0, name);
+    } else {
+      waypointList.push(name);
+    }
+
+    renderWaypoints();
+    $("routePickerDialog").close();
+  }
+
+  // 상단 직접 입력으로 장소 추가·변경
+  $("addTypedPlace").addEventListener("click", () => {
+    const name = $("routeSearchInput").value.trim();
+
+    if (!name) {
+      alert("장소 이름을 입력해 주세요.");
+      $("routeSearchInput").focus();
+      return;
+    }
+
+    applyRoutePlace(name);
   });
 
+  $("routeSearchInput").addEventListener("keydown", event => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      $("addTypedPlace").click();
+    }
+  });
+
+  // 경유지 추가 버튼
+  $("openOfficePicker").addEventListener("click", () => {
+    openRoutePicker("add");
+  });
+
+  // 경로 항목을 눌렀을 때 작업 메뉴
+  function openRouteAction(type, index = -1) {
+    routeActionType = type;
+    routeActionIndex = index;
+
+    const isOrigin = type === "origin";
+
+    $("routeActionTitle").textContent = isOrigin
+      ? "출발지 편집"
+      : "경유지 편집";
+
+    $("routeInsert").classList.toggle("hidden", isOrigin);
+    $("routeActionDialog").showModal();
+  }
+
+  // 변경
+  $("routeChange").addEventListener("click", () => {
+    const mode = routeActionType === "origin" ? "origin" : "change";
+    const index = routeActionIndex;
+
+    $("routeActionDialog").close();
+    openRoutePicker(mode, index);
+  });
+
+  // 선택한 경유지 바로 앞에 추가
+  $("routeInsert").addEventListener("click", () => {
+    const index = routeActionIndex;
+
+    $("routeActionDialog").close();
+    openRoutePicker("insert", index);
+  });
+
+  // 삭제
+  $("routeDelete").addEventListener("click", () => {
+    if (routeActionType === "origin") {
+      $("origin").value = "";
+    } else {
+      waypointList.splice(routeActionIndex, 1);
+    }
+
+    renderWaypoints();
+    $("routeActionDialog").close();
+  });
+
+  // 경로 목록 다시 그리기
   function renderWaypoints() {
     const holder = $("waypoints");
     holder.innerHTML = "";
 
-    // 경로 맨 앞은 출발지 입력값을 그대로 사용한다.
     const route = [];
     const origin = $("origin").value.trim();
-    if (origin) route.push({ name: origin, type: "origin" });
-    waypointList.forEach((name, index) => route.push({ name, type: "waypoint", index }));
+
+    if (origin) {
+      route.push({ name: origin, type: "origin" });
+    }
+
+    waypointList.forEach((name, index) => {
+      route.push({ name, type: "waypoint", index });
+    });
 
     if (!route.length) {
       const empty = document.createElement("span");
       empty.className = "empty-route";
-      empty.textContent = "출발지를 입력한 뒤 경유지를 추가해 주세요.";
+      empty.textContent = "경로가 비어 있습니다. 경유지를 추가해 주세요.";
       holder.appendChild(empty);
       return;
     }
@@ -444,26 +603,48 @@
         holder.appendChild(dash);
       }
 
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "route-chip";
+
       if (item.type === "origin") {
-        const chip = document.createElement("span");
-        chip.className = "route-chip";
-        chip.style.cursor = "default";
-        chip.textContent = item.name;
-        chip.title = "출발지 입력란에서 변경할 수 있습니다.";
-        holder.appendChild(chip);
+        chip.textContent = item.name + " (출발)";
+        chip.title = "출발지 변경 또는 삭제";
+        chip.addEventListener("click", () => {
+          openRouteAction("origin");
+        });
       } else {
-        const chip = document.createElement("button");
-        chip.type = "button";
-        chip.className = "route-chip";
         chip.textContent = item.name;
-        chip.title = "눌러서 지사·영업소 선택 또는 직접 입력으로 변경";
-        chip.addEventListener("click", () => openBranchPicker(item.index));
-        holder.appendChild(chip);
+        chip.title = "변경 / 이 위치 앞에 추가 / 삭제";
+        chip.addEventListener("click", () => {
+          openRouteAction("waypoint", item.index);
+        });
       }
+
+      holder.appendChild(chip);
     });
   }
 
   $("origin").addEventListener("input", renderWaypoints);
+
+  // 최종 도착지를 경유지 맨 마지막에 적용
+  $("applyDestination").addEventListener("click", () => {
+    const destination = $("destination").value.trim();
+
+    if (!destination) {
+      alert("최종 도착지를 입력해 주세요.");
+      $("destination").focus();
+      return;
+    }
+
+    if (waypointList[waypointList.length - 1] === destination) {
+      alert("이미 마지막 경유지에 적용된 장소입니다.");
+      return;
+    }
+
+    waypointList.push(destination);
+    renderWaypoints();
+  });
 
   // 최종 도착지를 경유지 맨 마지막에 적용
   $("applyDestination").addEventListener("click", () => {
@@ -483,26 +664,6 @@
 
     waypointList.push(destination);
     renderWaypoints();
-  });
-  $("addCustomWaypoint").addEventListener("click", () => {
-    $("customWaypointName").value = "";
-    $("customWaypointDialog").showModal();
-  });
-  $("saveCustomWaypoint").addEventListener("click", () => {
-    const name = $("customWaypointName").value.trim();
-    if (!name) { alert("장소 이름을 입력해 주세요."); return; }
-
-    if (activeWaypointIndex >= 0) {
-      waypointList[activeWaypointIndex] = name;
-    } else {
-      waypointList.push(name);
-    }
-    renderWaypoints();
-    $("customWaypointDialog").close();
-    activeWaypointIndex = -1;
-  });
-  $("customWaypointName").addEventListener("keydown", event => {
-    if (event.key === "Enter") { event.preventDefault(); $("saveCustomWaypoint").click(); }
   });
 
   $("addEvent").addEventListener("click", () => {
@@ -526,8 +687,7 @@
     $("eventCost").value = "";
     $("eventMemo").value = "";
     $("fuelDate").value = localDateTimeString(new Date());
-  renderWaypoints();
-  });
+    });
   function renderEvents() {
     const holder = $("eventList");
     holder.innerHTML = "";
