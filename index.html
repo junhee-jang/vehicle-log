@@ -231,7 +231,18 @@
 
       <label for="weather">날씨</label>
       <select id="weather">
-        <option>맑음</option><option>흐림</option><option>비</option><option>눈</option>
+        <option>맑음</option>
+        <option>무더운</option>
+        <option>비</option>
+        <option>눈</option>
+        <option>흐림</option>
+        <option>안개</option>
+        <option>바람</option>
+        <option>폭풍</option>
+        <option>태풍</option>
+        <option>추운</option>
+        <option>폭우</option>
+        <option>폭설</option>
         <option value="기타">기타 (직접 입력)</option>
       </select>
       <input id="customWeather" class="hidden" type="text" placeholder="날씨 직접 입력" style="margin-top:9px;">
@@ -608,7 +619,7 @@
       chip.className = "route-chip";
 
       if (item.type === "origin") {
-        chip.textContent = item.name + " (출발)";
+        chip.textContent = item.name;
         chip.title = "출발지 변경 또는 삭제";
         chip.addEventListener("click", () => {
           openRouteAction("origin");
@@ -628,23 +639,23 @@
   $("origin").addEventListener("input", renderWaypoints);
 
   // 최종 도착지를 경유지 맨 마지막에 적용
-  $("applyDestination").addEventListener("click", () => {
-    const destination = $("destination").value.trim();
+$("applyDestination").addEventListener("click", () => {
+  const destination = $("destination").value.trim();
 
-    if (!destination) {
-      alert("최종 도착지를 입력해 주세요.");
-      $("destination").focus();
-      return;
-    }
+  if (!destination) {
+    alert("최종 도착지를 입력해 주세요.");
+    $("destination").focus();
+    return;
+  }
 
-    if (waypointList[waypointList.length - 1] === destination) {
-      alert("이미 마지막 경유지에 적용된 장소입니다.");
-      return;
-    }
+  if (waypointList[waypointList.length - 1] === destination) {
+    alert("이미 도착지에 적용된 장소입니다.");
+    return;
+  }
 
-    waypointList.push(destination);
-    renderWaypoints();
-  });
+  waypointList.push(destination);
+  renderWaypoints();
+});
 
   // 최종 도착지를 경유지 맨 마지막에 적용
   $("applyDestination").addEventListener("click", () => {
