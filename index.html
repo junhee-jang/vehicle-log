@@ -97,9 +97,20 @@
       border-radius: 9px; padding: 8px 10px; cursor: pointer;
       font-size: 13px; font-weight: 650; width: auto; min-height: 0;
     }
-    .route-dash { color: #788392; }
+    .route-dash { color: #788392; align-self: flex-start; padding-top: 9px; }
+    .route-stop { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+    .route-times { display: grid; gap: 2px; padding-left: 3px; color: var(--muted); font-size: 10px; line-height: 1.35; }
+    .route-time-row { white-space: nowrap; }
     .empty-route { color: var(--muted); font-size: 13px; padding: 3px; }
-    .route-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 11px; }
+    .route-actions { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 11px; }
+    .time-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0 4px; }
+    .time-fields label { margin-top: 0; }
+    .time-fields input { min-width: 0; }
+    .saved-office-area { margin-top: 14px; }
+    .saved-office-list { display: grid; gap: 7px; max-height: 150px; overflow-y: auto; }
+    .saved-office-row { display: flex; gap: 7px; align-items: center; }
+    .saved-office-row button:first-child { flex: 1; text-align: left; }
+    .saved-office-row button:last-child { width: auto; min-width: 58px; }
     .small-note { color: var(--muted); font-size: 12px; line-height: 1.5; margin: 10px 0 0; }
     .event-list { display: grid; gap: 9px; margin-top: 12px; }
     .event-item {
@@ -333,7 +344,12 @@
 
     <div class="destination-control">
       <input id="routeSearchInput" placeholder="영업소명 또는 장소 직접 입력" autocomplete="off">
-      <button type="button" class="secondary apply-destination" id="addTypedPlace">입력</button>
+      <button type="button" class="secondary apply-destination" id="addTypedPlace">경로에 추가</button>
+    </div>
+    <div class="saved-office-area">
+      <p class="picker-heading">저장한 영업소</p>
+      <div id="savedOfficeList" class="saved-office-list"></div>
+      <button type="button" class="soft" id="saveOffice" style="margin-top:9px;">현재 입력한 장소를 영업소로 저장</button>
     </div>
 
     <div class="picker-layout">
@@ -361,8 +377,20 @@
   <div class="dialog-inner">
     <h3 id="routeActionTitle">경로 편집</h3>
     <p class="dialog-subtitle">원하는 작업을 선택하세요.</p>
+    <div class="time-fields">
+      <div>
+        <label for="routeDepartureTime">출발시간 (선택)</label>
+        <input type="time" id="routeDepartureTime">
+      </div>
+      <div>
+        <label for="routeArrivalTime">도착시간 (선택)</label>
+        <input type="time" id="routeArrivalTime">
+      </div>
+    </div>
+    <p class="small-note">시간을 입력하지 않아도 저장할 수 있습니다.</p>
     <div class="dialog-actions single">
-      <button type="button" class="secondary" id="routeChange">변경</button>
+      <button type="button" class="primary" id="saveRouteTimes">시간 입력 저장</button>
+      <button type="button" class="secondary" id="routeChange">장소 변경</button>
       <button type="button" class="secondary" id="routeInsert">이 위치 앞에 경유지 추가</button>
       <button type="button" class="danger" id="routeDelete">삭제</button>
       <button type="button" class="soft" data-close="routeActionDialog">취소</button>
@@ -379,6 +407,9 @@
   const $ = id => document.getElementById(id);
   const waypointList = [];
   const eventList = [];
+  const STORAGE_OFFICES_KEY = "vehicleLogSavedOffices";
+  let savedOffices = loadSavedOffices();
+  const originTimes = { departureTime: "", arrivalTime: "" };
   let selectedBranch = "";
   let routeEditMode = "add";
   let routeEditIndex = -1;
@@ -388,6 +419,7 @@
   $("date").value = localDateString(new Date());
   $("fuelDate").value = localDateTimeString(new Date());
   renderWaypoints();
+  renderSavedOffices();
 
   function localDateString(date) {
     const offset = date.getTimezoneOffset();
@@ -399,6 +431,53 @@
   }
   function parseNumber(value) {
     return Number(String(value).replace(/,/g, "").trim());
+  }
+  function loadSavedOffices() {
+    try {
+      const value = JSON.parse(localStorage.getItem(STORAGE_OFFICES_KEY) || "[]");
+      return Array.isArray(value) ? value.filter(name => typeof name === "string" && name.trim()) : [];
+    } catch (error) {
+      return [];
+    }
+  }
+  function saveSavedOffices() {
+    try {
+      localStorage.setItem(STORAGE_OFFICES_KEY, JSON.stringify(savedOffices));
+    } catch (error) {
+      alert("이 브라우저에서는 영업소 저장을 사용할 수 없습니다.");
+    }
+  }
+  function renderSavedOffices() {
+    const holder = $("savedOfficeList");
+    if (!holder) return;
+    holder.innerHTML = "";
+    if (!savedOffices.length) {
+      const empty = document.createElement("span");
+      empty.className = "small-note";
+      empty.textContent = "저장한 영업소가 없습니다.";
+      holder.appendChild(empty);
+      return;
+    }
+    savedOffices.forEach(name => {
+      const row = document.createElement("div");
+      row.className = "saved-office-row";
+      const select = document.createElement("button");
+      select.type = "button";
+      select.className = "soft";
+      select.textContent = name;
+      select.addEventListener("click", () => applyRoutePlace(name));
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "danger";
+      remove.textContent = "삭제";
+      remove.addEventListener("click", () => {
+        savedOffices = savedOffices.filter(item => item !== name);
+        saveSavedOffices();
+        renderSavedOffices();
+      });
+      row.append(select, remove);
+      holder.appendChild(row);
+    });
   }
   function formatIntegerInput(input) {
     const raw = input.value.replace(/,/g, "").replace(/[^\d.]/g, "");
@@ -448,6 +527,7 @@
     selectedBranch = "";
 
     $("routeSearchInput").value = "";
+    renderSavedOffices();
     $("branchOptions").innerHTML = "";
     $("officeOptions").innerHTML = "";
     $("officeOptions").classList.add("hidden");
@@ -502,11 +582,11 @@
     if (routeEditMode === "origin") {
       $("origin").value = name;
     } else if (routeEditMode === "change") {
-      waypointList[routeEditIndex] = name;
+      waypointList[routeEditIndex].name = name;
     } else if (routeEditMode === "insert") {
-      waypointList.splice(routeEditIndex, 0, name);
+      waypointList.splice(routeEditIndex, 0, { name, departureTime: "", arrivalTime: "" });
     } else {
-      waypointList.push(name);
+      waypointList.push({ name, departureTime: "", arrivalTime: "" });
     }
 
     renderWaypoints();
@@ -516,14 +596,29 @@
   // 상단 직접 입력으로 장소 추가·변경
   $("addTypedPlace").addEventListener("click", () => {
     const name = $("routeSearchInput").value.trim();
-
     if (!name) {
       alert("장소 이름을 입력해 주세요.");
       $("routeSearchInput").focus();
       return;
     }
-
     applyRoutePlace(name);
+  });
+
+  $("saveOffice").addEventListener("click", () => {
+    const name = $("routeSearchInput").value.trim();
+    if (!name) {
+      alert("저장할 영업소명을 먼저 입력해 주세요.");
+      $("routeSearchInput").focus();
+      return;
+    }
+    if (savedOffices.includes(name)) {
+      alert("이미 저장된 영업소입니다.");
+      return;
+    }
+    savedOffices.push(name);
+    saveSavedOffices();
+    renderSavedOffices();
+    alert("영업소 목록에 저장했습니다.");
   });
 
   $("routeSearchInput").addEventListener("keydown", event => {
@@ -550,8 +645,21 @@
       : "경유지 편집";
 
     $("routeInsert").classList.toggle("hidden", isOrigin);
+    const times = isOrigin ? originTimes : (waypointList[index] || {});
+    $("routeDepartureTime").value = times.departureTime || "";
+    $("routeArrivalTime").value = times.arrivalTime || "";
     $("routeActionDialog").showModal();
   }
+
+  $("saveRouteTimes").addEventListener("click", () => {
+    const target = routeActionType === "origin" ? originTimes : waypointList[routeActionIndex];
+    if (target) {
+      target.departureTime = $("routeDepartureTime").value;
+      target.arrivalTime = $("routeArrivalTime").value;
+    }
+    renderWaypoints();
+    $("routeActionDialog").close();
+  });
 
   // 변경
   $("routeChange").addEventListener("click", () => {
@@ -574,6 +682,8 @@
   $("routeDelete").addEventListener("click", () => {
     if (routeActionType === "origin") {
       $("origin").value = "";
+      originTimes.departureTime = "";
+      originTimes.arrivalTime = "";
     } else {
       waypointList.splice(routeActionIndex, 1);
     }
@@ -591,11 +701,11 @@
     const origin = $("origin").value.trim();
 
     if (origin) {
-      route.push({ name: origin, type: "origin" });
+      route.push({ name: origin, type: "origin", ...originTimes });
     }
 
-    waypointList.forEach((name, index) => {
-      route.push({ name, type: "waypoint", index });
+    waypointList.forEach((point, index) => {
+      route.push({ name: point.name, type: "waypoint", index, ...point });
     });
 
     if (!route.length) {
@@ -614,66 +724,48 @@
         holder.appendChild(dash);
       }
 
+      const stop = document.createElement("div");
+      stop.className = "route-stop";
       const chip = document.createElement("button");
       chip.type = "button";
       chip.className = "route-chip";
-
+      chip.textContent = item.name;
       if (item.type === "origin") {
-        chip.textContent = item.name;
-        chip.title = "출발지 변경 또는 삭제";
-        chip.addEventListener("click", () => {
-          openRouteAction("origin");
-        });
+        chip.title = "출발지 및 시간 편집";
+        chip.addEventListener("click", () => openRouteAction("origin"));
       } else {
-        chip.textContent = item.name;
-        chip.title = "변경 / 이 위치 앞에 추가 / 삭제";
-        chip.addEventListener("click", () => {
-          openRouteAction("waypoint", item.index);
-        });
+        chip.title = "경유지 및 시간 편집";
+        chip.addEventListener("click", () => openRouteAction("waypoint", item.index));
       }
-
-      holder.appendChild(chip);
+      const times = document.createElement("div");
+      times.className = "route-times";
+      const departure = document.createElement("span");
+      departure.className = "route-time-row";
+      departure.textContent = `출발: ${item.departureTime || ""}`;
+      const arrival = document.createElement("span");
+      arrival.className = "route-time-row";
+      arrival.textContent = `도착: ${item.arrivalTime || ""}`;
+      times.append(departure, arrival);
+      stop.append(chip, times);
+      holder.appendChild(stop);
     });
   }
 
   $("origin").addEventListener("input", renderWaypoints);
 
-  // 최종 도착지를 경유지 맨 마지막에 적용
-$("applyDestination").addEventListener("click", () => {
-  const destination = $("destination").value.trim();
-
-  if (!destination) {
-    alert("최종 도착지를 입력해 주세요.");
-    $("destination").focus();
-    return;
-  }
-
-  if (waypointList[waypointList.length - 1] === destination) {
-    alert("이미 도착지에 적용된 장소입니다.");
-    return;
-  }
-
-  waypointList.push(destination);
-  renderWaypoints();
-});
-
-  // 최종 도착지를 경유지 맨 마지막에 적용
+  // 최종 도착지를 경유지 맨 마지막에 적용 (이벤트 중복 등록 방지)
   $("applyDestination").addEventListener("click", () => {
     const destination = $("destination").value.trim();
-
     if (!destination) {
       alert("최종 도착지를 입력해 주세요.");
       $("destination").focus();
       return;
     }
-
-    // 마지막 경유지와 같을 때만 중복 방지
-    if (waypointList[waypointList.length - 1] === destination) {
-      alert("이미 마지막 경유지에 적용된 장소입니다.");
+    if (waypointList.length && waypointList[waypointList.length - 1].name === destination) {
+      alert("이미 도착지에 적용된 장소입니다.");
       return;
     }
-
-    waypointList.push(destination);
+    waypointList.push({ name: destination, departureTime: "", arrivalTime: "" });
     renderWaypoints();
   });
 
@@ -742,11 +834,15 @@ $("applyDestination").addEventListener("click", () => {
       distance: start !== null && end !== null ? end - start : null,
       origin: $("origin").value.trim(),
       destination: $("destination").value.trim(),
-      waypoints: waypointList.join("-"),
+      waypoints: waypointList.map(point => point.name).join("-"),
+      routeDetails: [
+        { name: $("origin").value.trim(), type: "origin", ...originTimes },
+        ...waypointList.map(point => ({ type: "waypoint", ...point }))
+      ].filter(point => point.name),
       fuelAndAdBlue: eventList,
       memo: $("memo").value.trim()
     };
-    const finalRoute = [...waypointList];
+    const finalRoute = waypointList.map(point => point.name);
 
     // 도착지를 아직 적용하지 않았다면 최종 경로에만 표시
     if (
