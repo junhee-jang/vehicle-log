@@ -55,6 +55,27 @@
     input:focus, select:focus, textarea:focus { outline: 2px solid #427e65; border-color: var(--green); }
     textarea { resize: vertical; min-height: 80px; }
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .basic-info-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr 0.9fr;
+      gap: 9px;
+      align-items: end;
+    }
+    .basic-info-grid > div { min-width: 0; }
+    .basic-info-grid label {
+      margin: 0 0 7px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .basic-info-grid input,
+    .basic-info-grid select {
+      width: 100%;
+      min-width: 0;
+      min-height: 43px;
+      padding: 9px 7px;
+      font-size: 13px;
+    }
+    .basic-info-custom-weather { margin-top: 9px; }
     .destination-control {
       display: flex;
       align-items: stretch;
@@ -103,6 +124,21 @@
     .route-time-row { white-space: nowrap; }
     .empty-route { color: var(--muted); font-size: 13px; padding: 3px; }
     .route-actions { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 11px; }
+    .route-heading-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    .route-heading-row label { margin: 0; }
+    .route-heading-row button {
+      width: auto;
+      min-height: 36px;
+      padding: 7px 11px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
     .time-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0 4px; }
     .time-fields label { margin-top: 0; }
     .time-fields input { min-width: 0; }
@@ -209,9 +245,18 @@
       h1 { font-size: 21px; }
       .card { padding: 15px; }
       .grid, .fuel-grid { grid-template-columns: 1fr 1fr; gap: 9px; }
+      .basic-info-grid { grid-template-columns: 1.1fr 0.95fr 0.85fr; gap: 6px; }
+      .basic-info-grid label { font-size: 11px; }
+      .basic-info-grid input, .basic-info-grid select {
+        min-height: 42px;
+        padding: 8px 5px;
+        font-size: 12px;
+      }
       .distance { align-items: flex-start; }
       .distance strong { font-size: 19px; }
       .route-actions { grid-template-columns: 1fr; }
+      .route-heading-row { gap: 6px; }
+      .route-heading-row button { padding: 7px 8px; font-size: 11px; }
       .time-picker-columns { grid-template-columns: 0.9fr 1fr 1fr; gap: 6px; }
       .time-picker-options { max-height: 210px; }
       .time-picker-option { min-height: 40px; font-size: 15px; }
@@ -252,41 +297,35 @@
   <form id="logForm">
     <section class="card">
       <h2>📅 운행 기본정보</h2>
-      <label for="date">운행일자</label>
-      <input type="date" id="date" required>
-
-      <label for="weather">날씨</label>
-      <select id="weather">
-        <option>맑음</option>
-        <option>무더운</option>
-        <option>비</option>
-        <option>눈</option>
-        <option>흐림</option>
-        <option>안개</option>
-        <option>바람</option>
-        <option>폭풍</option>
-        <option>태풍</option>
-        <option>추운</option>
-        <option>폭우</option>
-        <option>폭설</option>
-        <option value="기타">기타 (직접 입력)</option>
-      </select>
-      <input id="customWeather" class="hidden" type="text" placeholder="날씨 직접 입력" style="margin-top:9px;">
-
-      <div class="grid">
+      <div class="basic-info-grid">
         <div>
-          <label for="startKm">출발 주행거리 (km)</label>
-          <input type="text" inputmode="decimal" id="startKm" placeholder="예: 12,500" autocomplete="off">
+          <label for="previousKm">직전 운행거리 (km)</label>
+          <input type="text" inputmode="numeric" id="previousKm" placeholder="예: 125,000" autocomplete="off">
         </div>
         <div>
-          <label for="endKm">도착 주행거리 (km)</label>
-          <input type="text" inputmode="decimal" id="endKm" placeholder="예: 12,650" autocomplete="off">
+          <label for="date">운행일자</label>
+          <input type="date" id="date" required>
+        </div>
+        <div>
+          <label for="weather">날씨</label>
+          <select id="weather">
+            <option>맑음</option>
+            <option>무더운</option>
+            <option>비</option>
+            <option>눈</option>
+            <option>흐림</option>
+            <option>안개</option>
+            <option>바람</option>
+            <option>폭풍</option>
+            <option>태풍</option>
+            <option>추운</option>
+            <option>폭우</option>
+            <option>폭설</option>
+            <option value="기타">기타 (직접 입력)</option>
+          </select>
         </div>
       </div>
-      <div class="distance">
-        <div class="distance-label">총 운행거리<span class="hint">(도착 주행거리 입력 시 자동계산)</span></div>
-        <strong><span id="distance">0</span> km</strong>
-      </div>
+      <input id="customWeather" class="hidden basic-info-custom-weather" type="text" placeholder="날씨 직접 입력" autocomplete="off">
     </section>
 
     <section class="card">
@@ -305,15 +344,19 @@
         </div>
       </div>
 
-      <label>경유지 순서</label>
+      <div class="route-heading-row">
+        <label>경유지 순서</label>
+        <button type="button" class="secondary" id="openOfficePicker">＋ 경유지 추가</button>
+      </div>
       <div id="waypoints" class="route-line" aria-live="polite">
         <span class="empty-route">출발지를 기준으로 경유지를 추가해 주세요.</span>
       </div>
-
-      <div class="route-actions">
-        <button type="button" class="secondary" id="openOfficePicker">＋ 경유지 추가</button>
-      </div>
       <p class="small-note">경로 목록의 장소를 누르면 변경·추가·삭제할 수 있습니다. 첫 번째 출발지도 같은 방식으로 관리합니다.</p>    </section>
+
+    <section class="card">
+      <h2>📝 비고 및 메모</h2>
+      <textarea id="memo" placeholder="특이사항이나 메모 입력"></textarea>
+    </section>
 
     <section class="card">
       <h2>⛽ 주유 · 요소수 기록</h2>
@@ -340,11 +383,6 @@
       <input id="eventMemo" placeholder="주유소명 또는 특이사항">
       <button type="button" class="secondary" id="addEvent" style="margin-top:12px;">＋ 기록 추가</button>
       <div id="eventList" class="event-list"></div>
-    </section>
-
-    <section class="card">
-      <h2>📝 비고 및 메모</h2>
-      <textarea id="memo" placeholder="특이사항이나 메모 입력"></textarea>
     </section>
 
     <button class="primary" type="submit">입력 내용 확인</button>
@@ -470,33 +508,18 @@
     const integer = (parts[0] || "").replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     input.value = parts.length > 1 ? integer + "." + parts.slice(1).join("") : integer;
   }
-  ["startKm", "endKm", "eventCost"].forEach(id => {
+  ["previousKm", "eventCost"].forEach(id => {
     $(id).addEventListener("input", () => {
       const el = $(id);
       const pos = el.selectionStart;
       const before = el.value;
       formatIntegerInput(el);
       if (pos !== null && before.length === el.value.length) el.setSelectionRange(pos, pos);
-      if (id === "startKm" || id === "endKm") updateDistance();
-    });
-    $(id).addEventListener("blur", () => {
-      if (id === "startKm" || id === "endKm") updateDistance();
     });
   });
   $("eventAmount").addEventListener("input", () => {
     $("eventAmount").value = $("eventAmount").value.replace(/[^\d.]/g, "");
   });
-  function updateDistance() {
-    const startRaw = $("startKm").value.trim();
-    const endRaw = $("endKm").value.trim();
-    const start = parseNumber(startRaw);
-    const end = parseNumber(endRaw);
-    const valid = startRaw !== "" && endRaw !== "" && Number.isFinite(start) && Number.isFinite(end) && end >= start;
-    const distance = valid ? end - start : 0;
-    $("distance").textContent = distance.toLocaleString("ko-KR", { maximumFractionDigits: 1 });
-    $("distance").style.color = startRaw !== "" && endRaw !== "" && end < start ? "var(--red)" : "var(--green)";
-  }
-
   $("weather").addEventListener("change", () => {
     $("customWeather").classList.toggle("hidden", $("weather").value !== "기타");
   });
@@ -915,21 +938,13 @@
 
   $("logForm").addEventListener("submit", event => {
     event.preventDefault();
-    const startRaw = $("startKm").value.trim();
-    const endRaw = $("endKm").value.trim();
-    const start = startRaw ? parseNumber(startRaw) : null;
-    const end = endRaw ? parseNumber(endRaw) : null;
-    if (start !== null && end !== null && end < start) {
-      alert("도착 주행거리는 출발 주행거리보다 작을 수 없습니다.");
-      return;
-    }
+    const previousKmRaw = $("previousKm").value.trim();
+    const previousKm = previousKmRaw ? parseNumber(previousKmRaw) : null;
     const weather = $("weather").value === "기타" ? $("customWeather").value.trim() : $("weather").value;
     const result = {
       date: $("date").value,
       weather,
-      startKm: start,
-      endKm: end,
-      distance: start !== null && end !== null ? end - start : null,
+      previousKm,
       origin: $("origin").value.trim(),
       destination: $("destination").value.trim(),
       waypoints: waypointList.map(point => point.name).join("-"),
