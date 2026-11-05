@@ -354,7 +354,7 @@
 
 <dialog id="routePickerDialog">
   <div class="dialog-inner">
-    <h3>경유지 선택</h3>
+    <h3 tabindex="-1" autofocus>경유지 선택</h3>
     <p class="dialog-subtitle">장소를 직접 입력하거나 지사를 선택하세요.</p>
 
     <div class="destination-control">
@@ -384,7 +384,7 @@
 
 <dialog id="routeActionDialog">
   <div class="dialog-inner">
-    <h3 id="routeActionTitle">경로 편집</h3>
+    <h3 id="routeActionTitle" tabindex="-1" autofocus>경로 편집</h3>
     <p class="dialog-subtitle">원하는 작업을 선택하세요.</p>
     <div class="time-fields">
       <div>
@@ -396,7 +396,9 @@
         <input type="text" id="routeArrivalTime" class="time-display" placeholder="시간 선택" readonly aria-label="도착시간 선택">
       </div>
     </div>
-    <p class="small-note">시간을 입력하지 않아도 저장할 수 있습니다.</p>
+    <label for="routeMemo">메모 (선택)</label>
+    <input type="text" id="routeMemo" placeholder="해당 영업소 특이사항 등" autocomplete="off">
+    <p class="small-note">시간과 메모는 입력하지 않아도 저장할 수 있습니다.</p>
     <div id="timePickerPanel" class="time-picker-panel hidden" aria-label="시간 선택">
       <p class="time-picker-title">시간 선택</p>
       <div class="time-picker-columns">
@@ -437,7 +439,7 @@
   const $ = id => document.getElementById(id);
   const waypointList = [];
   const eventList = [];
-  const originTimes = { departureTime: "", arrivalTime: "" };
+  const originTimes = { departureTime: "", arrivalTime: "", memo: "" };
   let selectedBranch = "";
   let routeEditMode = "add";
   let routeEditIndex = -1;
@@ -534,7 +536,7 @@
     });
 
     $("routePickerDialog").showModal();
-    $("routeSearchInput").focus();
+    // 입력창에 자동 포커스하지 않아 모바일에서 키패드가 자동으로 뜨지 않게 한다.
   }
 
   // 선택한 지사의 영업소 목록 표시
@@ -568,6 +570,7 @@
     $("routeDepartureTime").dataset.timeValue = "";
     $("routeArrivalTime").value = "";
     $("routeArrivalTime").dataset.timeValue = "";
+    $("routeMemo").value = "";
     $("saveRouteTimes").textContent = "저장";
     $("routeChange").classList.add("hidden");
     $("routeInsert").classList.add("hidden");
@@ -585,9 +588,9 @@
     } else if (routeEditMode === "change") {
       waypointList[routeEditIndex].name = name;
     } else if (routeEditMode === "insert") {
-      waypointList.splice(routeEditIndex, 0, { name, departureTime: "", arrivalTime: "" });
+      waypointList.splice(routeEditIndex, 0, { name, departureTime: "", arrivalTime: "", memo: "" });
     } else {
-      waypointList.push({ name, departureTime: "", arrivalTime: "" });
+      waypointList.push({ name, departureTime: "", arrivalTime: "", memo: "" });
     }
 
     renderWaypoints();
@@ -635,6 +638,7 @@
     const times = isOrigin ? originTimes : (waypointList[index] || {});
     setTimeInputValue("routeDepartureTime", times.departureTime || "");
     setTimeInputValue("routeArrivalTime", times.arrivalTime || "");
+    $("routeMemo").value = times.memo || "";
     $("routeActionDialog").showModal();
   }
 
@@ -721,7 +725,8 @@
       const point = {
         name: pendingRoutePlace,
         departureTime: $("routeDepartureTime").dataset.timeValue || "",
-        arrivalTime: $("routeArrivalTime").dataset.timeValue || ""
+        arrivalTime: $("routeArrivalTime").dataset.timeValue || "",
+        memo: $("routeMemo").value.trim()
       };
       if (routeEditMode === "change") {
         waypointList[routeEditIndex] = { ...waypointList[routeEditIndex], ...point };
@@ -731,6 +736,7 @@
         $("origin").value = point.name;
         originTimes.departureTime = point.departureTime;
         originTimes.arrivalTime = point.arrivalTime;
+        originTimes.memo = point.memo;
       } else {
         waypointList.push(point);
       }
@@ -738,8 +744,9 @@
     } else {
       const target = routeActionType === "origin" ? originTimes : waypointList[routeActionIndex];
       if (target) {
-        target.departureTime = $("routeDepartureTime").value;
-        target.arrivalTime = $("routeArrivalTime").value;
+        target.departureTime = $("routeDepartureTime").dataset.timeValue || "";
+        target.arrivalTime = $("routeArrivalTime").dataset.timeValue || "";
+        target.memo = $("routeMemo").value.trim();
       }
     }
     renderWaypoints();
@@ -831,6 +838,12 @@
       arrival.className = "route-time-row";
       arrival.textContent = `도착: ${item.arrivalTime || ""}`;
       times.append(departure, arrival);
+      if (item.memo) {
+        const memo = document.createElement("span");
+        memo.className = "route-time-row";
+        memo.textContent = `메모: ${item.memo}`;
+        times.appendChild(memo);
+      }
       stop.append(chip, times);
       holder.appendChild(stop);
     });
@@ -850,7 +863,7 @@
       alert("이미 도착지에 적용된 장소입니다.");
       return;
     }
-    waypointList.push({ name: destination, departureTime: "", arrivalTime: "" });
+    waypointList.push({ name: destination, departureTime: "", arrivalTime: "", memo: "" });
     renderWaypoints();
   });
 
