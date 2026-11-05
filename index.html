@@ -106,6 +106,23 @@
     .time-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0 4px; }
     .time-fields label { margin-top: 0; }
     .time-fields input { min-width: 0; }
+    .time-display { cursor: pointer; }
+    .time-picker-panel {
+      position: absolute; inset: 0; z-index: 5;
+      display: flex; flex-direction: column; justify-content: center;
+      padding: 22px 19px; background: #1b1f27; border-radius: 16px;
+    }
+    .time-picker-panel.hidden { display: none !important; }
+    .time-picker-title { margin: 0 0 18px; font-size: 17px; font-weight: 750; }
+    .time-picker-columns { display: grid; grid-template-columns: 0.85fr 1fr 1fr; gap: 9px; }
+    .time-picker-column { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+    .time-picker-column-label { color: var(--muted); font-size: 11px; text-align: center; margin-bottom: 3px; }
+    .time-picker-options { display: flex; flex-direction: column; gap: 5px; max-height: 190px; overflow-y: auto; padding: 3px; border: 1px solid var(--border); border-radius: 10px; background: #14171d; }
+    .time-picker-option { flex: 0 0 auto; min-height: 36px; padding: 7px 4px; background: transparent; color: var(--text); border: 1px solid transparent; font-size: 14px; }
+    .time-picker-option.selected { color: #baf0d5; background: #20372e; border-color: #3d6855; }
+    .time-picker-actions { display: flex; justify-content: flex-end; gap: 22px; margin-top: 22px; }
+    .time-picker-actions button { width: auto; min-height: 0; padding: 5px 2px; background: transparent; border: 0; color: var(--muted); font-size: 14px; font-weight: 650; }
+    .time-picker-actions button.confirm { color: var(--green); }
     .small-note { color: var(--muted); font-size: 12px; line-height: 1.5; margin: 10px 0 0; }
     .event-list { display: grid; gap: 9px; margin-top: 12px; }
     .event-item {
@@ -369,14 +386,35 @@
     <div class="time-fields">
       <div>
         <label for="routeDepartureTime">출발시간 (선택)</label>
-        <input type="time" id="routeDepartureTime">
+        <input type="text" id="routeDepartureTime" class="time-display" placeholder="시간 선택" readonly aria-label="출발시간 선택">
       </div>
       <div>
         <label for="routeArrivalTime">도착시간 (선택)</label>
-        <input type="time" id="routeArrivalTime">
+        <input type="text" id="routeArrivalTime" class="time-display" placeholder="시간 선택" readonly aria-label="도착시간 선택">
       </div>
     </div>
     <p class="small-note">시간을 입력하지 않아도 저장할 수 있습니다.</p>
+    <div id="timePickerPanel" class="time-picker-panel hidden" aria-label="시간 선택">
+      <p class="time-picker-title">시간 선택</p>
+      <div class="time-picker-columns">
+        <div class="time-picker-column">
+          <span class="time-picker-column-label">오전 / 오후</span>
+          <div id="timePeriodOptions" class="time-picker-options"></div>
+        </div>
+        <div class="time-picker-column">
+          <span class="time-picker-column-label">시</span>
+          <div id="timeHourOptions" class="time-picker-options"></div>
+        </div>
+        <div class="time-picker-column">
+          <span class="time-picker-column-label">분</span>
+          <div id="timeMinuteOptions" class="time-picker-options"></div>
+        </div>
+      </div>
+      <div class="time-picker-actions">
+        <button type="button" id="cancelTimePicker">취소</button>
+        <button type="button" id="confirmTimePicker" class="confirm">확인</button>
+      </div>
+    </div>
     <div class="dialog-actions single">
       <button type="button" class="primary" id="saveRouteTimes">시간 입력 저장</button>
       <button type="button" class="secondary" id="routeChange">장소 변경</button>
@@ -403,6 +441,8 @@
   let routeActionType = "";
   let routeActionIndex = -1;
   let pendingRoutePlace = "";
+  let activeTimeInput = null;
+  let selectedTime = { period: "오전", hour: 9, minute: 0 };
 
   $("date").value = localDateString(new Date());
   $("fuelDate").value = localDateTimeString(new Date());
@@ -522,7 +562,9 @@
     routeActionIndex = -1;
     $("routeActionTitle").textContent = pendingRoutePlace + " 추가";
     $("routeDepartureTime").value = "";
+    $("routeDepartureTime").dataset.timeValue = "";
     $("routeArrivalTime").value = "";
+    $("routeArrivalTime").dataset.timeValue = "";
     $("saveRouteTimes").textContent = "저장";
     $("routeChange").classList.add("hidden");
     $("routeInsert").classList.add("hidden");
@@ -588,17 +630,95 @@
     $("routeDelete").classList.remove("hidden");
     $("saveRouteTimes").textContent = "시간 입력 저장";
     const times = isOrigin ? originTimes : (waypointList[index] || {});
-    $("routeDepartureTime").value = times.departureTime || "";
-    $("routeArrivalTime").value = times.arrivalTime || "";
+    setTimeInputValue("routeDepartureTime", times.departureTime || "");
+    setTimeInputValue("routeArrivalTime", times.arrivalTime || "");
     $("routeActionDialog").showModal();
   }
+
+  function setTimeInputValue(id, value) {
+    $(id).dataset.timeValue = value;
+    if (!value) {
+      $(id).value = "";
+      return;
+    }
+    const [h, m] = value.split(":").map(Number);
+    const period = h < 12 ? "오전" : "오후";
+    const hour = h % 12 || 12;
+    $(id).value = period + " " + hour + ":" + String(m).padStart(2, "0");
+  }
+
+  // 브라우저 기본 시간창 대신 앱 내부 시간 선택창 사용
+  function openTimePicker(input) {
+    activeTimeInput = input;
+    const now = new Date();
+    let hours = now.getHours();
+    let minutes = now.getMinutes();
+    if (input.value) {
+      const match = input.dataset.timeValue?.match(/^(\\d{2}):(\\d{2})$/);
+      if (match) {
+        hours = Number(match[1]);
+        minutes = Number(match[2]);
+      }
+    }
+    selectedTime = {
+      period: hours < 12 ? "오전" : "오후",
+      hour: hours % 12 || 12,
+      minute: minutes
+    };
+    renderTimePickerOptions();
+    $("timePickerPanel").classList.remove("hidden");
+  }
+
+  function renderTimePickerOptions() {
+    const groups = [
+      { id: "timePeriodOptions", values: ["오전", "오후"], selected: selectedTime.period, key: "period" },
+      { id: "timeHourOptions", values: Array.from({ length: 12 }, (_, i) => i + 1), selected: selectedTime.hour, key: "hour" },
+      { id: "timeMinuteOptions", values: Array.from({ length: 60 }, (_, i) => i), selected: selectedTime.minute, key: "minute" }
+    ];
+    groups.forEach(group => {
+      const holder = $(group.id);
+      holder.innerHTML = "";
+      group.values.forEach(value => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "time-picker-option" + (value === group.selected ? " selected" : "");
+        button.textContent = group.key === "minute" ? String(value).padStart(2, "0") : String(value);
+        button.addEventListener("click", () => {
+          selectedTime[group.key] = value;
+          renderTimePickerOptions();
+        });
+        holder.appendChild(button);
+      });
+      const selected = holder.querySelector(".selected");
+      if (selected && group.key === "minute") selected.scrollIntoView({ block: "center" });
+    });
+  }
+
+  function closeTimePicker() {
+    $("timePickerPanel").classList.add("hidden");
+    activeTimeInput = null;
+  }
+
+  ["routeDepartureTime", "routeArrivalTime"].forEach(id => {
+    $(id).addEventListener("click", () => openTimePicker($(id)));
+  });
+  $("cancelTimePicker").addEventListener("click", closeTimePicker);
+  $("confirmTimePicker").addEventListener("click", () => {
+    if (!activeTimeInput) return;
+    let hours = selectedTime.hour % 12;
+    if (selectedTime.period === "오후") hours += 12;
+    const value = String(hours).padStart(2, "0") + ":" + String(selectedTime.minute).padStart(2, "0");
+    activeTimeInput.dataset.timeValue = value;
+    activeTimeInput.value = selectedTime.period + " " + selectedTime.hour + ":" + String(selectedTime.minute).padStart(2, "0");
+    closeTimePicker();
+  });
 
   $("saveRouteTimes").addEventListener("click", () => {
     if (routeActionType === "newPlace") {
       const point = {
         name: pendingRoutePlace,
-        departureTime: $("routeDepartureTime").value,
-        arrivalTime: $("routeArrivalTime").value
+        departureTime: $("routeDepartureTime").dataset.timeValue || "",
+        arrivalTime: $("routeArrivalTime").dataset.timeValue || ""
       };
       if (routeEditMode === "change") {
         waypointList[routeEditIndex] = { ...waypointList[routeEditIndex], ...point };
