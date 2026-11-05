@@ -106,7 +106,7 @@
     .time-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0 4px; }
     .time-fields label { margin-top: 0; }
     .time-fields input { min-width: 0; }
-    .time-display { cursor: pointer; }
+    .time-display { cursor: pointer; appearance: none; -webkit-appearance: none; background-image: none !important; }
     .time-picker-panel {
       position: absolute; inset: 0; z-index: 5;
       display: flex; flex-direction: column; justify-content: center;
@@ -212,6 +212,9 @@
       .distance { align-items: flex-start; }
       .distance strong { font-size: 19px; }
       .route-actions { grid-template-columns: 1fr; }
+      .time-picker-columns { grid-template-columns: 0.9fr 1fr 1fr; gap: 6px; }
+      .time-picker-options { max-height: 210px; }
+      .time-picker-option { min-height: 40px; font-size: 15px; }
       .option-list { grid-template-columns: 1fr 1fr; }
       .picker-layout {
         grid-template-columns: 0.85fr 1.15fr;
@@ -654,7 +657,7 @@
     let hours = now.getHours();
     let minutes = now.getMinutes();
     if (input.value) {
-      const match = input.dataset.timeValue?.match(/^(\\d{2}):(\\d{2})$/);
+      const match = input.dataset.timeValue?.match(/^(\d{2}):(\d{2})$/);
       if (match) {
         hours = Number(match[1]);
         minutes = Number(match[2]);
@@ -690,7 +693,7 @@
         holder.appendChild(button);
       });
       const selected = holder.querySelector(".selected");
-      if (selected && group.key === "minute") selected.scrollIntoView({ block: "center" });
+      if (selected) selected.scrollIntoView({ block: "center" });
     });
   }
 
