@@ -239,6 +239,22 @@
     .dialog-actions.single { grid-template-columns: 1fr; }
     .hidden { display: none !important; }
     .fuel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .fuel-card { padding: 0; overflow: hidden; }
+    .fuel-toggle {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; width: 100%; min-height: 62px; padding: 18px 19px;
+      background: transparent; color: var(--text); text-align: left;
+      border-radius: 0; font-size: 17px;
+    }
+    .fuel-toggle-label { display: flex; align-items: center; gap: 9px; }
+    .fuel-chevron {
+      color: var(--green); font-size: 25px; line-height: 1;
+      letter-spacing: -5px; padding-right: 5px; transition: transform .2s ease;
+    }
+    .fuel-toggle[aria-expanded="true"] .fuel-chevron { transform: rotate(90deg); }
+    .fuel-content { padding: 0 19px 19px; }
+    .fuel-content[hidden] { display: none !important; }
+    .fuel-field-hidden { display: none !important; }
     @media (max-width: 520px) {
       body { padding: 10px; }
       header { padding: 17px; }
@@ -358,31 +374,40 @@
       <textarea id="memo" placeholder="특이사항이나 메모 입력"></textarea>
     </section>
 
-    <section class="card">
-      <h2>⛽ 주유 · 요소수 기록</h2>
-      <p class="small-note" style="margin-top:-7px;">운행 중 발생한 기록을 필요한 만큼 추가하세요.</p>
-      <div class="fuel-grid">
-        <div>
-          <label for="fuelDate">기록 시각</label>
-          <input type="datetime-local" id="fuelDate">
+    <section class="card fuel-card">
+      <button type="button" class="fuel-toggle" id="fuelToggle" aria-expanded="false" aria-controls="fuelContent">
+        <span class="fuel-toggle-label">⛽ 주유 · 요소수 기록</span>
+        <span class="fuel-chevron" aria-hidden="true">›››</span>
+      </button>
+      <div class="fuel-content" id="fuelContent" hidden>
+        <p class="small-note" style="margin-top:0;">운행 중 발생한 기록을 필요한 만큼 추가하세요.</p>
+        <div class="fuel-grid">
+          <div>
+            <label for="fuelDate">기록 시각</label>
+            <input type="datetime-local" id="fuelDate">
+          </div>
+          <div>
+            <label for="eventType">종류</label>
+            <select id="eventType"><option value="주유">주유</option><option value="요소수">요소수</option></select>
+          </div>
+          <div id="unitPriceField">
+            <label for="eventUnitPrice">주유 단가 (원/L)</label>
+            <input type="text" inputmode="numeric" id="eventUnitPrice" placeholder="예: 1,650">
+          </div>
+          <div>
+            <label for="eventAmount" id="eventAmountLabel">주유량 (L)</label>
+            <input type="text" inputmode="decimal" id="eventAmount" placeholder="예: 32.78" value="32.78">
+          </div>
+          <div>
+            <label for="eventCost">주유 금액 (원)</label>
+            <input type="text" inputmode="numeric" id="eventCost" placeholder="예: 60,000" value="60,000">
+          </div>
         </div>
-        <div>
-          <label for="eventType">종류</label>
-          <select id="eventType"><option value="주유">주유</option><option value="요소수">요소수</option></select>
-        </div>
-        <div>
-          <label for="eventAmount">주입량 (L)</label>
-          <input type="text" inputmode="decimal" id="eventAmount" placeholder="예: 45.2">
-        </div>
-        <div>
-          <label for="eventCost">금액 (원)</label>
-          <input type="text" inputmode="numeric" id="eventCost" placeholder="예: 80,000">
-        </div>
+        <label for="eventMemo">주유소 / 메모 (선택)</label>
+        <input id="eventMemo" placeholder="주유소명 또는 특이사항">
+        <button type="button" class="secondary" id="addEvent" style="margin-top:12px;">＋ 기록 추가</button>
+        <div id="eventList" class="event-list"></div>
       </div>
-      <label for="eventMemo">주유소 / 메모 (선택)</label>
-      <input id="eventMemo" placeholder="주유소명 또는 특이사항">
-      <button type="button" class="secondary" id="addEvent" style="margin-top:12px;">＋ 기록 추가</button>
-      <div id="eventList" class="event-list"></div>
     </section>
 
     <button class="primary" type="submit">입력 내용 확인</button>
@@ -508,7 +533,7 @@
     const integer = (parts[0] || "").replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     input.value = parts.length > 1 ? integer + "." + parts.slice(1).join("") : integer;
   }
-  ["previousKm", "eventCost"].forEach(id => {
+  ["previousKm", "eventCost", "eventUnitPrice"].forEach(id => {
     $(id).addEventListener("input", () => {
       const el = $(id);
       const pos = el.selectionStart;
@@ -520,6 +545,20 @@
   $("eventAmount").addEventListener("input", () => {
     $("eventAmount").value = $("eventAmount").value.replace(/[^\d.]/g, "");
   });
+  $("fuelToggle").addEventListener("click", () => {
+    const expanded = $("fuelToggle").getAttribute("aria-expanded") === "true";
+    $("fuelToggle").setAttribute("aria-expanded", String(!expanded));
+    $("fuelContent").hidden = expanded;
+  });
+  function updateFuelFields() {
+    const isFuel = $("eventType").value === "주유";
+    $("unitPriceField").classList.toggle("fuel-field-hidden", !isFuel);
+    $("eventAmountLabel").textContent = isFuel ? "주유량 (L)" : "요소수량 (L)";
+    $("eventCost").previousElementSibling.textContent = isFuel ? "주유 금액 (원)" : "요소수 금액 (원)";
+    $("eventAmount").placeholder = isFuel ? "예: 32.78" : "요소수량 입력";
+  }
+  $("eventType").addEventListener("change", updateFuelFields);
+  updateFuelFields();
   $("weather").addEventListener("change", () => {
     $("customWeather").classList.toggle("hidden", $("weather").value !== "기타");
   });
@@ -894,6 +933,7 @@
     const type = $("eventType").value;
     const amountText = $("eventAmount").value.trim();
     const costText = $("eventCost").value.trim();
+    const unitPriceText = type === "주유" ? $("eventUnitPrice").value.trim() : "";
     const memo = $("eventMemo").value.trim();
     if (!amountText && !costText && !memo) {
       alert("주입량, 금액 또는 메모 중 하나는 입력해 주세요.");
@@ -902,13 +942,15 @@
     eventList.push({
       time: $("fuelDate").value,
       type,
+      unitPrice: unitPriceText ? parseNumber(unitPriceText) : null,
       amount: amountText ? parseNumber(amountText) : null,
       cost: costText ? parseNumber(costText) : null,
       memo
     });
     renderEvents();
-    $("eventAmount").value = "";
-    $("eventCost").value = "";
+    $("eventUnitPrice").value = "";
+    $("eventAmount").value = type === "주유" ? "32.78" : "";
+    $("eventCost").value = type === "주유" ? "60,000" : "";
     $("eventMemo").value = "";
     $("fuelDate").value = localDateTimeString(new Date());
     });
@@ -922,9 +964,10 @@
       const title = document.createElement("strong");
       title.textContent = `${index + 1}. ${item.type}`;
       const desc = document.createElement("span");
+      const unitPrice = item.unitPrice !== null && item.unitPrice !== undefined ? `단가 ${item.unitPrice.toLocaleString("ko-KR")}원/L` : "";
       const amount = item.amount !== null ? `${item.amount.toLocaleString("ko-KR")} L` : "";
       const cost = item.cost !== null ? `${item.cost.toLocaleString("ko-KR")}원` : "";
-      desc.textContent = [item.time.replace("T", " "), amount, cost, item.memo].filter(Boolean).join(" · ");
+      desc.textContent = [item.time.replace("T", " "), unitPrice, amount, cost, item.memo].filter(Boolean).join(" · ");
       detail.append(title, desc);
       const remove = document.createElement("button");
       remove.type = "button";
