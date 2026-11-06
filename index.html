@@ -119,7 +119,9 @@
       font-size: 13px; font-weight: 650; width: auto; min-height: 0;
     }
     .route-dash { color: #788392; align-self: flex-start; padding-top: 9px; }
-    .route-stop { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+    .route-stop { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; position: relative; }
+    .route-stop.route-wrapped::before { content: "↳"; position: absolute; left: 2px; top: -17px; color: var(--green); font-size: 16px; line-height: 14px; font-weight: 800; }
+    .route-line.hide-route-times .route-times { display: none; }
     .route-times { display: grid; gap: 2px; padding-left: 3px; color: var(--muted); font-size: 10px; line-height: 1.35; }
     .route-time-row { white-space: nowrap; }
     .empty-route { color: var(--muted); font-size: 13px; padding: 3px; }
@@ -133,12 +135,9 @@
     }
     .route-heading-row label { margin: 0; }
     .route-heading-row button {
-      width: auto;
-      min-height: 36px;
-      padding: 7px 11px;
-      font-size: 12px;
-      white-space: nowrap;
+      width: auto; min-height: 36px; padding: 7px 11px; font-size: 12px; white-space: nowrap;
     }
+    .route-heading-row .route-time-toggle { min-height: 0; padding: 4px 2px; font-size: 11px; color: var(--muted); background: transparent; border: 0; font-weight: 600; }
     .time-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0 4px; }
     .time-fields.origin-only { grid-template-columns: 1fr; }
     .time-fields label { margin-top: 0; }
@@ -187,11 +186,12 @@
     .route-place-hint { color: var(--muted); font-size: 10px; white-space: nowrap; }
     .route-back-button { width: auto; min-height: 36px; padding: 7px 10px; font-size: 12px; white-space: nowrap; }
     .route-place-button {
-      width: auto; max-width: 58%; min-height: 36px; padding: 7px 11px;
+      width: auto; min-width: 5.6em; max-width: 65%; min-height: 36px; padding: 7px 11px;
       overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
       background: #26372f; border: 1px solid #3d6855; color: #baf0d5;
-      font-size: 12px; flex: 0 1 auto;
+      font-size: 14px; flex: 0 1 auto;
     }
+    .route-picker-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 7px; }
     .route-edit-footer {
       display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 16px;
     }
@@ -323,7 +323,7 @@
 <body>
 <main class="container">
   <header>
-    <div class="brand-icon" aria-hidden="true">🚚</div>
+    <div class="brand-icon" aria-hidden="true">🚗</div>
     <div>
       <h1>차량운행일지</h1>
       <p>제한진천팀</p>
@@ -382,7 +382,10 @@
 
       <div class="route-heading-row">
         <label>경유지 순서</label>
-        <button type="button" class="secondary" id="openOfficePicker">＋ 경유지 추가</button>
+        <div class="route-heading-actions">
+          <button type="button" class="route-time-toggle" id="toggleRouteTimes">시간정보 숨기기</button>
+          <button type="button" class="secondary" id="openOfficePicker">＋ 경유지 추가</button>
+        </div>
       </div>
       <div id="waypoints" class="route-line" aria-live="polite">
         <span class="empty-route">출발지를 기준으로 경유지를 추가해 주세요.</span>
@@ -437,7 +440,10 @@
 
 <dialog id="routePickerDialog">
   <div class="dialog-inner">
-    <h3 tabindex="-1" autofocus>경유지 선택</h3>
+    <div class="route-picker-heading">
+      <h3 tabindex="-1" autofocus>경유지 선택</h3>
+      <button type="button" class="soft route-back-button hidden" id="routePickerBackButton">이전 단계</button>
+    </div>
     <p class="dialog-subtitle">장소를 직접 입력하거나 지사를 선택하세요.</p>
 
     <div class="destination-control">
@@ -537,6 +543,8 @@
   let routeActionType = "";
   let routeActionIndex = -1;
   let pendingRoutePlace = "";
+  let pickerReturnToEdit = false;
+  let routeTimesVisible = true;
   let activeTimeInput = null;
   let selectedTime = { period: "오전", hour: 9, minute: 0 };
 
@@ -606,9 +614,11 @@
   });
 
   // 경로 선택 팝업 열기
-  function openRoutePicker(mode = "add", index = -1) {
+  function openRoutePicker(mode = "add", index = -1, returnToEdit = false) {
     routeEditMode = mode;
     routeEditIndex = index;
+    pickerReturnToEdit = returnToEdit;
+    $("routePickerBackButton").classList.toggle("hidden", !pickerReturnToEdit);
     selectedBranch = "";
 
     $("routeSearchInput").value = "";
@@ -874,8 +884,16 @@
   $("routeBackButton").addEventListener("click", () => {
     const mode = routeEditMode;
     const index = routeEditIndex;
+    const returnToEdit = pickerReturnToEdit;
     $("routeActionDialog").close();
-    openRoutePicker(mode, index);
+    openRoutePicker(mode, index, returnToEdit);
+  });
+
+  $("routePickerBackButton").addEventListener("click", () => {
+    if (!pickerReturnToEdit) return;
+    $("routePickerDialog").close();
+    pickerReturnToEdit = false;
+    $("routeActionDialog").showModal();
   });
 
   // 편집창 제목 옆 장소 버튼으로 장소 변경
@@ -884,7 +902,7 @@
     const index = routeActionIndex;
 
     $("routeActionDialog").close();
-    openRoutePicker(mode, index);
+    openRoutePicker(mode, index, true);
   });
 
   // 선택한 경유지 바로 앞에 추가
@@ -892,7 +910,7 @@
     const index = routeActionIndex;
 
     $("routeActionDialog").close();
-    openRoutePicker("insert", index);
+    openRoutePicker("insert", index, true);
   });
 
   // 삭제
@@ -913,6 +931,7 @@
   function renderWaypoints() {
     const holder = $("waypoints");
     holder.innerHTML = "";
+    holder.classList.toggle("hide-route-times", !routeTimesVisible);
 
     const route = [];
     const origin = $("origin").value.trim();
@@ -970,9 +989,23 @@
       stop.append(chip, times);
       holder.appendChild(stop);
     });
+    const stops = Array.from(holder.querySelectorAll(".route-stop"));
+    let previousTop = null;
+    stops.forEach(stop => {
+      const currentTop = Math.round(stop.offsetTop);
+      if (previousTop !== null && currentTop > previousTop + 2) stop.classList.add("route-wrapped");
+      previousTop = currentTop;
+    });
   }
 
+  $("toggleRouteTimes").addEventListener("click", () => {
+    routeTimesVisible = !routeTimesVisible;
+    $("toggleRouteTimes").textContent = routeTimesVisible ? "시간정보 숨기기" : "시간정보 보기";
+    renderWaypoints();
+  });
+
   $("origin").addEventListener("input", renderWaypoints);
+  window.addEventListener("resize", renderWaypoints);
 
   // 최종 도착지를 경유지 맨 마지막에 적용 (이벤트 중복 등록 방지)
   $("applyDestination").addEventListener("click", () => {
