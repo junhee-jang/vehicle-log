@@ -139,7 +139,8 @@
       font-size: 12px;
       white-space: nowrap;
     }
-    .time-fields { display: grid; grid-template-columns: 1fr; gap: 10px; margin: 14px 0 4px; }
+    .time-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0 4px; }
+    .time-fields.origin-only { grid-template-columns: 1fr; }
     .time-fields label { margin-top: 0; }
     .time-fields input { min-width: 0; }
     .time-display { cursor: pointer; appearance: none; -webkit-appearance: none; background-image: none !important; }
@@ -468,7 +469,7 @@
     </div>
     <p class="dialog-subtitle">원하는 작업을 선택하세요.</p>
     <div class="time-fields">
-      <div>
+      <div id="routeArrivalField">
         <label for="routeArrivalTime">도착시간 (선택)</label>
         <input type="text" id="routeArrivalTime" class="time-display" placeholder="시간 선택" readonly aria-label="도착시간 선택">
       </div>
@@ -659,6 +660,8 @@
     $("routeDepartureTime").dataset.timeValue = "";
     $("routeArrivalTime").value = "";
     $("routeArrivalTime").dataset.timeValue = "";
+    $("routeArrivalField").classList.remove("hidden");
+    document.querySelector(".time-fields").classList.remove("origin-only");
     $("routeMemo").value = "";
     $("saveRouteTimes").textContent = "저장";
     $("routePlaceButton").classList.add("hidden");
@@ -726,6 +729,8 @@
     $("routeDelete").classList.remove("hidden");
     $("saveRouteTimes").textContent = "시간 입력 저장";
     const times = isOrigin ? originTimes : (waypointList[index] || {});
+    $("routeArrivalField").classList.toggle("hidden", isOrigin);
+    document.querySelector(".time-fields").classList.toggle("origin-only", isOrigin);
     setTimeInputValue("routeDepartureTime", times.departureTime || "");
     setTimeInputValue("routeArrivalTime", times.arrivalTime || "");
     $("routeMemo").value = times.memo || "";
@@ -931,7 +936,11 @@
       const arrival = document.createElement("span");
       arrival.className = "route-time-row";
       arrival.textContent = `도착: ${item.arrivalTime || ""}`;
-      times.append(arrival, departure);
+      if (item.type === "origin") {
+        times.append(departure);
+      } else {
+        times.append(arrival, departure);
+      }
       stop.append(chip, times);
       holder.appendChild(stop);
     });
