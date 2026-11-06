@@ -1001,10 +1001,11 @@
   $("toggleRouteTimes").addEventListener("click", () => {
     routeTimesVisible = !routeTimesVisible;
     $("toggleRouteTimes").textContent = routeTimesVisible ? "시간정보 숨기기" : "시간정보 보기";
-    $("waypoints").classList.toggle("hide-route-times", !routeTimesVisible);
+    renderWaypoints();
   });
 
   $("origin").addEventListener("input", renderWaypoints);
+  window.addEventListener("resize", renderWaypoints);
 
   // 최종 도착지를 경유지 맨 마지막에 적용 (이벤트 중복 등록 방지)
   $("applyDestination").addEventListener("click", () => {
