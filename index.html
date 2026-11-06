@@ -469,12 +469,12 @@
     <p class="dialog-subtitle">원하는 작업을 선택하세요.</p>
     <div class="time-fields">
       <div>
-        <label for="routeDepartureTime">출발시간 (선택)</label>
-        <input type="text" id="routeDepartureTime" class="time-display" placeholder="시간 선택" readonly aria-label="출발시간 선택">
-      </div>
-      <div>
         <label for="routeArrivalTime">도착시간 (선택)</label>
         <input type="text" id="routeArrivalTime" class="time-display" placeholder="시간 선택" readonly aria-label="도착시간 선택">
+      </div>
+      <div>
+        <label for="routeDepartureTime">출발시간 (선택)</label>
+        <input type="text" id="routeDepartureTime" class="time-display" placeholder="시간 선택" readonly aria-label="출발시간 선택">
       </div>
     </div>
     <label for="routeMemo">메모 (선택)</label>
@@ -762,8 +762,9 @@
       hour: hours % 12 || 12,
       minute: minutes
     };
-    renderTimePickerOptions();
+    // 패널을 먼저 표시한 뒤 선택 항목을 가운데로 이동시킨다.
     $("timePickerPanel").classList.remove("hidden");
+    renderTimePickerOptions();
   }
 
   function renderTimePickerOptions() {
@@ -787,7 +788,10 @@
         holder.appendChild(button);
       });
       const selected = holder.querySelector(".selected");
-      if (selected) selected.scrollIntoView({ block: "center" });
+      if (selected) {
+        // 숨겨진 패널에서 scrollIntoView가 동작하지 않으므로 각 숫자 목록 안에서 직접 중앙 정렬한다.
+        holder.scrollTop = selected.offsetTop - (holder.clientHeight - selected.offsetHeight) / 2;
+      }
     });
   }
 
@@ -927,7 +931,7 @@
       const arrival = document.createElement("span");
       arrival.className = "route-time-row";
       arrival.textContent = `도착: ${item.arrivalTime || ""}`;
-      times.append(departure, arrival);
+      times.append(arrival, departure);
       stop.append(chip, times);
       holder.appendChild(stop);
     });
