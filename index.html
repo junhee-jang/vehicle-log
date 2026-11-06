@@ -176,7 +176,22 @@
     }
     dialog::backdrop { background: #000b; backdrop-filter: blur(3px); }
     .dialog-inner { position: relative; padding: 19px; }
-    .dialog-inner h3 { margin: 0 0 7px; font-size: 18px; }
+    .dialog-inner h3 { margin: 0; font-size: 18px; }
+    .route-dialog-heading {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 10px; margin-bottom: 7px;
+    }
+    .route-place-button {
+      width: auto; max-width: 58%; min-height: 36px; padding: 7px 11px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      background: #26372f; border: 1px solid #3d6855; color: #baf0d5;
+      font-size: 12px; flex: 0 1 auto;
+    }
+    .route-edit-footer {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 16px;
+    }
+    .route-edit-footer button { min-width: 0; }
+    .route-edit-footer .wide { grid-column: 1 / -1; }
     .dialog-subtitle { margin: 0 0 14px; color: var(--muted); font-size: 12px; }
     .option-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .option-list button { text-align: left; background: #252b35; border: 1px solid #3a4350; color: var(--text); }
@@ -447,7 +462,10 @@
 
 <dialog id="routeActionDialog">
   <div class="dialog-inner">
-    <h3 id="routeActionTitle" tabindex="-1" autofocus>경로 편집</h3>
+    <div class="route-dialog-heading">
+      <h3 id="routeActionTitle" tabindex="-1" autofocus>경로 편집</h3>
+      <button type="button" class="route-place-button" id="routePlaceButton">장소 선택</button>
+    </div>
     <p class="dialog-subtitle">원하는 작업을 선택하세요.</p>
     <div class="time-fields">
       <div>
@@ -483,10 +501,9 @@
         <button type="button" id="confirmTimePicker" class="confirm">확인</button>
       </div>
     </div>
-    <div class="dialog-actions single">
-      <button type="button" class="primary" id="saveRouteTimes">시간 입력 저장</button>
-      <button type="button" class="secondary" id="routeChange">장소 변경</button>
-      <button type="button" class="secondary" id="routeInsert">이 위치 앞에 경유지 추가</button>
+    <div class="route-edit-footer">
+      <button type="button" class="primary wide" id="saveRouteTimes">시간 입력 저장</button>
+      <button type="button" class="secondary wide" id="routeInsert">이 위치 앞에 경유지 추가</button>
       <button type="button" class="danger" id="routeDelete">삭제</button>
       <button type="button" class="soft" data-close="routeActionDialog">취소</button>
     </div>
@@ -644,7 +661,7 @@
     $("routeArrivalTime").dataset.timeValue = "";
     $("routeMemo").value = "";
     $("saveRouteTimes").textContent = "저장";
-    $("routeChange").classList.add("hidden");
+    $("routePlaceButton").classList.add("hidden");
     $("routeInsert").classList.add("hidden");
     $("routeDelete").classList.add("hidden");
     $("routeActionDialog").showModal();
@@ -704,7 +721,8 @@
       : "경유지 편집";
 
     $("routeInsert").classList.toggle("hidden", isOrigin);
-    $("routeChange").classList.remove("hidden");
+    $("routePlaceButton").textContent = isOrigin ? ($("origin").value.trim() || "장소 선택") : (waypointList[index]?.name || "장소 선택");
+    $("routePlaceButton").classList.remove("hidden");
     $("routeDelete").classList.remove("hidden");
     $("saveRouteTimes").textContent = "시간 입력 저장";
     const times = isOrigin ? originTimes : (waypointList[index] || {});
@@ -825,8 +843,8 @@
     $("routeActionDialog").close();
   });
 
-  // 변경
-  $("routeChange").addEventListener("click", () => {
+  // 편집창 제목 옆 장소 버튼으로 장소 변경
+  $("routePlaceButton").addEventListener("click", () => {
     const mode = routeActionType === "origin" ? "origin" : "change";
     const index = routeActionIndex;
 
@@ -910,12 +928,6 @@
       arrival.className = "route-time-row";
       arrival.textContent = `도착: ${item.arrivalTime || ""}`;
       times.append(departure, arrival);
-      if (item.memo) {
-        const memo = document.createElement("span");
-        memo.className = "route-time-row";
-        memo.textContent = `메모: ${item.memo}`;
-        times.appendChild(memo);
-      }
       stop.append(chip, times);
       holder.appendChild(stop);
     });
