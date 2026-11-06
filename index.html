@@ -182,6 +182,10 @@
       display: flex; align-items: center; justify-content: space-between;
       gap: 10px; margin-bottom: 7px;
     }
+    .route-heading-actions { display: flex; align-items: center; gap: 8px; }
+    .route-place-group { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+    .route-place-hint { color: var(--muted); font-size: 10px; white-space: nowrap; }
+    .route-back-button { width: auto; min-height: 36px; padding: 7px 10px; font-size: 12px; white-space: nowrap; }
     .route-place-button {
       width: auto; max-width: 58%; min-height: 36px; padding: 7px 11px;
       overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -465,7 +469,13 @@
   <div class="dialog-inner">
     <div class="route-dialog-heading">
       <h3 id="routeActionTitle" tabindex="-1" autofocus>경로 편집</h3>
-      <button type="button" class="route-place-button" id="routePlaceButton">장소 선택</button>
+      <div class="route-heading-actions">
+        <div class="route-place-group" id="routePlaceGroup">
+          <button type="button" class="route-place-button" id="routePlaceButton">장소 선택</button>
+          <span class="route-place-hint" id="routePlaceHint">변경하려면 누르세요</span>
+        </div>
+        <button type="button" class="soft route-back-button hidden" id="routeBackButton">이전 단계</button>
+      </div>
     </div>
     <p class="dialog-subtitle">원하는 작업을 선택하세요.</p>
     <div class="time-fields">
@@ -503,10 +513,10 @@
       </div>
     </div>
     <div class="route-edit-footer">
-      <button type="button" class="primary wide" id="saveRouteTimes">시간 입력 저장</button>
+      <button type="button" class="primary wide" id="saveRouteTimes">변경사항 저장</button>
       <button type="button" class="secondary wide" id="routeInsert">이 위치 앞에 경유지 추가</button>
       <button type="button" class="danger" id="routeDelete">삭제</button>
-      <button type="button" class="soft" data-close="routeActionDialog">취소</button>
+      <button type="button" class="soft" id="routeActionCancel" data-close="routeActionDialog">취소</button>
     </div>
   </div>
 </dialog>
@@ -656,6 +666,10 @@
     routeActionType = "newPlace";
     routeActionIndex = -1;
     $("routeActionTitle").textContent = pendingRoutePlace + " 추가";
+    $("routePlaceGroup").classList.add("hidden");
+    $("routeBackButton").classList.remove("hidden");
+    $("routeActionCancel").classList.remove("hidden");
+    $("saveRouteTimes").classList.remove("wide");
     $("routeDepartureTime").value = "";
     $("routeDepartureTime").dataset.timeValue = "";
     $("routeArrivalTime").value = "";
@@ -723,11 +737,15 @@
       ? "출발지 편집"
       : "경유지 편집";
 
+    $("routePlaceGroup").classList.remove("hidden");
+    $("routeBackButton").classList.add("hidden");
+    $("routeActionCancel").classList.remove("hidden");
+    $("saveRouteTimes").classList.add("wide");
     $("routeInsert").classList.toggle("hidden", isOrigin);
     $("routePlaceButton").textContent = isOrigin ? ($("origin").value.trim() || "장소 선택") : (waypointList[index]?.name || "장소 선택");
     $("routePlaceButton").classList.remove("hidden");
     $("routeDelete").classList.remove("hidden");
-    $("saveRouteTimes").textContent = "시간 입력 저장";
+    $("saveRouteTimes").textContent = "변경사항 저장";
     const times = isOrigin ? originTimes : (waypointList[index] || {});
     $("routeArrivalField").classList.toggle("hidden", isOrigin);
     document.querySelector(".time-fields").classList.toggle("origin-only", isOrigin);
@@ -850,6 +868,14 @@
     }
     renderWaypoints();
     $("routeActionDialog").close();
+  });
+
+  // 경유지 추가 화면에서 이전 단계로 돌아가 지사를 다시 선택
+  $("routeBackButton").addEventListener("click", () => {
+    const mode = routeEditMode;
+    const index = routeEditIndex;
+    $("routeActionDialog").close();
+    openRoutePicker(mode, index);
   });
 
   // 편집창 제목 옆 장소 버튼으로 장소 변경
