@@ -558,6 +558,16 @@
     $("eventAmount").placeholder = isFuel ? "예: 32.78" : "요소수량 입력";
   }
   $("eventType").addEventListener("change", updateFuelFields);
+  function calculateFuelAmount() {
+    if ($("eventType").value !== "주유") return;
+    const unitPrice = parseNumber($("eventUnitPrice").value);
+    const cost = parseNumber($("eventCost").value);
+    if (unitPrice > 0 && cost > 0) {
+      $("eventAmount").value = (cost / unitPrice).toFixed(2);
+    }
+  }
+  $("eventUnitPrice").addEventListener("input", calculateFuelAmount);
+  $("eventCost").addEventListener("input", calculateFuelAmount);
   updateFuelFields();
   $("weather").addEventListener("change", () => {
     $("customWeather").classList.toggle("hidden", $("weather").value !== "기타");
@@ -936,7 +946,7 @@
     const unitPriceText = type === "주유" ? $("eventUnitPrice").value.trim() : "";
     const memo = $("eventMemo").value.trim();
     if (!amountText && !costText && !memo) {
-      alert("주입량, 금액 또는 메모 중 하나는 입력해 주세요.");
+      alert("주유량(요소수량), 금액 또는 메모 중 하나는 입력해 주세요.");
       return;
     }
     eventList.push({
