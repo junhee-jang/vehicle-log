@@ -32,8 +32,8 @@
       background: linear-gradient(135deg, #1b2823, #1b1f27 72%);
     }
     .brand-logo {
-      display: block; width: 76px; height: 48px; flex: 0 0 76px;
-      object-fit: contain; object-position: center;
+      display: block; width: 88px; height: 49px; flex: 0 0 88px;
+      max-width: 100%; overflow: visible;
     }
     h1 { font-size: 23px; margin: 0 0 5px; }
     header p { color: #b5c5bd; margin: 0; font-size: 14px; }
@@ -313,7 +313,8 @@
     .fuel-field-hidden { display: none !important; }
     @media (max-width: 520px) {
       body { padding: 10px; }
-      header { padding: 17px; }
+      header { padding: 14px 12px; gap: 10px; }
+      .brand-logo { width: 76px; height: auto; flex: 0 0 76px; }
       h1 { font-size: 21px; }
       .card { padding: 15px; }
       .grid, .fuel-grid { grid-template-columns: 1fr 1fr; gap: 9px; }
@@ -365,7 +366,11 @@
 <body>
 <main class="container">
   <header>
-    <img class="brand-logo" src="smartvision-logo.svg" alt="SmartVision 로고">
+    <svg class="brand-logo" viewBox="0 0 211 116" role="img" aria-label="SmartVision 심볼" xmlns="http://www.w3.org/2000/svg">
+      <path fill="#000" d="M48 0H191L211 31H77L63 20H48C31 20 18 31 18 48H0C0 20 21 0 48 0Z"/>
+      <path fill="#000" d="M0 92H113C128 92 141 81 145 66H165C161 94 140 115 112 115H0Z"/>
+      <path fill="#c90016" d="M130 35H154L169 87L187 35H211L184 115H159Z"/>
+    </svg>
     <div>
       <h1>차량운행일지</h1>
       <p>제한진천팀</p>
