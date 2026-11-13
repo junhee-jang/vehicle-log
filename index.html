@@ -306,7 +306,7 @@
     .fuel-card { padding: 0; overflow: hidden; }
     .fuel-toggle {
       display: flex; align-items: center; justify-content: space-between;
-      gap: 12px; width: 100%; min-height: 62px; padding: 18px 17px 18px 15px;
+      gap: 12px; width: 100%; min-height: 62px; padding: 18px 21px 18px 19px;
       background: transparent; color: var(--text); text-align: left;
       border-radius: 0; font-size: 17px;
     }
@@ -317,6 +317,7 @@
       letter-spacing: -2px; padding: 0; transition: transform .2s ease;
     }
     .fuel-toggle[aria-expanded="true"] .fuel-chevron { transform: rotate(90deg); }
+    .time-picker-option.preview { color: #e0e4e9; background: #303640; border-color: #596270; }
     .memo-heading-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
     .memo-heading-row h2 { margin: 0; min-width: 0; }
     .memo-heading-note { color: var(--muted); font-size: 11px; font-weight: 450; }
@@ -336,6 +337,7 @@
       .memo-heading-row h2 { font-size: 15px; line-height: 1.5; }
       .memo-heading-note { display: block; margin-top: 2px; }
       .collapse-action { flex: 0 0 auto; margin-top: -3px; }
+      .fuel-toggle { padding: 18px 17px 18px 15px; }
       .grid, .fuel-grid { grid-template-columns: 1fr 1fr; gap: 9px; }
       .basic-info-grid { grid-template-columns: 1.1fr 0.95fr 0.85fr; gap: 6px; }
       .basic-info-grid label { font-size: 11px; }
@@ -927,11 +929,11 @@
         button.textContent = group.key === "minute" ? String(value).padStart(2, "0") : String(value);
         button.addEventListener("click", () => {
           if (group.key === "hour" && Date.now() < suppressHourClickUntil) return;
-          if (group.key === "hour" && ((lastSettledHour === 12 && value === 1) || (lastSettledHour === 1 && value === 12))) {
-            selectedTime.period = selectedTime.period === "오전" ? "오후" : "오전";
-          }
           selectedTime[group.key] = value;
-          if (group.key === "hour") lastSettledHour = value;
+          if (group.key === "hour") {
+            lastSettledHour = value;
+            lastPreviewHour = value;
+          }
           renderTimePickerOptions();
         });
         holder.appendChild(button);
@@ -947,19 +949,19 @@
     });
   }
 
-  // 시 목록은 네이티브 관성 스크롤을 사용한다. 스크롤 제스처 뒤 발생하는
-  // 모바일 브라우저의 합성 클릭은 무시하고, 중앙에 정착한 시를 선택한다.
+  // 굴림은 화면의 미리보기 위치만 이동한다. 실제 시각은 숫자를 눌렀을 때만 확정한다.
   const hourOptions = $("timeHourOptions");
   let hourScrollTimer = null;
   let lastSettledHour = selectedTime.hour;
+  let lastPreviewHour = selectedTime.hour;
   let hourTouchStartY = null;
   let suppressHourClickUntil = 0;
   hourOptions.addEventListener("touchstart", event => {
     hourTouchStartY = event.touches[0]?.clientY ?? null;
   }, { passive: true });
   hourOptions.addEventListener("touchmove", event => {
-    if (hourTouchStartY !== null && Math.abs((event.touches[0]?.clientY ?? hourTouchStartY) - hourTouchStartY) > 6) {
-      suppressHourClickUntil = Date.now() + 500;
+    if (hourTouchStartY !== null && Math.abs((event.touches[0]?.clientY ?? hourTouchStartY) - hourTouchStartY) > 8) {
+      suppressHourClickUntil = Date.now() + 350;
     }
   }, { passive: true });
   hourOptions.addEventListener("scroll", () => {
@@ -973,22 +975,19 @@
         return Math.abs(midpoint - center) < Math.abs(best.offsetTop + best.offsetHeight / 2 - center) ? button : best;
       }, buttons[0]);
       const nextHour = Number(nearest.textContent);
-      if (!Number.isFinite(nextHour) || nextHour === selectedTime.hour) return;
-      const crossedNoonBoundary =
-        (lastSettledHour === 12 && nextHour === 1) ||
-        (lastSettledHour === 1 && nextHour === 12);
-      if (crossedNoonBoundary) {
+      if (!Number.isFinite(nextHour) || nextHour === lastPreviewHour) return;
+      // 12에서 1 방향(위쪽 끝), 1에서 12 방향(아래쪽 끝)으로 경계를 넘으면 오전/오후만 전환한다.
+      if ((lastPreviewHour === 12 && nextHour === 1) || (lastPreviewHour === 1 && nextHour === 12)) {
         selectedTime.period = selectedTime.period === "오전" ? "오후" : "오전";
         const periodHolder = $("timePeriodOptions");
         periodHolder.querySelectorAll(".time-picker-option").forEach(button => {
-          const isSelected = button.textContent === selectedTime.period;
-          button.classList.toggle("selected", isSelected);
-          if (isSelected) periodHolder.scrollTop = button.offsetTop - (periodHolder.clientHeight - button.offsetHeight) / 2;
+          const active = button.textContent === selectedTime.period;
+          button.classList.toggle("selected", active);
+          if (active) periodHolder.scrollTop = button.offsetTop - (periodHolder.clientHeight - button.offsetHeight) / 2;
         });
       }
-      selectedTime.hour = nextHour;
-      lastSettledHour = nextHour;
-      buttons.forEach(button => button.classList.toggle("selected", Number(button.textContent) === nextHour));
+      lastPreviewHour = nextHour;
+      buttons.forEach(button => button.classList.toggle("preview", Number(button.textContent) === nextHour));
     }, 140);
   }, { passive: true });
 
