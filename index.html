@@ -32,7 +32,7 @@
       background: linear-gradient(135deg, #252b33, #1b1f27 72%);
     }
     .brand-logo {
-      display: block; width: 88px; height: 49px; flex: 0 0 88px;
+      display: block; width: 88px; height: auto; flex: 0 0 88px;
       max-width: 100%; overflow: visible;
     }
     h1 { font-size: 23px; margin: 0 0 5px; }
@@ -383,10 +383,12 @@
 <body>
 <main class="container">
   <header>
-    <svg class="brand-logo" viewBox="0 0 211 116" role="img" aria-label="SmartVision 심볼" xmlns="http://www.w3.org/2000/svg">
-      <path fill="#aeb5bf" d="M48 0H191L211 31H77L63 20H48C31 20 18 31 18 48H0C0 20 21 0 48 0Z"/>
-      <path fill="#aeb5bf" d="M0 92H113C128 92 141 81 145 66H165C161 94 140 115 112 115H0Z"/>
-      <path fill="#aeb5bf" d="M130 35H154L169 87L187 35H211L184 115H159Z"/>
+    <svg class="brand-logo" viewBox="0 0 500 311" role="img" aria-label="SV 로고" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="svRed" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d90012"/><stop offset="1" stop-color="#ff4a00"/></linearGradient></defs>
+      <path fill="#000000" d="M100 23H438L500 88H60C67 52 82 23 100 23Z"/>
+      <path fill="#000000" d="M56 132H247C277 132 298 155 307 197H56C37 182 28 155 28 132Z"/>
+      <path fill="#000000" d="M0 231H304C296 274 269 307 232 307H0Z"/>
+      <path fill="url(#svRed)" d="M278 90H351L389 240L434 90H500L430 307H350Z"/>
     </svg>
     <div>
       <h1>차량운행일지</h1>
