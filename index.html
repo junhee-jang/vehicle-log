@@ -929,7 +929,10 @@
       if (selected) {
         // 시 영역도 선택 항목이 가운데로 부드럽게 이동하도록 실제 스크롤한다.
         requestAnimationFrame(() => {
-          const targetTop = selected.offsetTop - (holder.clientHeight - selected.offsetHeight) / 2;
+          const holderRect = holder.getBoundingClientRect();
+          const selectedRect = selected.getBoundingClientRect();
+          const targetTop = holder.scrollTop + selectedRect.top - holderRect.top
+            - (holder.clientHeight - selected.offsetHeight) / 2;
           holder.scrollTo({ top: targetTop, behavior: "smooth" });
         });
       }
