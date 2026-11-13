@@ -76,6 +76,30 @@
       font-size: 13px;
     }
     .basic-info-custom-weather { margin-top: 9px; }
+    .route-entry-row {
+      display: grid;
+      grid-template-columns: 1fr 1.25fr 0.82fr;
+      gap: 8px;
+      align-items: end;
+    }
+    .route-entry-group { min-width: 0; }
+    .route-entry-group label {
+      margin: 0 0 7px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .route-entry-control { display: flex; align-items: stretch; gap: 5px; min-width: 0; }
+    .route-entry-control input {
+      min-width: 0; width: 100%; flex: 1 1 0;
+      min-height: 43px; padding: 8px 7px; font-size: 13px;
+    }
+    .route-entry-button {
+      width: auto; flex: 0 0 auto; min-height: 43px;
+      padding: 7px 9px; font-size: 11px; white-space: nowrap;
+    }
+    .route-add-group button {
+      min-height: 43px; padding: 7px 8px; font-size: 11px; white-space: nowrap;
+    }
     .destination-control {
       display: flex;
       align-items: stretch;
@@ -295,6 +319,12 @@
       .distance { align-items: flex-start; }
       .distance strong { font-size: 19px; }
       .route-actions { grid-template-columns: 1fr; }
+      .route-entry-row { grid-template-columns: 1fr 1.2fr 0.85fr; gap: 5px; }
+      .route-entry-group label { font-size: 10px; }
+      .route-entry-control { gap: 3px; }
+      .route-entry-control input { padding: 7px 5px; font-size: 11px; }
+      .route-entry-button { padding: 6px 5px; font-size: 10px; }
+      .route-add-group button { padding: 6px 5px; font-size: 10px; }
       .route-heading-row { gap: 6px; }
       .route-heading-row button { padding: 7px 8px; font-size: 11px; }
       .time-picker-columns { grid-template-columns: 0.9fr 1fr 1fr; gap: 6px; }
@@ -379,30 +409,33 @@
 
     <section class="card">
       <h2>📍 운행 경로</h2>
-      <div class="grid">
-        <div>
+      <div class="route-entry-row">
+        <div class="route-entry-group">
           <label for="origin">출발지</label>
-          <input id="origin" value="남청주" autocomplete="off">
-        </div>
-        <div>
-          <label for="destination">최종 도착지</label>
-          <div class="destination-control">
-            <input id="destination" value="남청주" autocomplete="off">
-            <button type="button" class="secondary apply-destination" id="applyDestination">도착지 적용</button>
+          <div class="route-entry-control">
+            <input id="origin" value="남청주" autocomplete="off">
+            <button type="button" class="secondary route-entry-button" id="changeOrigin">변경</button>
           </div>
+        </div>
+        <div class="route-entry-group">
+          <label for="destination">최종 도착지</label>
+          <div class="route-entry-control">
+            <input id="destination" value="남청주" autocomplete="off">
+            <button type="button" class="secondary route-entry-button apply-destination" id="applyDestination">도착지 적용</button>
+          </div>
+        </div>
+        <div class="route-entry-group route-add-group">
+          <label>경유지</label>
+          <button type="button" class="secondary" id="openOfficePicker">＋ 경유지 추가</button>
         </div>
       </div>
 
-      <div class="route-time-toolbar">
-        <button type="button" id="toggleRouteTimes">시간정보 숨기기</button>
-      </div>
       <div class="route-heading-row">
         <label>경유지 순서</label>
-        <button type="button" class="secondary" id="openOfficePicker">＋ 경유지 추가</button>
       </div>
       <div id="waypoints" class="route-line" aria-live="polite">
         <div class="route-time-toolbar">
-          <button type="button" id="toggleRouteTimes">시간정보 숨기기</button>
+          <button type="button" id="toggleRouteTimes">시간정보 보기</button>
         </div>
         <div id="routeStops" class="route-stops">
           <span class="empty-route">출발지를 기준으로 경유지를 추가해 주세요.</span>
@@ -562,7 +595,7 @@
   let routeActionIndex = -1;
   let pendingRoutePlace = "";
   let pickerReturnToEdit = false;
-  let routeTimesVisible = true;
+  let routeTimesVisible = false;
   let activeTimeInput = null;
   let selectedTime = { period: "오전", hour: 9, minute: 0 };
 
@@ -747,6 +780,11 @@
       event.preventDefault();
       $("addTypedPlace").click();
     }
+  });
+
+  // 출발지 변경 버튼은 기존 지사/영업소 선택 팝업을 사용한다.
+  $("changeOrigin").addEventListener("click", () => {
+    openRoutePicker("origin");
   });
 
   // 경유지 추가 버튼
