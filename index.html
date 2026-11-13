@@ -306,7 +306,7 @@
     .fuel-card { padding: 0; overflow: hidden; }
     .fuel-toggle {
       display: flex; align-items: center; justify-content: space-between;
-      gap: 12px; width: 100%; min-height: 62px; padding: 18px 21px 18px 19px;
+      gap: 12px; width: 100%; min-height: 62px; padding: 18px 17px 18px 15px;
       background: transparent; color: var(--text); text-align: left;
       border-radius: 0; font-size: 17px;
     }
@@ -314,14 +314,14 @@
     .fuel-toggle-actions { display: inline-flex; align-items: center; gap: 7px; color: var(--muted); font-size: 12px; font-weight: 650; white-space: nowrap; }
     .fuel-chevron {
       color: var(--green); font-size: 21px; line-height: 1;
-      letter-spacing: 0; padding: 0; transition: transform .2s ease;
+      letter-spacing: -2px; padding: 0; transition: transform .2s ease;
     }
     .fuel-toggle[aria-expanded="true"] .fuel-chevron { transform: rotate(90deg); }
     .memo-heading-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
     .memo-heading-row h2 { margin: 0; min-width: 0; }
     .memo-heading-note { color: var(--muted); font-size: 11px; font-weight: 450; }
     .collapse-action { display: inline-flex; align-items: center; gap: 7px; width: auto; min-height: 30px; padding: 4px 2px; background: transparent; color: var(--muted); font-size: 12px; font-weight: 650; white-space: nowrap; }
-    .collapse-chevron { color: var(--green); font-size: 19px; line-height: 1; letter-spacing: 0; padding: 0; transition: transform .2s ease; }
+    .collapse-chevron { color: var(--green); font-size: 19px; line-height: 1; letter-spacing: -2px; padding: 0; transition: transform .2s ease; }
     .collapse-action[aria-expanded="true"] .collapse-chevron { transform: rotate(90deg); }
     .fuel-content { padding: 0 19px 19px; }
     .fuel-content[hidden] { display: none !important; }
@@ -926,6 +926,10 @@
         button.className = "time-picker-option" + (value === group.selected ? " selected" : "");
         button.textContent = group.key === "minute" ? String(value).padStart(2, "0") : String(value);
         button.addEventListener("click", () => {
+          if (group.key === "hour" && Date.now() < suppressHourClickUntil) return;
+          if (group.key === "hour" && ((lastSettledHour === 12 && value === 1) || (lastSettledHour === 1 && value === 12))) {
+            selectedTime.period = selectedTime.period === "오전" ? "오후" : "오전";
+          }
           selectedTime[group.key] = value;
           if (group.key === "hour") lastSettledHour = value;
           renderTimePickerOptions();
@@ -943,10 +947,21 @@
     });
   }
 
-  // 시 목록은 모바일 네이티브 관성 스크롤로 움직이고, 스크롤이 멈춘 항목을 선택한다.
+  // 시 목록은 네이티브 관성 스크롤을 사용한다. 스크롤 제스처 뒤 발생하는
+  // 모바일 브라우저의 합성 클릭은 무시하고, 중앙에 정착한 시를 선택한다.
   const hourOptions = $("timeHourOptions");
   let hourScrollTimer = null;
   let lastSettledHour = selectedTime.hour;
+  let hourTouchStartY = null;
+  let suppressHourClickUntil = 0;
+  hourOptions.addEventListener("touchstart", event => {
+    hourTouchStartY = event.touches[0]?.clientY ?? null;
+  }, { passive: true });
+  hourOptions.addEventListener("touchmove", event => {
+    if (hourTouchStartY !== null && Math.abs((event.touches[0]?.clientY ?? hourTouchStartY) - hourTouchStartY) > 6) {
+      suppressHourClickUntil = Date.now() + 500;
+    }
+  }, { passive: true });
   hourOptions.addEventListener("scroll", () => {
     if (hourScrollTimer) clearTimeout(hourScrollTimer);
     hourScrollTimer = setTimeout(() => {
@@ -959,27 +974,22 @@
       }, buttons[0]);
       const nextHour = Number(nearest.textContent);
       if (!Number.isFinite(nextHour) || nextHour === selectedTime.hour) return;
-      if (lastSettledHour === 12 && nextHour === 1) {
+      const crossedNoonBoundary =
+        (lastSettledHour === 12 && nextHour === 1) ||
+        (lastSettledHour === 1 && nextHour === 12);
+      if (crossedNoonBoundary) {
         selectedTime.period = selectedTime.period === "오전" ? "오후" : "오전";
         const periodHolder = $("timePeriodOptions");
         periodHolder.querySelectorAll(".time-picker-option").forEach(button => {
           const isSelected = button.textContent === selectedTime.period;
           button.classList.toggle("selected", isSelected);
-          if (isSelected) button.scrollIntoView({ block: "center", behavior: "smooth" });
-        });
-      } else if (lastSettledHour === 1 && nextHour === 12) {
-        selectedTime.period = selectedTime.period === "오전" ? "오후" : "오전";
-        const periodHolder = $("timePeriodOptions");
-        periodHolder.querySelectorAll(".time-picker-option").forEach(button => {
-          const isSelected = button.textContent === selectedTime.period;
-          button.classList.toggle("selected", isSelected);
-          if (isSelected) button.scrollIntoView({ block: "center", behavior: "smooth" });
+          if (isSelected) periodHolder.scrollTop = button.offsetTop - (periodHolder.clientHeight - button.offsetHeight) / 2;
         });
       }
       selectedTime.hour = nextHour;
       lastSettledHour = nextHour;
       buttons.forEach(button => button.classList.toggle("selected", Number(button.textContent) === nextHour));
-    }, 110);
+    }, 140);
   }, { passive: true });
 
   function closeTimePicker() {
