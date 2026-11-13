@@ -937,11 +937,23 @@
           if (group.key === "hour") {
             selectedTime.hour = value;
             selectedTime.period = previewPeriod;
+            // 선택 표시만 갱신하고 목록을 다시 그리거나 스크롤 위치를 이동하지 않는다.
+            holder.querySelectorAll(".time-picker-option").forEach(option => {
+              option.classList.remove("selected", "preview");
+            });
+            button.classList.add("selected");
+            const periodHolder = $("timePeriodOptions");
+            periodHolder.querySelectorAll(".time-picker-option").forEach(option => {
+              option.classList.toggle("selected", option.textContent === selectedTime.period);
+            });
           } else {
             selectedTime[group.key] = value;
             if (group.key === "period") previewPeriod = value;
+            // 분/오전·오후도 현재 목록 위치를 유지한 채 선택 상태만 변경한다.
+            holder.querySelectorAll(".time-picker-option").forEach(option => {
+              option.classList.toggle("selected", option === button);
+            });
           }
-          renderTimePickerOptions();
         });
         holder.appendChild(button);
       });
