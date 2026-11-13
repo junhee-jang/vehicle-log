@@ -921,7 +921,7 @@
 
   function renderTimePickerOptions() {
     const groups = [
-      { id: "timePeriodOptions", values: ["오전", "오후"], key: "period" },
+      { id: "timePeriodOptions", values: Array.from({ length: 18 }, (_, i) => i % 2 === 0 ? "오전" : "오후"), key: "period" },
       { id: "timeHourOptions", values: Array.from({ length: 12 }, (_, i) => i + 1), key: "hour" },
       { id: "timeMinuteOptions", values: Array.from({ length: 60 }, (_, i) => i), key: "minute" }
     ];
@@ -940,10 +940,10 @@
       });
       requestAnimationFrame(() => {
         const selectedValue = selectedTime[group.key];
-        const selected = Array.from(holder.querySelectorAll(".time-picker-option"))
-          .find(button => Number.isNaN(Number(selectedValue))
-            ? button.textContent === selectedValue
-            : Number(button.textContent) === selectedValue);
+        const options = Array.from(holder.querySelectorAll(".time-picker-option"));
+        const selected = group.key === "period"
+          ? options[8 + (selectedValue === "오후" ? 1 : 0)]
+          : options.find(button => Number(button.textContent) === selectedValue);
         if (selected) {
           const itemTop = selected.getBoundingClientRect().top - holder.getBoundingClientRect().top + holder.scrollTop;
           holder.scrollTop = itemTop - (holder.clientHeight - selected.offsetHeight) / 2;
