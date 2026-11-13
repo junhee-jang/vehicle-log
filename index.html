@@ -156,7 +156,7 @@
     .route-stop { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; position: relative; }
     .route-stop.route-wrapped::before { content: "↳"; position: static; display: block; margin: 0 0 -2px 4px; color: var(--green); font-size: 16px; line-height: 16px; font-weight: 800; }
     .route-stops.hide-route-times .route-times { display: none; }
-    .route-times { display: grid; gap: 2px; padding-left: 3px; color: var(--muted); font-size: 10px; line-height: 1.35; }
+    .route-times { display: grid; grid-template-rows: repeat(2, 1.35em); gap: 2px; padding-left: 3px; color: var(--muted); font-size: 10px; line-height: 1.35; }
     .route-time-row { white-space: nowrap; }
     .empty-route { color: var(--muted); font-size: 13px; padding: 3px; }
     .route-actions { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 11px; }
@@ -188,9 +188,11 @@
     .time-picker-columns { display: grid; grid-template-columns: 0.85fr 1fr 1fr; gap: 9px; }
     .time-picker-column { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
     .time-picker-column-label { color: var(--muted); font-size: 11px; text-align: center; margin-bottom: 3px; }
-    .time-picker-options { display: flex; flex-direction: column; gap: 5px; max-height: 190px; overflow-y: auto; padding: 3px; border: 1px solid var(--border); border-radius: 10px; background: #14171d; overscroll-behavior: contain; }
-    #timeHourOptions { overflow-y: hidden; touch-action: none; }
-    .time-picker-option { flex: 0 0 auto; min-height: 36px; padding: 7px 4px; background: transparent; color: var(--text); border: 1px solid transparent; font-size: 14px; }
+    .time-picker-options { display: flex; flex-direction: column; gap: 5px; max-height: 190px; overflow-y: auto; padding: 3px; border: 1px solid var(--border); border-radius: 10px; background: #14171d; overscroll-behavior: contain; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+    .time-picker-options::-webkit-scrollbar { display: none; }
+    #timeHourOptions { touch-action: pan-y; scroll-snap-type: y mandatory; }
+    #timeHourOptions .time-picker-option { scroll-snap-align: center; }
+    .time-picker-option { flex: 0 0 auto; min-height: 40px; padding: 7px 4px; background: transparent; color: var(--text); border: 1px solid transparent; font-size: 14px; }
     @keyframes timeOptionSlideIn {
       from { opacity: .55; transform: translateY(5px); }
       to { opacity: 1; transform: translateY(0); }
@@ -311,15 +313,15 @@
     .fuel-toggle-label { display: flex; align-items: center; gap: 9px; }
     .fuel-toggle-actions { display: inline-flex; align-items: center; gap: 7px; color: var(--muted); font-size: 12px; font-weight: 650; white-space: nowrap; }
     .fuel-chevron {
-      color: var(--green); font-size: 25px; line-height: 1;
-      letter-spacing: -5px; padding-right: 5px; transition: transform .2s ease;
+      color: var(--green); font-size: 21px; line-height: 1;
+      letter-spacing: 0; padding: 0; transition: transform .2s ease;
     }
     .fuel-toggle[aria-expanded="true"] .fuel-chevron { transform: rotate(90deg); }
     .memo-heading-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
     .memo-heading-row h2 { margin: 0; min-width: 0; }
     .memo-heading-note { color: var(--muted); font-size: 11px; font-weight: 450; }
     .collapse-action { display: inline-flex; align-items: center; gap: 7px; width: auto; min-height: 30px; padding: 4px 2px; background: transparent; color: var(--muted); font-size: 12px; font-weight: 650; white-space: nowrap; }
-    .collapse-chevron { color: var(--green); font-size: 19px; line-height: 1; letter-spacing: -4px; padding-right: 4px; transition: transform .2s ease; }
+    .collapse-chevron { color: var(--green); font-size: 19px; line-height: 1; letter-spacing: 0; padding: 0; transition: transform .2s ease; }
     .collapse-action[aria-expanded="true"] .collapse-chevron { transform: rotate(90deg); }
     .fuel-content { padding: 0 19px 19px; }
     .fuel-content[hidden] { display: none !important; }
@@ -470,7 +472,7 @@
       <div class="memo-heading-row">
         <h2>📝 비고 및 메모 <span class="memo-heading-note">(해당일자의 특이사항을 메모합니다.)</span></h2>
         <button type="button" class="collapse-action" id="memoToggle" aria-expanded="true" aria-controls="memoContent">
-          <span class="collapse-chevron" aria-hidden="true">›››</span>
+          <span class="collapse-chevron" aria-hidden="true">› ›</span>
           <span id="memoToggleText">접기</span>
         </button>
       </div>
@@ -483,7 +485,7 @@
       <button type="button" class="fuel-toggle" id="fuelToggle" aria-expanded="false" aria-controls="fuelContent">
         <span class="fuel-toggle-label">⛽ 주유 · 요소수 기록</span>
         <span class="fuel-toggle-actions">
-          <span class="fuel-chevron" aria-hidden="true">›››</span>
+          <span class="fuel-chevron" aria-hidden="true">› ›</span>
           <span id="fuelToggleText">펼치기</span>
         </span>
       </button>
@@ -903,6 +905,7 @@
       hour: hours % 12 || 12,
       minute: minutes
     };
+    lastSettledHour = selectedTime.hour;
     // 패널을 먼저 표시한 뒤 선택 항목을 가운데로 이동시킨다.
     $("timePickerPanel").classList.remove("hidden");
     renderTimePickerOptions();
@@ -929,55 +932,53 @@
         holder.appendChild(button);
       });
       const selected = holder.querySelector(".selected");
-      if (selected && group.key !== "timeHourOptions") {
-        // 선택된 오전/오후 및 분을 목록의 정중앙에 표시한다.
+      if (selected) {
+        // 선택된 항목을 중앙에 놓고, 시 목록은 모바일 기본 관성 스크롤을 사용한다.
         requestAnimationFrame(() => {
-          const holderRect = holder.getBoundingClientRect();
-          const selectedRect = selected.getBoundingClientRect();
-          holder.scrollTop += selectedRect.top - holderRect.top
-            - (holder.clientHeight - selected.offsetHeight) / 2;
+          const targetTop = selected.offsetTop - (holder.clientHeight - selected.offsetHeight) / 2;
+          holder.scrollTop = targetTop;
         });
       }
     });
   }
 
-  // 시간 목록을 위아래로 넘길 때 1시와 12시 경계에서 오전/오후를 자동 전환한다.
-  function shiftSelectedHour(direction) {
-    if (direction < 0) {
-      if (selectedTime.hour === 1) {
-        selectedTime.hour = 12;
-        selectedTime.period = selectedTime.period === "오후" ? "오전" : "오후";
-      } else {
-        selectedTime.hour -= 1;
-      }
-    } else {
-      if (selectedTime.hour === 12) {
-        selectedTime.hour = 1;
-        selectedTime.period = selectedTime.period === "오전" ? "오후" : "오전";
-      } else {
-        selectedTime.hour += 1;
-      }
-    }
-    renderTimePickerOptions();
-  }
-
+  // 시 목록은 모바일 네이티브 관성 스크롤로 움직이고, 스크롤이 멈춘 항목을 선택한다.
   const hourOptions = $("timeHourOptions");
-  hourOptions.addEventListener("wheel", event => {
-    event.preventDefault();
-    if (Math.abs(event.deltaY) < 2) return;
-    shiftSelectedHour(event.deltaY < 0 ? -1 : 1);
-  }, { passive: false });
-
-  let hourTouchStartY = null;
-  hourOptions.addEventListener("touchstart", event => {
-    hourTouchStartY = event.touches[0]?.clientY ?? null;
-  }, { passive: true });
-  hourOptions.addEventListener("touchend", event => {
-    if (hourTouchStartY === null) return;
-    const endY = event.changedTouches[0]?.clientY ?? hourTouchStartY;
-    const delta = endY - hourTouchStartY;
-    if (Math.abs(delta) >= 18) shiftSelectedHour(delta > 0 ? -1 : 1);
-    hourTouchStartY = null;
+  let hourScrollTimer = null;
+  let lastSettledHour = selectedTime.hour;
+  hourOptions.addEventListener("scroll", () => {
+    if (hourScrollTimer) clearTimeout(hourScrollTimer);
+    hourScrollTimer = setTimeout(() => {
+      const buttons = Array.from(hourOptions.querySelectorAll(".time-picker-option"));
+      if (!buttons.length) return;
+      const center = hourOptions.scrollTop + hourOptions.clientHeight / 2;
+      const nearest = buttons.reduce((best, button) => {
+        const midpoint = button.offsetTop + button.offsetHeight / 2;
+        return Math.abs(midpoint - center) < Math.abs(best.offsetTop + best.offsetHeight / 2 - center) ? button : best;
+      }, buttons[0]);
+      const nextHour = Number(nearest.textContent);
+      if (!Number.isFinite(nextHour) || nextHour === selectedTime.hour) return;
+      if (lastSettledHour === 12 && nextHour === 1) {
+        selectedTime.period = selectedTime.period === "오전" ? "오후" : "오전";
+        const periodHolder = $("timePeriodOptions");
+        periodHolder.querySelectorAll(".time-picker-option").forEach(button => {
+          const isSelected = button.textContent === selectedTime.period;
+          button.classList.toggle("selected", isSelected);
+          if (isSelected) button.scrollIntoView({ block: "center", behavior: "smooth" });
+        });
+      } else if (lastSettledHour === 1 && nextHour === 12) {
+        selectedTime.period = selectedTime.period === "오전" ? "오후" : "오전";
+        const periodHolder = $("timePeriodOptions");
+        periodHolder.querySelectorAll(".time-picker-option").forEach(button => {
+          const isSelected = button.textContent === selectedTime.period;
+          button.classList.toggle("selected", isSelected);
+          if (isSelected) button.scrollIntoView({ block: "center", behavior: "smooth" });
+        });
+      }
+      selectedTime.hour = nextHour;
+      lastSettledHour = nextHour;
+      buttons.forEach(button => button.classList.toggle("selected", Number(button.textContent) === nextHour));
+    }, 110);
   }, { passive: true });
 
   function closeTimePicker() {
@@ -1134,7 +1135,10 @@
       arrival.className = "route-time-row";
       arrival.textContent = `도착: ${item.arrivalTime || ""}`;
       if (item.type === "origin") {
-        times.append(departure);
+        arrival.textContent = "";
+        arrival.setAttribute("aria-hidden", "true");
+        arrival.style.visibility = "hidden";
+        times.append(arrival, departure);
       } else {
         times.append(arrival, departure);
       }
