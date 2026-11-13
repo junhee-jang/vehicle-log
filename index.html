@@ -15,6 +15,8 @@
       --muted: #9ba5b3;
       --green: #79d7b0;
       --green-dark: #20372e;
+      --button-bg: #303743;
+      --button-border: #46505e;
       --red: #f19b9b;
       --blue: #91b9ff;
     }
@@ -133,9 +135,9 @@
     .hint { display: block; margin-top: 4px; color: var(--muted); font-size: 11px; font-weight: 400; }
     .distance strong { color: var(--green); font-size: 21px; white-space: nowrap; }
     button { border: 0; min-height: 45px; padding: 11px 13px; cursor: pointer; font-weight: 700; }
-    button:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
-    .primary { background: var(--green); color: #102219; font-size: 16px; }
-    .secondary { background: #26372f; border: 1px solid #3d6855; color: #baf0d5; }
+    button:focus-visible { outline: 2px solid #8b96a5; outline-offset: 2px; }
+    .primary, .secondary { background: var(--button-bg); border: 1px solid var(--button-border); color: var(--text); }
+    .primary { font-size: 16px; }
     .soft { background: var(--panel-2); border: 1px solid var(--border); color: var(--text); }
     .danger { background: #3b2529; border: 1px solid #674047; color: var(--red); }
     .route-line {
@@ -148,7 +150,7 @@
     }
     .route-chip {
       display: inline-flex; align-items: center; gap: 6px;
-      border: 1px solid #3d6855; background: #20372e; color: #baf0d5;
+      border: 1px solid var(--button-border); background: var(--button-bg); color: var(--text);
       border-radius: 9px; padding: 8px 10px; cursor: pointer;
       font-size: 13px; font-weight: 650; width: auto; min-height: 0;
     }
@@ -191,10 +193,10 @@
     .time-picker-options { display: flex; flex-direction: column; gap: 5px; max-height: 190px; overflow-y: auto; padding: 3px; border: 1px solid var(--border); border-radius: 10px; background: #14171d; overscroll-behavior: contain; }
     #timeHourOptions { overflow-y: hidden; touch-action: none; }
     .time-picker-option { flex: 0 0 auto; min-height: 36px; padding: 7px 4px; background: transparent; color: var(--text); border: 1px solid transparent; font-size: 14px; }
-    .time-picker-option.selected { color: #baf0d5; background: #20372e; border-color: #3d6855; }
+    .time-picker-option.selected { color: var(--text); background: var(--button-bg); border-color: var(--button-border); }
     .time-picker-actions { display: flex; justify-content: flex-end; gap: 22px; margin-top: 22px; }
     .time-picker-actions button { width: auto; min-height: 0; padding: 5px 2px; background: transparent; border: 0; color: var(--muted); font-size: 14px; font-weight: 650; }
-    .time-picker-actions button.confirm { color: var(--green); }
+    .time-picker-actions button.confirm { color: var(--text); }
     .small-note { color: var(--muted); font-size: 12px; line-height: 1.5; margin: 10px 0 0; }
     .event-list { display: grid; gap: 9px; margin-top: 12px; }
     .event-item {
@@ -224,7 +226,7 @@
     .route-place-button {
       width: auto; min-width: 5.6em; max-width: 65%; min-height: 36px; padding: 7px 11px;
       overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-      background: #26372f; border: 1px solid #3d6855; color: #baf0d5;
+      background: var(--button-bg); border: 1px solid var(--button-border); color: var(--text);
       font-size: 14px; flex: 0 1 auto;
     }
     .route-picker-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 7px; }
@@ -236,7 +238,7 @@
     .dialog-subtitle { margin: 0 0 14px; color: var(--muted); font-size: 12px; }
     .option-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .option-list button { text-align: left; background: #252b35; border: 1px solid #3a4350; color: var(--text); }
-    .option-list button:active { background: #294236; }
+    .option-list button:active { background: #3a4350; }
     .scroll-list { max-height: 42vh; overflow-y: auto; padding-right: 3px; }
     .picker-layout {
       display: grid;
@@ -261,9 +263,9 @@
       color: var(--text);
     }
     .branch-options button.selected {
-      background: #20372e;
-      border-color: var(--green);
-      color: #baf0d5;
+      background: #3a4350;
+      border-color: #687486;
+      color: var(--text);
     }
     .office-options {
       display: grid;
@@ -304,7 +306,7 @@
     }
     .fuel-toggle-label { display: flex; align-items: center; gap: 9px; }
     .fuel-chevron {
-      color: var(--green); font-size: 25px; line-height: 1;
+      color: var(--muted); font-size: 25px; line-height: 1;
       letter-spacing: -5px; padding-right: 5px; transition: transform .2s ease;
     }
     .fuel-toggle[aria-expanded="true"] .fuel-chevron { transform: rotate(90deg); }
@@ -447,9 +449,14 @@
       </div>
       <p class="small-note">경로 목록의 장소를 누르면 변경·추가·삭제할 수 있습니다. 첫 번째 출발지도 같은 방식으로 관리합니다.</p>    </section>
 
-    <section class="card">
-      <h2>📝 비고 및 메모</h2>
-      <textarea id="memo" placeholder="특이사항이나 메모 입력"></textarea>
+    <section class="card fuel-card memo-card">
+      <button type="button" class="fuel-toggle" id="memoToggle" aria-expanded="true" aria-controls="memoContent">
+        <span class="fuel-toggle-label">📝 비고 및 메모</span>
+        <span class="fuel-chevron" aria-hidden="true">›››</span>
+      </button>
+      <div class="fuel-content" id="memoContent">
+        <textarea id="memo" placeholder="특이사항이나 메모 입력"></textarea>
+      </div>
     </section>
 
     <section class="card fuel-card">
@@ -640,6 +647,19 @@
     const expanded = $("fuelToggle").getAttribute("aria-expanded") === "true";
     $("fuelToggle").setAttribute("aria-expanded", String(!expanded));
     $("fuelContent").hidden = expanded;
+  });
+
+  // 비고 및 메모는 모바일에서 공간을 확보하기 위해 처음에는 접어 둔다.
+  const memoToggle = $("memoToggle");
+  const memoContent = $("memoContent");
+  if (window.matchMedia("(max-width: 520px)").matches) {
+    memoToggle.setAttribute("aria-expanded", "false");
+    memoContent.hidden = true;
+  }
+  memoToggle.addEventListener("click", () => {
+    const expanded = memoToggle.getAttribute("aria-expanded") === "true";
+    memoToggle.setAttribute("aria-expanded", String(!expanded));
+    memoContent.hidden = expanded;
   });
   function updateFuelFields() {
     const isFuel = $("eventType").value === "주유";
@@ -914,22 +934,49 @@
   }
 
   const hourOptions = $("timeHourOptions");
+  // 휠 입력은 작은 이벤트를 누적해 과도한 재렌더링 없이 일정한 속도로 이동한다.
+  let hourWheelRemainder = 0;
+  let hourWheelFrame = false;
   hourOptions.addEventListener("wheel", event => {
     event.preventDefault();
-    if (Math.abs(event.deltaY) < 2) return;
-    shiftSelectedHour(event.deltaY < 0 ? -1 : 1);
+    hourWheelRemainder += event.deltaY;
+    if (hourWheelFrame) return;
+    hourWheelFrame = true;
+    requestAnimationFrame(() => {
+      const stepSize = 42;
+      const steps = Math.trunc(hourWheelRemainder / stepSize);
+      if (steps) {
+        const direction = steps < 0 ? -1 : 1;
+        for (let i = 0; i < Math.min(Math.abs(steps), 4); i++) shiftSelectedHour(direction);
+        hourWheelRemainder -= steps * stepSize;
+      }
+      hourWheelFrame = false;
+    });
   }, { passive: false });
 
-  let hourTouchStartY = null;
+  // 터치 이동 중 일정 거리마다 한 칸씩 반응시켜 손가락 움직임을 더 자연스럽게 따라간다.
+  let hourTouchLastY = null;
+  let hourTouchRemainder = 0;
   hourOptions.addEventListener("touchstart", event => {
-    hourTouchStartY = event.touches[0]?.clientY ?? null;
+    hourTouchLastY = event.touches[0]?.clientY ?? null;
+    hourTouchRemainder = 0;
   }, { passive: true });
-  hourOptions.addEventListener("touchend", event => {
-    if (hourTouchStartY === null) return;
-    const endY = event.changedTouches[0]?.clientY ?? hourTouchStartY;
-    const delta = endY - hourTouchStartY;
-    if (Math.abs(delta) >= 18) shiftSelectedHour(delta > 0 ? -1 : 1);
-    hourTouchStartY = null;
+  hourOptions.addEventListener("touchmove", event => {
+    if (hourTouchLastY === null) return;
+    const currentY = event.touches[0]?.clientY ?? hourTouchLastY;
+    hourTouchRemainder += hourTouchLastY - currentY;
+    hourTouchLastY = currentY;
+    const stepSize = 34;
+    const steps = Math.trunc(hourTouchRemainder / stepSize);
+    if (steps) {
+      const direction = steps > 0 ? 1 : -1;
+      for (let i = 0; i < Math.min(Math.abs(steps), 4); i++) shiftSelectedHour(direction);
+      hourTouchRemainder -= steps * stepSize;
+    }
+  }, { passive: true });
+  hourOptions.addEventListener("touchend", () => {
+    hourTouchLastY = null;
+    hourTouchRemainder = 0;
   }, { passive: true });
 
   function closeTimePicker() {
