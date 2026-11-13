@@ -920,8 +920,9 @@
   }
 
   function renderTimePickerOptions() {
+    // 오전/오후는 두 항목만 표시하고, 반복 목록을 만들지 않는다.
     const groups = [
-      { id: "timePeriodOptions", values: Array.from({ length: 18 }, (_, i) => i % 2 === 0 ? "오전" : "오후"), key: "period" },
+      { id: "timePeriodOptions", values: ["오전", "오후"], key: "period" },
       { id: "timeHourOptions", values: Array.from({ length: 12 }, (_, i) => i + 1), key: "hour" },
       { id: "timeMinuteOptions", values: Array.from({ length: 60 }, (_, i) => i), key: "minute" }
     ];
@@ -939,21 +940,22 @@
         holder.appendChild(button);
       });
       requestAnimationFrame(() => {
-        const selectedValue = selectedTime[group.key];
         const options = Array.from(holder.querySelectorAll(".time-picker-option"));
-        const selected = group.key === "period"
-          ? options[8 + (selectedValue === "오후" ? 1 : 0)]
-          : options.find(button => Number(button.textContent) === selectedValue);
+        const selected = options.find(button =>
+          group.key === "period"
+            ? button.textContent === selectedTime.period
+            : Number(button.textContent) === selectedTime[group.key]
+        );
         if (selected) {
-          const itemTop = selected.getBoundingClientRect().top - holder.getBoundingClientRect().top + holder.scrollTop;
+          const itemTop = selected.offsetTop;
           holder.scrollTop = itemTop - (holder.clientHeight - selected.offsetHeight) / 2;
-          selected.classList.add("selected");
+          options.forEach(button => button.classList.toggle("selected", button === selected));
         }
       });
     });
   }
 
-  // 세 개의 슬롯 모두 가운데 두 줄 사이에 들어온 항목을 선택값으로 사용한다.
+  // 스크롤이 멈추면 중앙에 가장 가까운 항목을 선택하고 중앙에 정렬한다.
   const pickerGroups = [
     { id: "timePeriodOptions", key: "period" },
     { id: "timeHourOptions", key: "hour" },
@@ -978,7 +980,9 @@
           ? nearest.textContent
           : Number(nearest.textContent);
         buttons.forEach(button => button.classList.toggle("selected", button === nearest));
-      }, 80);
+        const targetTop = nearest.offsetTop - (holder.clientHeight - nearest.offsetHeight) / 2;
+        holder.scrollTo({ top: targetTop, behavior: "smooth" });
+      }, 100);
     }, { passive: true });
   });
 
