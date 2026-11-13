@@ -306,7 +306,7 @@
     .fuel-card { padding: 0; overflow: hidden; }
     .fuel-toggle {
       display: flex; align-items: center; justify-content: space-between;
-      gap: 12px; width: 100%; min-height: 62px; padding: 18px 21px 18px 19px;
+      gap: 12px; width: 100%; min-height: 62px; padding: 18px 19px;
       background: transparent; color: var(--text); text-align: left;
       border-radius: 0; font-size: 17px;
     }
@@ -314,7 +314,7 @@
     .fuel-toggle-actions { display: inline-flex; align-items: center; gap: 7px; color: var(--muted); font-size: 12px; font-weight: 650; white-space: nowrap; }
     .fuel-chevron {
       color: var(--green); font-size: 21px; line-height: 1;
-      letter-spacing: -2px; padding: 0; transition: transform .2s ease;
+      letter-spacing: -1px; padding: 0; transition: transform .2s ease;
     }
     .fuel-toggle[aria-expanded="true"] .fuel-chevron { transform: rotate(90deg); }
     .time-picker-option.preview { color: #e0e4e9; background: #303640; border-color: #596270; }
@@ -337,7 +337,7 @@
       .memo-heading-row h2 { font-size: 15px; line-height: 1.5; }
       .memo-heading-note { display: block; margin-top: 2px; }
       .collapse-action { flex: 0 0 auto; margin-top: -3px; }
-      .fuel-toggle { padding: 18px 17px 18px 15px; }
+      .fuel-toggle { padding: 18px 15px; }
       .grid, .fuel-grid { grid-template-columns: 1fr 1fr; gap: 9px; }
       .basic-info-grid { grid-template-columns: 1.1fr 0.95fr 0.85fr; gap: 6px; }
       .basic-info-grid label { font-size: 11px; }
@@ -909,6 +909,7 @@
     };
     lastSettledHour = selectedTime.hour;
     lastPreviewHour = selectedTime.hour;
+    previewPeriod = selectedTime.period;
     // 패널을 먼저 표시한 뒤 선택 항목을 가운데로 이동시킨다.
     $("timePickerPanel").classList.remove("hidden");
     renderTimePickerOptions();
@@ -930,10 +931,14 @@
         button.textContent = group.key === "minute" ? String(value).padStart(2, "0") : String(value);
         button.addEventListener("click", () => {
           if (group.key === "hour" && Date.now() < suppressHourClickUntil) return;
-          selectedTime[group.key] = value;
           if (group.key === "hour") {
+            selectedTime.hour = value;
+            selectedTime.period = previewPeriod;
             lastSettledHour = value;
             lastPreviewHour = value;
+          } else {
+            selectedTime[group.key] = value;
+            if (group.key === "period") previewPeriod = value;
           }
           renderTimePickerOptions();
         });
@@ -955,6 +960,7 @@
   let hourScrollTimer = null;
   let lastSettledHour = selectedTime.hour;
   let lastPreviewHour = selectedTime.hour;
+  let previewPeriod = selectedTime.period;
   let hourTouchStartY = null;
   let suppressHourClickUntil = 0;
   hourOptions.addEventListener("touchstart", event => {
@@ -979,10 +985,10 @@
       if (!Number.isFinite(nextHour) || nextHour === lastPreviewHour) return;
       // 12에서 1 방향(위쪽 끝), 1에서 12 방향(아래쪽 끝)으로 경계를 넘으면 오전/오후만 전환한다.
       if ((lastPreviewHour === 12 && nextHour === 1) || (lastPreviewHour === 1 && nextHour === 12)) {
-        selectedTime.period = selectedTime.period === "오전" ? "오후" : "오전";
+        previewPeriod = previewPeriod === "오전" ? "오후" : "오전";
         const periodHolder = $("timePeriodOptions");
         periodHolder.querySelectorAll(".time-picker-option").forEach(button => {
-          const active = button.textContent === selectedTime.period;
+          const active = button.textContent === previewPeriod;
           button.classList.toggle("selected", active);
           if (active) periodHolder.scrollTop = button.offsetTop - (periodHolder.clientHeight - button.offsetHeight) / 2;
         });
