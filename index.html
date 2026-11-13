@@ -927,6 +927,7 @@
         button.textContent = group.key === "minute" ? String(value).padStart(2, "0") : String(value);
         button.addEventListener("click", () => {
           selectedTime[group.key] = value;
+          if (group.key === "hour") lastSettledHour = value;
           renderTimePickerOptions();
         });
         holder.appendChild(button);
