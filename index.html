@@ -303,11 +303,18 @@
       border-radius: 0; font-size: 17px;
     }
     .fuel-toggle-label { display: flex; align-items: center; gap: 9px; }
+    .fuel-toggle-actions { display: inline-flex; align-items: center; gap: 7px; color: var(--muted); font-size: 12px; font-weight: 650; white-space: nowrap; }
     .fuel-chevron {
       color: var(--green); font-size: 25px; line-height: 1;
       letter-spacing: -5px; padding-right: 5px; transition: transform .2s ease;
     }
     .fuel-toggle[aria-expanded="true"] .fuel-chevron { transform: rotate(90deg); }
+    .memo-heading-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+    .memo-heading-row h2 { margin: 0; min-width: 0; }
+    .memo-heading-note { color: var(--muted); font-size: 11px; font-weight: 450; }
+    .collapse-action { display: inline-flex; align-items: center; gap: 7px; width: auto; min-height: 30px; padding: 4px 2px; background: transparent; color: var(--muted); font-size: 12px; font-weight: 650; white-space: nowrap; }
+    .collapse-chevron { color: var(--green); font-size: 19px; line-height: 1; letter-spacing: -4px; padding-right: 4px; transition: transform .2s ease; }
+    .collapse-action[aria-expanded="true"] .collapse-chevron { transform: rotate(90deg); }
     .fuel-content { padding: 0 19px 19px; }
     .fuel-content[hidden] { display: none !important; }
     .fuel-field-hidden { display: none !important; }
@@ -317,6 +324,10 @@
       .brand-logo { width: 76px; height: auto; flex: 0 0 76px; }
       h1 { font-size: 21px; }
       .card { padding: 15px; }
+      .memo-heading-row { align-items: flex-start; }
+      .memo-heading-row h2 { font-size: 15px; line-height: 1.5; }
+      .memo-heading-note { display: block; margin-top: 2px; }
+      .collapse-action { flex: 0 0 auto; margin-top: -3px; }
       .grid, .fuel-grid { grid-template-columns: 1fr 1fr; gap: 9px; }
       .basic-info-grid { grid-template-columns: 1.1fr 0.95fr 0.85fr; gap: 6px; }
       .basic-info-grid label { font-size: 11px; }
@@ -447,15 +458,26 @@
       </div>
       <p class="small-note">경로 목록의 장소를 누르면 변경·추가·삭제할 수 있습니다. 첫 번째 출발지도 같은 방식으로 관리합니다.</p>    </section>
 
-    <section class="card">
-      <h2>📝 비고 및 메모</h2>
-      <textarea id="memo" placeholder="특이사항이나 메모 입력"></textarea>
+    <section class="card memo-card">
+      <div class="memo-heading-row">
+        <h2>📝 비고 및 메모 <span class="memo-heading-note">(해당일자의 특이사항을 메모합니다.)</span></h2>
+        <button type="button" class="collapse-action" id="memoToggle" aria-expanded="true" aria-controls="memoContent">
+          <span class="collapse-chevron" aria-hidden="true">›››</span>
+          <span id="memoToggleText">접기</span>
+        </button>
+      </div>
+      <div id="memoContent">
+        <textarea id="memo" placeholder="특이사항이나 메모 입력"></textarea>
+      </div>
     </section>
 
     <section class="card fuel-card">
       <button type="button" class="fuel-toggle" id="fuelToggle" aria-expanded="false" aria-controls="fuelContent">
         <span class="fuel-toggle-label">⛽ 주유 · 요소수 기록</span>
-        <span class="fuel-chevron" aria-hidden="true">›››</span>
+        <span class="fuel-toggle-actions">
+          <span class="fuel-chevron" aria-hidden="true">›››</span>
+          <span id="fuelToggleText">펼치기</span>
+        </span>
       </button>
       <div class="fuel-content" id="fuelContent" hidden>
         <p class="small-note" style="margin-top:0;">운행 중 발생한 기록을 필요한 만큼 추가하세요.</p>
@@ -636,11 +658,29 @@
   $("eventAmount").addEventListener("input", () => {
     $("eventAmount").value = $("eventAmount").value.replace(/[^\d.]/g, "");
   });
-  $("fuelToggle").addEventListener("click", () => {
-    const expanded = $("fuelToggle").getAttribute("aria-expanded") === "true";
-    $("fuelToggle").setAttribute("aria-expanded", String(!expanded));
-    $("fuelContent").hidden = expanded;
+  function setCollapseState(toggle, content, textElement, expanded) {
+    toggle.setAttribute("aria-expanded", String(expanded));
+    content.hidden = !expanded;
+    textElement.textContent = expanded ? "접기" : "펼치기";
+  }
+
+  // 메모는 모바일에서만 기본 접힘, PC에서는 기존처럼 펼쳐 둔다.
+  const memoToggle = $("memoToggle");
+  const memoContent = $("memoContent");
+  const memoToggleText = $("memoToggleText");
+  const isMobileView = window.matchMedia("(max-width: 520px)").matches;
+  setCollapseState(memoToggle, memoContent, memoToggleText, !isMobileView);
+  memoToggle.addEventListener("click", () => {
+    const expanded = memoToggle.getAttribute("aria-expanded") !== "true";
+    setCollapseState(memoToggle, memoContent, memoToggleText, expanded);
   });
+
+  // 주유·요소수 기록도 화살표와 펼치기/접기 문구를 함께 갱신한다.
+  $("fuelToggle").addEventListener("click", () => {
+    const expanded = $("fuelToggle").getAttribute("aria-expanded") !== "true";
+    setCollapseState($("fuelToggle"), $("fuelContent"), $("fuelToggleText"), expanded);
+  });
+  setCollapseState($("fuelToggle"), $("fuelContent"), $("fuelToggleText"), false);
   function updateFuelFields() {
     const isFuel = $("eventType").value === "주유";
     $("unitPriceField").classList.toggle("fuel-field-hidden", !isFuel);
