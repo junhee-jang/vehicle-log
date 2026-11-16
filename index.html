@@ -47,10 +47,10 @@
     .pin-description { display:none; }
     .pin-card { position:absolute; inset:0; margin:0; padding:0; border:0; background:transparent; }
     .pin-card label, .pin-confirm-wrap { display:none !important; }
-    .pin-dots { position:absolute; top:26.2%; left:0; right:0; display:flex; justify-content:center; gap:14px; }
+    .pin-dots { position:absolute; top:26.2%; left:0; right:0; z-index:5; display:flex; justify-content:center; gap:14px; pointer-events:none; }
     .pin-dot { width:13px; height:13px; border:1.5px solid #87909b; border-radius:50%; background:transparent; transition:background .12s,border-color .12s; }
     .pin-dot.filled { background:#dce2e9; border-color:#dce2e9; }
-    .pin-hidden-input { position:absolute; top:24%; left:50%; width:1px !important; height:1px !important; opacity:0; padding:0; border:0; pointer-events:none; }
+    .pin-hidden-input { position:absolute; top:24.5%; left:0; z-index:4; width:100% !important; height:54px !important; opacity:.015; padding:0; border:0; border-radius:0; background:transparent; color:transparent; caret-color:transparent; letter-spacing:14px; text-align:center; pointer-events:auto; font-size:24px; }
     .pin-submit { display:none; }
     .pin-notice { position:absolute; top:32%; left:0; right:0; min-height:22px; margin:0; color:#e4c78a; font-size:13px; text-align:center; }
     .pin-reregister { position:absolute; top:46.5%; left:0; right:0; width:100%; min-height:76px; border:1px solid #3a4657; border-radius:18px; background:#26364d; color:#f3f5f7; font-size:21px; font-weight:700; letter-spacing:-.5px; }
@@ -1494,6 +1494,9 @@
     pinScreen.addEventListener("click", event => {
       if (event.target === pinScreen || event.target === pinDots || event.target.classList.contains("pin-dot")) pinInput.focus();
     });
+    pinInput.addEventListener("blur", () => {
+      if (!pinScreen.hidden && !pinForm.hidden) updatePinDots();
+    });
 
     function unlockApp() {
       document.body.classList.remove("login-required", "pin-required");
@@ -1525,8 +1528,16 @@
         else showPinGate("verify");
       } catch (_error) {
         if (ticket !== gateCheck) return;
+        const statusCode = _error?.status || _error?.details?.status;
+        const errorCode = _error?.message || _error?.details?.error || "";
+        if (statusCode === 401 || statusCode === 403 || errorCode === "no_session" || errorCode === "unauthorized") {
+          try { await authClient.auth.signOut({ scope: "local" }); } catch (_) {}
+          if (ticket === gateCheck) setSignedIn(null);
+          return;
+        }
         pinScreen.hidden = false;
         document.body.classList.add("pin-required");
+        pinForm.hidden = true;
         pinTitle.textContent = "인증 확인 실패";
         pinDescription.textContent = "PIN 인증 서버에 연결하지 못했어. 인터넷을 확인하고 새로고침해 줘.";
         pinForm.hidden = true;
@@ -1543,7 +1554,7 @@
         body: JSON.stringify({ action, ...payload })
       });
       const result = await response.json().catch(() => ({}));
-      if (!response.ok) throw Object.assign(new Error(result.error || "pin_error"), { details: result });
+      if (!response.ok) throw Object.assign(new Error(result.error || "pin_error"), { details: result, status: response.status });
       return result;
     }
 
