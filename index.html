@@ -32,6 +32,9 @@
       background: linear-gradient(135deg, #252b33, #1b1f27 72%);
     }
     .app-header-copy { min-width: 0; flex: 1; }
+    .app-header-subline { display: flex; align-items: center; gap: 9px; min-width: 0; flex-wrap: wrap; }
+    .app-header-subline > p { margin: 0; }
+    .signed-in-name { margin: 0; color: #c5ccd5; font-size: 12px; font-weight: 650; }
     .logout-button {
       width: auto; flex: 0 0 auto; min-height: 38px; padding: 8px 12px;
       border: 1px solid #424b59; background: #232832; color: #dce1e7;
@@ -44,7 +47,6 @@
       color: #c5ccd5; border-radius: 9px; font-size: 12px; font-weight: 650;
     }
     .login-resend-button:disabled { opacity: .55; cursor: wait; }
-    .signed-in-name { margin-top: 4px; color: #c5ccd5; font-size: 12px; font-weight: 650; }
     .email-confirm-panel { margin-top: 14px; padding: 20px; border: 1px solid var(--border); border-radius: 15px; background: var(--panel); }
     .email-confirm-panel h2 { margin: 0 0 8px; font-size: 18px; }
     .email-confirm-panel p { color: var(--muted); font-size: 13px; line-height: 1.5; }
@@ -587,8 +589,10 @@
     <img class="brand-logo" src="sv-logo.svg?v=original-trace-2" alt="SV 로고">
     <div class="app-header-copy">
       <h1>차량운행일지</h1>
-      <p>제한진천팀</p>
-      <p class="signed-in-name" id="signedInUserName" hidden></p>
+      <div class="app-header-subline">
+        <p>제한진천팀</p>
+        <p class="signed-in-name" id="signedInUserName" hidden></p>
+      </div>
     </div>
     <button class="logout-button" id="logoutButton" type="button">로그아웃</button>
   </header>
