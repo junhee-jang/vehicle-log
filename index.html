@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>차량운행일지 | 제한진천팀</title>
+  <title>충북제한단속 시스템</title>
   <style>
     :root {
       color-scheme: dark;
@@ -376,6 +376,43 @@
         font-size: 12px;
       }
     }
+
+    /* 충북제한단속 시스템 시작 스플래시 */
+    body.splash-active { overflow: hidden; }
+    .system-splash {
+      position: fixed; inset: 0; z-index: 9999;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 23px; padding: 24px;
+      background: #101216;
+      opacity: 1; visibility: visible;
+      transition: opacity .48s ease, visibility .48s ease;
+    }
+    .system-splash.is-leaving { opacity: 0; visibility: hidden; pointer-events: none; }
+    .system-splash-logo { display: block; width: 116px; height: auto; flex: 0 0 auto; }
+    .system-splash-title {
+      margin: 0; color: #f0f2f4; font-size: 19px; line-height: 1.45;
+      font-weight: 750; letter-spacing: -.045em; text-align: center;
+    }
+    .system-splash-accent { width: 34px; height: 2px; margin-top: -10px; border-radius: 2px; background: #79d7b0; opacity: .9; }
+    @keyframes splashRise {
+      from { opacity: 0; transform: translateY(7px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .system-splash-logo, .system-splash-title, .system-splash-accent {
+      animation: splashRise .65s ease-out both;
+    }
+    .system-splash-title { animation-delay: .08s; }
+    .system-splash-accent { animation-delay: .16s; }
+    @media (max-width: 520px) {
+      .system-splash { gap: 21px; }
+      .system-splash-logo { width: 104px; }
+      .system-splash-title { font-size: 18px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .system-splash, .system-splash-logo, .system-splash-title, .system-splash-accent {
+        animation: none !important; transition: none !important;
+      }
+    }
     @media print {
       :root { color-scheme: light; --bg: #fff; --panel: #fff; --panel-2: #f5f5f5; --border: #ccc; --text: #111; --muted: #555; }
       body { background: #fff !important; color: #111 !important; padding: 0; }
@@ -389,7 +426,19 @@
     }
   </style>
 </head>
-<body>
+<body class="splash-active">
+
+<div class="system-splash" id="systemSplash" role="status" aria-label="충북제한단속 시스템 시작">
+  <svg class="system-splash-logo" viewBox="0 0 500 311" role="img" aria-label="SV 로고" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="splashRed" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e51b32"/><stop offset="1" stop-color="#ff5635"/></linearGradient></defs>
+    <path fill="#E8EBEF" d="M100 23H438L500 88H60C67 52 82 23 100 23Z"/>
+    <path fill="#E8EBEF" d="M56 132H247C277 132 298 155 307 197H56C37 182 28 155 28 132Z"/>
+    <path fill="#E8EBEF" d="M0 231H304C296 274 269 307 232 307H0Z"/>
+    <path fill="url(#splashRed)" d="M278 90H351L389 240L434 90H500L430 307H350Z"/>
+  </svg>
+  <h1 class="system-splash-title">충북제한단속 시스템</h1>
+  <span class="system-splash-accent" aria-hidden="true"></span>
+</div>
 <main class="container">
   <header>
     <svg class="brand-logo" viewBox="0 0 500 311" role="img" aria-label="SV 로고" xmlns="http://www.w3.org/2000/svg">
@@ -1267,6 +1316,18 @@
       `입력 확인 완료 · 경로: ${[result.origin, ...finalRoute].filter(Boolean).join("-") || "없음"} · 주유/요소수 기록 ${eventList.length}건. 현재는 화면 입력 확인 단계이며 서버에 영구 저장되지는 않습니다.`;
     console.log("차량운행일지 입력 확인:", result);
   });
+
+  // 시작 스플래시: 기존 차량운행일지 화면으로 자연스럽게 연결
+  (() => {
+    const splash = document.getElementById("systemSplash");
+    if (!splash) return;
+    const finishSplash = () => {
+      splash.classList.add("is-leaving");
+      document.body.classList.remove("splash-active");
+      window.setTimeout(() => splash.remove(), 520);
+    };
+    window.setTimeout(finishSplash, 1650);
+  })();
 </script>
 </body>
 </html>
