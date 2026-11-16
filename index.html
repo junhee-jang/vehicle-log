@@ -31,6 +31,14 @@
       border: 1px solid var(--border); border-radius: 16px;
       background: linear-gradient(135deg, #252b33, #1b1f27 72%);
     }
+    .app-header-copy { min-width: 0; flex: 1; }
+    .logout-button {
+      width: auto; flex: 0 0 auto; min-height: 38px; padding: 8px 12px;
+      border: 1px solid #424b59; background: #232832; color: #dce1e7;
+      border-radius: 9px; font-size: 12px; font-weight: 700;
+    }
+    .logout-button:active { filter: brightness(.92); }
+    .login-screen[hidden] { display: none !important; }
     .brand-logo {
       display: block; width: 88px; height: auto; flex: 0 0 88px;
       max-width: 100%; overflow: visible;
@@ -500,16 +508,17 @@
       <button class="login-submit" type="submit">로그인</button>
       <p class="login-notice" id="loginNotice" role="status" aria-live="polite"></p>
     </form>
-    <p class="login-footnote">현재 로그인 화면 디자인 단계야. 실제 계정 인증은 다음 단계에서 연결할게.</p>
+    <p class="login-footnote">로그인 상태는 안전하게 유지돼. 로그아웃하면 다시 로그인해야 해.</p>
   </div>
 </div>
 <main class="container">
   <header>
     <img class="brand-logo" src="sv-logo.svg?v=original-trace-2" alt="SV 로고">
-    <div>
+    <div class="app-header-copy">
       <h1>차량운행일지</h1>
       <p>제한진천팀</p>
     </div>
+    <button class="logout-button" id="logoutButton" type="button">로그아웃</button>
   </header>
 
   <form id="logForm">
@@ -728,6 +737,7 @@
   </div>
 </dialog>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
   const offices = {
     "진천지사": ["남이천", "일죽", "대소", "진천", "증평", "오창", "서청주"],
@@ -1387,14 +1397,103 @@
     window.setTimeout(finishSplash, 1650);
   })();
 
-  // 로그인 화면 디자인 확인용: 아직 인증 서버에는 연결하지 않음
+  // Supabase 이메일/비밀번호 인증 및 로그인 세션 유지
   (() => {
     const form = document.getElementById("loginForm");
     const notice = document.getElementById("loginNotice");
-    if (!form || !notice) return;
-    form.addEventListener("submit", event => {
+    const screen = document.getElementById("loginScreen");
+    const loginButton = form?.querySelector('button[type="submit"]');
+    const logoutButton = document.getElementById("logoutButton");
+    if (!form || !notice || !screen || !loginButton || !logoutButton) return;
+
+    const SUPABASE_URL = "https://cjrylcrenuammqznpzeo.supabase.co";
+    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_4Dh-OUBZ9MgubMsapHQn6g_4HGyXcTV";
+    let authClient = null;
+
+    function setSignedIn(session) {
+      const signedIn = Boolean(session?.user);
+      document.body.classList.toggle("login-required", !signedIn);
+      screen.hidden = signedIn;
+      if (signedIn) {
+        notice.textContent = "";
+        form.reset();
+      }
+    }
+
+    function friendlyAuthError(error) {
+      const message = String(error?.message || "").toLowerCase();
+      if (message.includes("invalid login credentials")) return "이메일 또는 비밀번호를 확인해 줘.";
+      if (message.includes("email not confirmed")) return "이메일 인증이 아직 완료되지 않았어. 인증 메일을 확인해 줘.";
+      if (message.includes("too many requests")) return "로그인 시도가 많아. 잠시 후 다시 시도해 줘.";
+      if (message.includes("fetch") || message.includes("network")) return "서버에 연결하지 못했어. 인터넷 연결을 확인해 줘.";
+      return "로그인하지 못했어. 입력 내용을 확인하고 다시 시도해 줘.";
+    }
+
+    function showLoginError(message) {
+      notice.textContent = message;
+      notice.style.color = "#e4c78a";
+    }
+
+    async function initializeAuth() {
+      if (!window.supabase?.createClient) {
+        showLoginError("로그인 모듈을 불러오지 못했어. 페이지를 새로고침해 줘.");
+        return;
+      }
+      authClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+      });
+
+      authClient.auth.onAuthStateChange((_event, session) => setSignedIn(session));
+      const { data, error } = await authClient.auth.getSession();
+      if (error) {
+        setSignedIn(null);
+        showLoginError("로그인 상태를 확인하지 못했어. 다시 로그인해 줘.");
+        return;
+      }
+      setSignedIn(data.session);
+    }
+
+    form.addEventListener("submit", async event => {
       event.preventDefault();
-      notice.textContent = "실제 계정 인증은 다음 단계에서 연결할게.";
+      if (!authClient) {
+        showLoginError("로그인 서버를 준비 중이야. 잠시 후 다시 시도해 줘.");
+        return;
+      }
+      const email = document.getElementById("loginEmail").value.trim();
+      const password = document.getElementById("loginPassword").value;
+      if (!email || !password) return;
+      loginButton.disabled = true;
+      loginButton.textContent = "로그인 중...";
+      notice.textContent = "";
+      try {
+        const { data, error } = await authClient.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        setSignedIn(data.session);
+      } catch (error) {
+        showLoginError(friendlyAuthError(error));
+      } finally {
+        loginButton.disabled = false;
+        loginButton.textContent = "로그인";
+      }
+    });
+
+    logoutButton.addEventListener("click", async () => {
+      if (!authClient) return;
+      logoutButton.disabled = true;
+      try {
+        const { error } = await authClient.auth.signOut();
+        if (error) throw error;
+        setSignedIn(null);
+      } catch (_error) {
+        window.alert("로그아웃하지 못했어. 다시 시도해 줘.");
+      } finally {
+        logoutButton.disabled = false;
+      }
+    });
+
+    initializeAuth().catch(() => {
+      setSignedIn(null);
+      showLoginError("로그인 서버에 연결하지 못했어. 인터넷 연결을 확인해 줘.");
     });
   })();
 </script>
