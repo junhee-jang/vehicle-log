@@ -1544,16 +1544,34 @@
       }
     }
 
+    async function requireActiveEmailSession() {
+      let session = null;
+      try {
+        const { data, error } = await authClient.auth.getSession();
+        if (error) throw error;
+        session = data.session;
+      } catch (_) {}
+      if (!session?.access_token) {
+        try { await authClient.auth.signOut({ scope: "local" }); } catch (_) {}
+        setSignedIn(null);
+        throw new Error("session_expired");
+      }
+      return session;
+    }
+
     async function callPinApi(action, payload = {}) {
-      const { data } = await authClient.auth.getSession();
-      const token = data.session?.access_token;
-      if (!token) throw new Error("no_session");
+      const session = await requireActiveEmailSession();
       const response = await fetch(SUPABASE_URL + "/functions/v1/pin-auth", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token, "apikey": SUPABASE_PUBLISHABLE_KEY },
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + session.access_token, "apikey": SUPABASE_PUBLISHABLE_KEY },
         body: JSON.stringify({ action, ...payload })
       });
       const result = await response.json().catch(() => ({}));
+      if (response.status === 401 || response.status === 403) {
+        try { await authClient.auth.signOut({ scope: "local" }); } catch (_) {}
+        setSignedIn(null);
+        throw new Error("session_expired");
+      }
       if (!response.ok) throw Object.assign(new Error(result.error || "pin_error"), { details: result, status: response.status });
       return result;
     }
@@ -1595,6 +1613,10 @@
         unlockApp();
       } catch (error) {
         const code = error?.details?.error || error.message;
+        if (code === "session_expired" || code === "no_session" || error?.status === 401 || error?.status === 403) {
+          pinNotice.textContent = "";
+          return;
+        }
         if (code === "pin_mismatch") pinNotice.textContent = "두 PIN이 서로 달라. 다시 확인해 줘.";
         else if (code === "wrong_pin") pinNotice.textContent = "PIN이 맞지 않아. 남은 횟수: " + (error.details.attempts_remaining ?? 0) + "회";
         else if (code === "locked") pinNotice.textContent = "5회 실패로 15분간 잠겼어. 잠시 후 다시 시도해 줘.";
