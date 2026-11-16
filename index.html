@@ -95,22 +95,22 @@
       letter-spacing: -.2px;
     }
     .home-menu-grid {
-      display: grid; grid-template-columns: repeat(2, minmax(0, 164px));
-      gap: 13px; justify-content: start; align-items: start;
+      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px; justify-content: stretch; align-items: stretch;
     }
     .home-menu-card {
       position: relative; display: flex; flex-direction: column;
       justify-content: space-between; align-items: stretch;
-      width: 100%; aspect-ratio: 1 / 1; min-height: 0;
-      padding: 13px; overflow: hidden; text-align: left;
+      width: 100%; aspect-ratio: 1 / 1; min-width: 0; min-height: 0;
+      padding: 13px 11px; overflow: hidden; text-align: left;
       border: 1px solid #292e37; border-radius: 12px;
       background: linear-gradient(145deg, #191c22, #12151a 80%);
       color: #f1f3f6; box-shadow: 0 5px 15px #0003;
       transition: border-color .16s ease, transform .16s ease, background .16s ease;
     }
     .home-menu-card:active { transform: scale(.98); border-color: #647181; }
-    .home-menu-title { position: relative; z-index: 1; font-size: 13px; font-weight: 750; letter-spacing: -.35px; }
-    .home-menu-image { display: block; width: 78%; max-width: 116px; height: auto; align-self: flex-end; margin: auto 0 0 auto; opacity: .94; }
+    .home-menu-title { position: relative; z-index: 1; font-size: clamp(10px, 1.25vw, 13px); white-space: nowrap; font-weight: 750; letter-spacing: -.55px; }
+    .home-menu-image { display: block; width: 100%; max-width: 150px; height: auto; align-self: flex-end; margin: auto 0 0 auto; opacity: .98; filter: drop-shadow(0 5px 7px #0008); }
     .home-menu-notice { min-height: 20px; margin: 13px 2px 0; color: #aab4c2; font-size: 12px; text-align: center; }
     .brand-logo {
       display: block; width: 88px; height: auto; flex: 0 0 88px;
@@ -422,10 +422,10 @@
       .home-header-copy p { font-size: 11px; }
       .home-logout-button { padding: 6px 7px; font-size: 10px; }
       .home-menu-heading { min-height: 49px; margin-bottom: 16px; font-size: 13px; }
-      .home-menu-grid { grid-template-columns: repeat(2, minmax(0, 142px)); gap: 11px; }
-      .home-menu-card { padding: 11px; }
-      .home-menu-title { font-size: 12px; }
-      .home-menu-image { width: 80%; }
+      .home-menu-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; }
+      .home-menu-card { padding: 10px 7px; border-radius: 10px; }
+      .home-menu-title { font-size: clamp(9px, 2.65vw, 12px); letter-spacing: -.7px; }
+      .home-menu-image { width: 108%; max-width: none; margin-right: -3px; }
       h1 { font-size: 21px; }
       .card { padding: 15px; }
       /* 주유 카드 외곽 패딩은 제거하고 제목 버튼의 좌우 여백을 메모 헤더와 동일하게 유지 */
@@ -650,24 +650,51 @@
     <div class="home-menu-grid">
       <button class="home-menu-card" type="button" data-home-menu="vehicle-log" aria-label="차량운행일지">
         <span class="home-menu-title">차량운행일지</span>
-        <svg class="home-menu-image" viewBox="0 0 120 76" role="img" aria-label="차량 그림">
-          <path d="M18 48 25 28c2-6 7-9 14-9h42c7 0 12 3 15 9l8 20 5 5v13H11V53z" fill="#303b49" stroke="#91a0b1" stroke-width="2.5" stroke-linejoin="round"/>
-          <path d="m31 30 5-7h45l8 7 5 15H25z" fill="#111820" stroke="#647487" stroke-width="2"/>
-          <path d="M13 49h94M18 57h9m66 0h9" stroke="#79d7b0" stroke-width="3" stroke-linecap="round"/>
-          <circle cx="31" cy="64" r="8" fill="#090c10" stroke="#9ba8b7" stroke-width="3"/>
-          <circle cx="91" cy="64" r="8" fill="#090c10" stroke="#9ba8b7" stroke-width="3"/>
-          <path d="M17 49h8m70 0h8" stroke="#d4e0e9" stroke-width="3" stroke-linecap="round"/>
+        <svg class="home-menu-image" viewBox="0 0 180 108" role="img" aria-label="스포티지 노블레스 SUV 일러스트">
+          <defs>
+            <linearGradient id="sportageBody" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#dce2e8"/><stop offset=".38" stop-color="#7d8997"/><stop offset=".72" stop-color="#394451"/><stop offset="1" stop-color="#aeb8c3"/></linearGradient>
+            <linearGradient id="sportageGlass" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#334252"/><stop offset="1" stop-color="#0b1119"/></linearGradient>
+            <linearGradient id="sportageTire" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#39414a"/><stop offset="1" stop-color="#080b10"/></linearGradient>
+          </defs>
+          <ellipse cx="91" cy="91" rx="78" ry="8" fill="#000" opacity=".45"/>
+          <path d="M16 70 20 56q2-8 11-11l20-5 18-22q5-6 14-6h35q10 0 16 8l16 22 10 6q5 4 5 11v11q0 5-6 5h-8a18 18 0 0 0-35 0H61a18 18 0 0 0-35 0h-6q-6 0-6-6z" fill="url(#sportageBody)" stroke="#d4dce4" stroke-width="1.8"/>
+          <path d="m55 40 17-21q3-4 10-4h16v27z" fill="url(#sportageGlass)" stroke="#8997a6" stroke-width="1.5"/>
+          <path d="M103 15h14q7 0 11 6l14 20h-39z" fill="url(#sportageGlass)" stroke="#8997a6" stroke-width="1.5"/>
+          <path d="M100 17v27M52 43h95" stroke="#aeb8c4" stroke-width="1.4"/>
+          <path d="m18 57 15-5 7 5-5 5H18z" fill="#dce8f0"/><path d="m149 55 13 3 2 5-14 1z" fill="#dce8f0"/>
+          <path d="M20 70h14m104 0h20" stroke="#79d7b0" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M17 64h12m128 0h9" stroke="#202a35" stroke-width="3"/>
+          <circle cx="43" cy="75" r="16" fill="url(#sportageTire)" stroke="#b5c0ca" stroke-width="2"/>
+          <circle cx="43" cy="75" r="8" fill="#aeb9c4" stroke="#3a4653" stroke-width="2"/>
+          <circle cx="43" cy="75" r="3" fill="#394653"/>
+          <circle cx="135" cy="75" r="16" fill="url(#sportageTire)" stroke="#b5c0ca" stroke-width="2"/>
+          <circle cx="135" cy="75" r="8" fill="#aeb9c4" stroke="#3a4653" stroke-width="2"/>
+          <circle cx="135" cy="75" r="3" fill="#394653"/>
+          <path d="M27 51q12-5 24-5m62 0h23" stroke="#f0f4f7" stroke-width="1" opacity=".7"/>
         </svg>
       </button>
       <button class="home-menu-card" type="button" data-home-menu="vehicle-spec" aria-label="차량제원등록">
         <span class="home-menu-title">차량제원등록</span>
-        <svg class="home-menu-image" viewBox="0 0 120 76" role="img" aria-label="차량 제원 그림">
-          <path d="M12 47h96l-7 13H19z" fill="#303b49" stroke="#91a0b1" stroke-width="2.5" stroke-linejoin="round"/>
-          <path d="M25 46 35 25h49l12 21" fill="#1b2530" stroke="#91a0b1" stroke-width="2.5" stroke-linejoin="round"/>
-          <path d="M42 28h34l9 16H34z" fill="#10171f" stroke="#647487" stroke-width="2"/>
-          <circle cx="34" cy="60" r="8" fill="#090c10" stroke="#9ba8b7" stroke-width="3"/>
-          <circle cx="87" cy="60" r="8" fill="#090c10" stroke="#9ba8b7" stroke-width="3"/>
-          <path d="M18 49h10m64 0h10" stroke="#79d7b0" stroke-width="3" stroke-linecap="round"/>
+        <svg class="home-menu-image" viewBox="0 0 190 108" role="img" aria-label="20톤급 3축 화물트럭 일러스트">
+          <defs>
+            <linearGradient id="truckBox" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#dce2e8"/><stop offset=".55" stop-color="#8794a2"/><stop offset="1" stop-color="#4c5865"/></linearGradient>
+            <linearGradient id="truckCab" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e4e9ed"/><stop offset=".55" stop-color="#7d8a98"/><stop offset="1" stop-color="#3d4854"/></linearGradient>
+          </defs>
+          <ellipse cx="98" cy="92" rx="87" ry="7" fill="#000" opacity=".45"/>
+          <path d="M12 25q0-5 6-5h101q5 0 5 5v51H12z" fill="url(#truckBox)" stroke="#d4dce4" stroke-width="1.6"/>
+          <path d="M19 27v44m13-44v44m13-44v44m13-44v44m13-44v44m13-44v44m13-44v44m13-44v44" stroke="#536170" stroke-width="1" opacity=".55"/>
+          <path d="M124 46h25q8 0 12 7l13 20v8h-51z" fill="url(#truckCab)" stroke="#d7dfe6" stroke-width="1.7"/>
+          <path d="m137 49 12 1q5 1 8 6l7 12h-27z" fill="#152330" stroke="#9eacba" stroke-width="1.2"/>
+          <path d="M124 69h43l6 9v4h-49z" fill="#687583" stroke="#d7dfe6" stroke-width="1.2"/>
+          <path d="M172 72h6l2 5h-8z" fill="#e6edf2"/>
+          <path d="M12 77h166" stroke="#79d7b0" stroke-width="2"/>
+          <path d="M20 82h14m22 0h14m22 0h14m22 0h14m22 0h14" stroke="#667483" stroke-width="2"/>
+          <g fill="#090c10" stroke="#aeb9c4" stroke-width="2">
+            <circle cx="38" cy="82" r="9"/><circle cx="59" cy="82" r="9"/>
+            <circle cx="115" cy="82" r="9"/><circle cx="139" cy="82" r="9"/><circle cx="161" cy="82" r="9"/>
+          </g>
+          <g fill="#82909d"><circle cx="38" cy="82" r="3.5"/><circle cx="59" cy="82" r="3.5"/><circle cx="115" cy="82" r="3.5"/><circle cx="139" cy="82" r="3.5"/><circle cx="161" cy="82" r="3.5"/></g>
+          <path d="M16 25h102M126 45h25" stroke="#f5f7f9" stroke-width="1" opacity=".65"/>
         </svg>
       </button>
       <button class="home-menu-card" type="button" data-home-menu="other" aria-label="기타">
