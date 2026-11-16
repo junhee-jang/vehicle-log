@@ -1601,7 +1601,9 @@
         body: JSON.stringify({ action, ...payload })
       });
       const result = await response.json().catch(() => ({}));
-      if (response.status === 401 || response.status === 403) {
+      // PIN 불일치도 서버에서 401로 오므로, 실제 인증 토큰 오류와 구분한다.
+      // wrong_pin은 PIN 화면에 남아 재입력하도록 처리해야 한다.
+      if ((response.status === 401 || response.status === 403) && result.error !== "wrong_pin" && result.error !== "locked") {
         try { await authClient.auth.signOut({ scope: "local" }); } catch (_) {}
         setSignedIn(null);
         throw new Error("session_expired");
