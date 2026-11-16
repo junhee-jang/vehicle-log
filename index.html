@@ -95,22 +95,22 @@
       letter-spacing: -.2px;
     }
     .home-menu-grid {
-      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px; justify-content: stretch; align-items: stretch;
+      display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px; justify-content: stretch; align-items: stretch;
     }
     .home-menu-card {
       position: relative; display: flex; flex-direction: column;
       justify-content: space-between; align-items: stretch;
       width: 100%; aspect-ratio: 1 / 1; min-width: 0; min-height: 0;
-      padding: 13px 11px; overflow: hidden; text-align: left;
+      padding: 16px 15px; overflow: hidden; text-align: left;
       border: 1px solid #292e37; border-radius: 12px;
       background: linear-gradient(145deg, #191c22, #12151a 80%);
       color: #f1f3f6; box-shadow: 0 5px 15px #0003;
       transition: border-color .16s ease, transform .16s ease, background .16s ease;
     }
     .home-menu-card:active { transform: scale(.98); border-color: #647181; }
-    .home-menu-title { position: relative; z-index: 1; font-size: clamp(10px, 1.25vw, 13px); white-space: nowrap; font-weight: 750; letter-spacing: -.55px; }
-    .home-menu-image { display: block; width: 100%; max-width: 150px; height: auto; align-self: flex-end; margin: auto 0 0 auto; opacity: .98; filter: drop-shadow(0 5px 7px #0008); }
+    .home-menu-title { position: relative; z-index: 1; font-size: clamp(12px, 1.6vw, 15px); white-space: nowrap; font-weight: 750; letter-spacing: -.55px; }
+    .home-menu-image { display: block; width: 100%; max-width: 205px; height: auto; align-self: flex-end; margin: auto 0 0 auto; opacity: .98; filter: drop-shadow(0 5px 7px #0008); }
     .home-menu-notice { min-height: 20px; margin: 13px 2px 0; color: #aab4c2; font-size: 12px; text-align: center; }
     .brand-logo {
       display: block; width: 88px; height: auto; flex: 0 0 88px;
@@ -650,51 +650,56 @@
     <div class="home-menu-grid">
       <button class="home-menu-card" type="button" data-home-menu="vehicle-log" aria-label="차량운행일지">
         <span class="home-menu-title">차량운행일지</span>
-        <svg class="home-menu-image" viewBox="0 0 180 108" role="img" aria-label="스포티지 노블레스 SUV 일러스트">
+        <svg class="home-menu-image" viewBox="0 0 220 126" role="img" aria-label="5세대 스포티지 NQ5 SUV 일러스트">
           <defs>
-            <linearGradient id="sportageBody" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#dce2e8"/><stop offset=".38" stop-color="#7d8997"/><stop offset=".72" stop-color="#394451"/><stop offset="1" stop-color="#aeb8c3"/></linearGradient>
-            <linearGradient id="sportageGlass" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#334252"/><stop offset="1" stop-color="#0b1119"/></linearGradient>
-            <linearGradient id="sportageTire" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#39414a"/><stop offset="1" stop-color="#080b10"/></linearGradient>
+            <linearGradient id="nq5Body" x1="0" y1="0" x2="0.15" y2="1"><stop stop-color="#f0f3f6"/><stop offset=".38" stop-color="#aab4bf"/><stop offset=".78" stop-color="#596573"/><stop offset="1" stop-color="#c4cbd2"/></linearGradient>
+            <linearGradient id="nq5Glass" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#415365"/><stop offset="1" stop-color="#111a24"/></linearGradient>
+            <linearGradient id="nq5Wheel" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#58616b"/><stop offset="1" stop-color="#090c10"/></linearGradient>
           </defs>
-          <ellipse cx="91" cy="91" rx="78" ry="8" fill="#000" opacity=".45"/>
-          <path d="M16 70 20 56q2-8 11-11l20-5 18-22q5-6 14-6h35q10 0 16 8l16 22 10 6q5 4 5 11v11q0 5-6 5h-8a18 18 0 0 0-35 0H61a18 18 0 0 0-35 0h-6q-6 0-6-6z" fill="url(#sportageBody)" stroke="#d4dce4" stroke-width="1.8"/>
-          <path d="m55 40 17-21q3-4 10-4h16v27z" fill="url(#sportageGlass)" stroke="#8997a6" stroke-width="1.5"/>
-          <path d="M103 15h14q7 0 11 6l14 20h-39z" fill="url(#sportageGlass)" stroke="#8997a6" stroke-width="1.5"/>
-          <path d="M100 17v27M52 43h95" stroke="#aeb8c4" stroke-width="1.4"/>
-          <path d="m18 57 15-5 7 5-5 5H18z" fill="#dce8f0"/><path d="m149 55 13 3 2 5-14 1z" fill="#dce8f0"/>
-          <path d="M20 70h14m104 0h20" stroke="#79d7b0" stroke-width="2.5" stroke-linecap="round"/>
-          <path d="M17 64h12m128 0h9" stroke="#202a35" stroke-width="3"/>
-          <circle cx="43" cy="75" r="16" fill="url(#sportageTire)" stroke="#b5c0ca" stroke-width="2"/>
-          <circle cx="43" cy="75" r="8" fill="#aeb9c4" stroke="#3a4653" stroke-width="2"/>
-          <circle cx="43" cy="75" r="3" fill="#394653"/>
-          <circle cx="135" cy="75" r="16" fill="url(#sportageTire)" stroke="#b5c0ca" stroke-width="2"/>
-          <circle cx="135" cy="75" r="8" fill="#aeb9c4" stroke="#3a4653" stroke-width="2"/>
-          <circle cx="135" cy="75" r="3" fill="#394653"/>
-          <path d="M27 51q12-5 24-5m62 0h23" stroke="#f0f4f7" stroke-width="1" opacity=".7"/>
+          <ellipse cx="111" cy="105" rx="96" ry="8" fill="#000" opacity=".42"/>
+          <path d="M17 82 21 66q2-9 12-13l31-8 24-25q5-5 13-5h43q11 0 18 8l23 25 15 7q8 4 9 13l1 13q0 8-9 9h-12a20 20 0 0 0-39 0H75a20 20 0 0 0-39 0H25q-9 0-8-8z" fill="url(#nq5Body)" stroke="#e0e5ea" stroke-width="1.8"/>
+          <path d="m68 43 24-25q3-3 9-3h22v31z" fill="url(#nq5Glass)" stroke="#8c9aa8" stroke-width="1.5"/>
+          <path d="M128 15h14q8 0 13 7l19 24h-46z" fill="url(#nq5Glass)" stroke="#8c9aa8" stroke-width="1.5"/>
+          <path d="M126 16v29M65 47h111" stroke="#dce2e8" stroke-width="1.4"/>
+          <path d="m19 66 15-8 8 4-5 8H20z" fill="#dce9f2"/><path d="m190 57 14 5 2 8-17-1z" fill="#dce9f2"/>
+          <path d="M21 81h18m133 0h26" stroke="#79d7b0" stroke-width="2.8" stroke-linecap="round"/>
+          <path d="M22 73h15m160 0h11" stroke="#26313d" stroke-width="3"/>
+          <path d="M49 50 61 47m116 0 13 5" stroke="#f7f9fb" stroke-width="1.5" opacity=".7"/>
+          <path d="M82 49v31m50-31v31m31-30 2 30" stroke="#677381" stroke-width="1.2" opacity=".8"/>
+          <g fill="url(#nq5Wheel)" stroke="#c1cad2" stroke-width="2.2">
+            <circle cx="55" cy="87" r="19"/><circle cx="174" cy="87" r="19"/>
+          </g>
+          <g fill="#c5cdd5" stroke="#485563" stroke-width="2">
+            <circle cx="55" cy="87" r="10"/><circle cx="174" cy="87" r="10"/>
+          </g>
+          <g fill="#536170"><circle cx="55" cy="87" r="3.5"/><circle cx="174" cy="87" r="3.5"/></g>
+          <path d="M41 88q4-13 14-13t14 13m91 0q4-13 14-13t14 13" fill="none" stroke="#e2e7ec" stroke-width="1" opacity=".55"/>
         </svg>
       </button>
       <button class="home-menu-card" type="button" data-home-menu="vehicle-spec" aria-label="차량제원등록">
         <span class="home-menu-title">차량제원등록</span>
-        <svg class="home-menu-image" viewBox="0 0 190 108" role="img" aria-label="20톤급 3축 화물트럭 일러스트">
+        <svg class="home-menu-image" viewBox="0 0 220 126" role="img" aria-label="대형 3축 덤프트럭 왼쪽 방향 일러스트">
           <defs>
-            <linearGradient id="truckBox" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#dce2e8"/><stop offset=".55" stop-color="#8794a2"/><stop offset="1" stop-color="#4c5865"/></linearGradient>
-            <linearGradient id="truckCab" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e4e9ed"/><stop offset=".55" stop-color="#7d8a98"/><stop offset="1" stop-color="#3d4854"/></linearGradient>
+            <linearGradient id="dumpBed" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#f0c36b"/><stop offset=".55" stop-color="#b77a2e"/><stop offset="1" stop-color="#70451e"/></linearGradient>
+            <linearGradient id="dumpCab" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e6edf2"/><stop offset=".5" stop-color="#9aa8b5"/><stop offset="1" stop-color="#465361"/></linearGradient>
+            <linearGradient id="dumpWheel" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#424b55"/><stop offset="1" stop-color="#070a0e"/></linearGradient>
           </defs>
-          <ellipse cx="98" cy="92" rx="87" ry="7" fill="#000" opacity=".45"/>
-          <path d="M12 25q0-5 6-5h101q5 0 5 5v51H12z" fill="url(#truckBox)" stroke="#d4dce4" stroke-width="1.6"/>
-          <path d="M19 27v44m13-44v44m13-44v44m13-44v44m13-44v44m13-44v44m13-44v44m13-44v44" stroke="#536170" stroke-width="1" opacity=".55"/>
-          <path d="M124 46h25q8 0 12 7l13 20v8h-51z" fill="url(#truckCab)" stroke="#d7dfe6" stroke-width="1.7"/>
-          <path d="m137 49 12 1q5 1 8 6l7 12h-27z" fill="#152330" stroke="#9eacba" stroke-width="1.2"/>
-          <path d="M124 69h43l6 9v4h-49z" fill="#687583" stroke="#d7dfe6" stroke-width="1.2"/>
-          <path d="M172 72h6l2 5h-8z" fill="#e6edf2"/>
-          <path d="M12 77h166" stroke="#79d7b0" stroke-width="2"/>
-          <path d="M20 82h14m22 0h14m22 0h14m22 0h14m22 0h14" stroke="#667483" stroke-width="2"/>
-          <g fill="#090c10" stroke="#aeb9c4" stroke-width="2">
-            <circle cx="38" cy="82" r="9"/><circle cx="59" cy="82" r="9"/>
-            <circle cx="115" cy="82" r="9"/><circle cx="139" cy="82" r="9"/><circle cx="161" cy="82" r="9"/>
+          <ellipse cx="110" cy="107" rx="96" ry="7" fill="#000" opacity=".42"/>
+          <path d="M19 25 176 25 168 78 28 78z" fill="url(#dumpBed)" stroke="#f0c987" stroke-width="1.8"/>
+          <path d="M27 31 168 31M31 42h133M29 55h136M27 68h138" stroke="#714b24" stroke-width="1.2" opacity=".65"/>
+          <path d="M18 23h160l-4 9H22z" fill="#d8a34f" stroke="#f1d49b" stroke-width="1.2"/>
+          <path d="M19 24 10 75l12 3 13-53z" fill="#6e7780" stroke="#aeb8c2" stroke-width="1.4"/>
+          <path d="M18 76h16l7 9h-24z" fill="#697582"/>
+          <path d="M30 50h-5l-9 10v22h13l7-8 10-3V54z" fill="url(#dumpCab)" stroke="#dbe2e8" stroke-width="1.8"/>
+          <path d="m20 55 10-2v19H17v-9z" fill="#172533" stroke="#aab8c5" stroke-width="1.2"/>
+          <path d="M31 54v23m-8 0h20" stroke="#dce4eb" stroke-width="1.2"/>
+          <path d="M16 66h-5v8h7" fill="#e7eef3"/><path d="M34 79h137" stroke="#79d7b0" stroke-width="2.5"/>
+          <path d="M45 85h13m25 0h13m24 0h13m24 0h13" stroke="#8794a1" stroke-width="2"/>
+          <g fill="url(#dumpWheel)" stroke="#bac4ce" stroke-width="2">
+            <circle cx="48" cy="88" r="12"/><circle cx="112" cy="88" r="12"/><circle cx="145" cy="88" r="12"/><circle cx="177" cy="88" r="12"/>
           </g>
-          <g fill="#82909d"><circle cx="38" cy="82" r="3.5"/><circle cx="59" cy="82" r="3.5"/><circle cx="115" cy="82" r="3.5"/><circle cx="139" cy="82" r="3.5"/><circle cx="161" cy="82" r="3.5"/></g>
-          <path d="M16 25h102M126 45h25" stroke="#f5f7f9" stroke-width="1" opacity=".65"/>
+          <g fill="#9daab6"><circle cx="48" cy="88" r="4"/><circle cx="112" cy="88" r="4"/><circle cx="145" cy="88" r="4"/><circle cx="177" cy="88" r="4"/></g>
+          <path d="M40 88h16m48 0h16m33 0h16m24 0h10" stroke="#e1e7ec" stroke-width="1" opacity=".55"/>
         </svg>
       </button>
       <button class="home-menu-card" type="button" data-home-menu="other" aria-label="기타">
