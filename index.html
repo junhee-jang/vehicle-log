@@ -38,7 +38,21 @@
       border-radius: 9px; font-size: 12px; font-weight: 700;
     }
     .logout-button:active { filter: brightness(.92); }
-    .login-screen[hidden] { display: none !important; }
+    .login-screen[hidden], .pin-screen[hidden] { display: none !important; }
+    body.pin-required { min-height: 100vh; overflow: hidden; padding: 0; }
+    body.pin-required .container { display: none; }
+    .pin-screen { position: fixed; inset: 0; z-index: 9100; display:flex; align-items:center; justify-content:center; padding:24px; background:radial-gradient(ellipse at 50% 38%,rgba(70,80,95,.16),transparent 48%),#101216; }
+    .pin-panel { width:min(100%,390px); text-align:center; }
+    .pin-brand-mark { width:54px;height:54px;margin:0 auto 20px;border:1px solid #46505e;border-radius:16px;display:grid;place-items:center;color:#e8ebef;font-weight:800;letter-spacing:-2px;background:#1b1f27; }
+    .pin-panel h1 { margin:0 0 8px;font-size:23px; }
+    .pin-description,.pin-footnote { color:#9ba5b3;font-size:13px;line-height:1.6; }
+    .pin-card { margin-top:24px;padding:22px;border:1px solid #343b47;border-radius:16px;background:#1b1f27;text-align:left; }
+    .pin-card label { display:block;margin:0 0 8px;color:#cbd1d9;font-size:13px;font-weight:650; }
+    .pin-card input { width:100%;height:52px;margin-bottom:16px;border:1px solid #424b59;border-radius:10px;background:#111318;color:#f3f5f7;text-align:center;font-size:22px;letter-spacing:9px; }
+    .pin-submit { width:100%;height:48px;border:0;border-radius:10px;background:#303640;color:#f3f5f7;font-size:15px;font-weight:750; }
+    .pin-notice { min-height:20px;margin:12px 0 0;color:#e4c78a;font-size:12px;text-align:center; }
+    .pin-footnote { margin-top:18px;font-size:11px; }
+
     .brand-logo {
       display: block; width: 88px; height: auto; flex: 0 0 88px;
       max-width: 100%; overflow: visible;
@@ -509,6 +523,24 @@
       <p class="login-notice" id="loginNotice" role="status" aria-live="polite"></p>
     </form>
     <p class="login-footnote">로그인 상태는 안전하게 유지돼. 로그아웃하면 다시 로그인해야 해.</p>
+  </div>
+</div>
+<div class="pin-screen" id="pinScreen" hidden>
+  <div class="pin-panel">
+    <div class="pin-brand-mark">SV</div>
+    <h1 id="pinTitle">PIN 등록</h1>
+    <p class="pin-description" id="pinDescription">매일 사용할 6자리 PIN을 등록해 줘.</p>
+    <form id="pinForm" class="pin-card">
+      <label for="pinInput" id="pinInputLabel">PIN 6자리</label>
+      <input id="pinInput" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" minlength="6" autocomplete="off" placeholder="숫자 6자리" required>
+      <div id="pinConfirmWrap" hidden>
+        <label for="pinConfirmInput">PIN 다시 입력</label>
+        <input id="pinConfirmInput" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" minlength="6" autocomplete="off" placeholder="한 번 더 입력">
+      </div>
+      <button class="pin-submit" id="pinSubmit" type="submit">확인</button>
+      <p class="pin-notice" id="pinNotice" role="status" aria-live="polite"></p>
+    </form>
+    <p class="pin-footnote">PIN은 6자리 숫자로 설정돼. 5회 연속 실패하면 15분간 잠겨.</p>
   </div>
 </div>
 <main class="container">
@@ -1410,15 +1442,113 @@
     const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_4Dh-OUBZ9MgubMsapHQn6g_4HGyXcTV";
     let authClient = null;
 
-    function setSignedIn(session) {
+    const pinScreen = document.getElementById("pinScreen");
+    const pinForm = document.getElementById("pinForm");
+    const pinInput = document.getElementById("pinInput");
+    const pinConfirmInput = document.getElementById("pinConfirmInput");
+    const pinConfirmWrap = document.getElementById("pinConfirmWrap");
+    const pinTitle = document.getElementById("pinTitle");
+    const pinDescription = document.getElementById("pinDescription");
+    const pinNotice = document.getElementById("pinNotice");
+    const pinSubmit = document.getElementById("pinSubmit");
+    let pinMode = "setup";
+    let gateCheck = 0;
+
+    function showPinGate(mode) {
+      pinMode = mode;
+      document.body.classList.remove("login-required");
+      document.body.classList.add("pin-required");
+      screen.hidden = true;
+      pinScreen.hidden = false;
+      pinConfirmWrap.hidden = mode !== "setup";
+      pinTitle.textContent = mode === "setup" ? "PIN 등록" : "PIN 입력";
+      pinDescription.textContent = mode === "setup" ? "매일 사용할 6자리 PIN을 등록해 줘." : "오늘 사용할 6자리 PIN을 입력해 줘.";
+      pinSubmit.textContent = mode === "setup" ? "PIN 등록" : "확인";
+      pinInput.value = "";
+      pinConfirmInput.value = "";
+      pinNotice.textContent = "";
+    }
+
+    function unlockApp() {
+      document.body.classList.remove("login-required", "pin-required");
+      screen.hidden = true;
+      pinScreen.hidden = true;
+    }
+
+    async function setSignedIn(session) {
+      const ticket = ++gateCheck;
       const signedIn = Boolean(session?.user);
-      document.body.classList.toggle("login-required", !signedIn);
-      screen.hidden = signedIn;
-      if (signedIn) {
-        notice.textContent = "";
-        form.reset();
+      if (!signedIn) {
+        document.body.classList.remove("pin-required");
+        document.body.classList.add("login-required");
+        screen.hidden = false;
+        pinScreen.hidden = true;
+        return;
+      }
+      notice.textContent = "";
+      form.reset();
+      screen.hidden = true;
+      pinScreen.hidden = true;
+      document.body.classList.remove("login-required");
+      document.body.classList.add("pin-required");
+      try {
+        const result = await callPinApi("status");
+        if (ticket !== gateCheck) return;
+        if (!result.is_setup) showPinGate("setup");
+        else if (result.verified_today) unlockApp();
+        else showPinGate("verify");
+      } catch (_error) {
+        if (ticket !== gateCheck) return;
+        pinScreen.hidden = false;
+        document.body.classList.add("pin-required");
+        pinTitle.textContent = "인증 확인 실패";
+        pinDescription.textContent = "PIN 인증 서버에 연결하지 못했어. 인터넷을 확인하고 새로고침해 줘.";
+        pinForm.hidden = true;
       }
     }
+
+    async function callPinApi(action, payload = {}) {
+      const { data } = await authClient.auth.getSession();
+      const token = data.session?.access_token;
+      if (!token) throw new Error("no_session");
+      const response = await fetch(SUPABASE_URL + "/functions/v1/pin-auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token, "apikey": SUPABASE_PUBLISHABLE_KEY },
+        body: JSON.stringify({ action, ...payload })
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw Object.assign(new Error(result.error || "pin_error"), { details: result });
+      return result;
+    }
+
+    pinForm.addEventListener("submit", async event => {
+      event.preventDefault();
+      const pin = pinInput.value;
+      if (!/^[0-9]{6}$/.test(pin)) { pinNotice.textContent = "숫자 6자리를 입력해 줘."; return; }
+      pinSubmit.disabled = true;
+      pinSubmit.textContent = "확인 중...";
+      pinNotice.textContent = "";
+      try {
+        if (pinMode === "setup") {
+          if (pin !== pinConfirmInput.value) throw new Error("pin_mismatch");
+          await callPinApi("setup", { pin, confirm_pin: pinConfirmInput.value });
+        } else {
+          await callPinApi("verify", { pin });
+        }
+        unlockApp();
+      } catch (error) {
+        const code = error?.details?.error || error.message;
+        if (code === "pin_mismatch") pinNotice.textContent = "두 PIN이 서로 달라. 다시 확인해 줘.";
+        else if (code === "wrong_pin") pinNotice.textContent = "PIN이 맞지 않아. 남은 횟수: " + (error.details.attempts_remaining ?? 0) + "회";
+        else if (code === "locked") pinNotice.textContent = "5회 실패로 15분간 잠겼어. 잠시 후 다시 시도해 줘.";
+        else if (code === "already_setup") { pinNotice.textContent = "PIN 등록 상태를 다시 확인할게."; await setSignedIn((await authClient.auth.getSession()).data.session); }
+        else pinNotice.textContent = "PIN 처리에 실패했어. 잠시 후 다시 시도해 줘.";
+      } finally {
+        pinSubmit.disabled = false;
+        pinSubmit.textContent = pinMode === "setup" ? "PIN 등록" : "확인";
+        if (pinMode === "verify") pinInput.value = "";
+      }
+    });
 
     function friendlyAuthError(error) {
       const message = String(error?.message || "").toLowerCase();
