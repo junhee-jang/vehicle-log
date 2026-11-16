@@ -1474,7 +1474,7 @@
       pinConfirmWrap.hidden = mode !== "setup";
       pinTitle.textContent = mode === "setup" ? "핀 번호 등록" : "핀 번호 입력";
       pinDescription.textContent = "";
-      pinSubmit.textContent = mode === "verify" ? "인증하기" : "다음";
+      pinSubmit.textContent = mode === "verify" ? "자동 인증 대기" : "다음";
       setupFirstPin = "";
       pinInput.value = "";
       pinConfirmInput.value = "";
@@ -1504,6 +1504,9 @@
           // 두 번째 6자리 입력이 끝나면 일치 여부 확인 및 등록 진행
           pinForm.requestSubmit();
         }
+      } else if (pinMode === "verify" && pinInput.value.length === 6) {
+        // 인증 화면은 6자리 입력이 끝나는 즉시 서버 인증을 시작
+        pinForm.requestSubmit();
       }
     });
     pinDots.addEventListener("click", () => pinInput.focus());
@@ -1636,7 +1639,7 @@
           }
           await callPinApi("setup", { pin, confirm_pin: pin });
           showPinGate("verify");
-          pinNotice.textContent = "PIN 등록 완료! 등록한 6자리를 다시 입력한 뒤 인증하기를 눌러 줘.";
+          pinNotice.textContent = "PIN 등록 완료! 등록한 6자리를 입력하면 자동으로 인증돼.";
           pinInput.focus();
           return;
         } else {
@@ -1659,7 +1662,7 @@
         else pinNotice.textContent = "PIN 처리에 실패했어. 잠시 후 다시 시도해 줘.";
       } finally {
         pinSubmit.disabled = false;
-        pinSubmit.textContent = pinMode === "verify" ? "인증하기" : (setupFirstPin ? "등록 확인" : "다음");
+        pinSubmit.textContent = pinMode === "verify" ? "자동 인증 대기" : (setupFirstPin ? "등록 확인" : "다음");
         if (pinMode === "verify" || pinMode === "setup") pinInput.value = "";
         updatePinDots();
       }
