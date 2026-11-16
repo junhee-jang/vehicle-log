@@ -422,10 +422,20 @@
       .home-header-copy p { font-size: 11px; }
       .home-logout-button { padding: 6px 7px; font-size: 10px; }
       .home-menu-heading { min-height: 49px; margin-bottom: 16px; font-size: 13px; }
-      .home-menu-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; }
-      .home-menu-card { padding: 10px 7px; border-radius: 10px; }
-      .home-menu-title { font-size: clamp(9px, 2.65vw, 12px); letter-spacing: -.7px; }
-      .home-menu-image { width: 108%; max-width: none; margin-right: -3px; }
+      /* 모바일에서도 메뉴는 반드시 2열로 고정 */
+      .home-menu-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 12px; }
+      .home-menu-card {
+        width: 100%; min-width: 0; aspect-ratio: 1 / 1;
+        padding: 14px 12px; border-radius: 13px;
+        background: linear-gradient(145deg, #202630 0%, #151a21 72%);
+        border-color: #35404d;
+      }
+      .home-menu-title { font-size: 13px; letter-spacing: -.45px; }
+      .home-menu-image {
+        width: 100%; max-width: 220px; max-height: 112px;
+        object-fit: contain; margin: auto 0 0 auto;
+        filter: drop-shadow(0 7px 9px #0009);
+      }
       h1 { font-size: 21px; }
       .card { padding: 15px; }
       /* 주유 카드 외곽 패딩은 제거하고 제목 버튼의 좌우 여백을 메모 헤더와 동일하게 유지 */
