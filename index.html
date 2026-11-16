@@ -1461,6 +1461,7 @@
     let pinMode = "setup";
     let setupFirstPin = "";
     let gateCheck = 0;
+    let pinVerifiedUserId = null;
 
     function showPinGate(mode) {
       pinMode = mode;
@@ -1498,15 +1499,22 @@
       if (!pinScreen.hidden && !pinForm.hidden) updatePinDots();
     });
 
-    function unlockApp() {
+    function unlockApp(userId) {
+      if (!userId || pinVerifiedUserId !== userId) {
+        showPinGate("verify");
+        pinNotice.textContent = "PIN 인증을 완료해야 이용할 수 있어.";
+        return false;
+      }
       document.body.classList.remove("login-required", "pin-required");
       screen.hidden = true;
       pinScreen.hidden = true;
+      return true;
     }
 
     async function setSignedIn(session) {
       const ticket = ++gateCheck;
       const signedIn = Boolean(session?.user);
+      pinVerifiedUserId = null;
       if (!signedIn) {
         document.body.classList.remove("pin-required");
         document.body.classList.add("login-required");
@@ -1524,7 +1532,10 @@
         const result = await callPinApi("status");
         if (ticket !== gateCheck) return;
         if (!result.is_setup) showPinGate("setup");
-        else if (result.verified_today) unlockApp();
+        else if (result.verified_today) {
+          pinVerifiedUserId = session.user.id;
+          unlockApp(session.user.id);
+        }
         else showPinGate("verify");
       } catch (_error) {
         if (ticket !== gateCheck) return;
@@ -1552,6 +1563,14 @@
         session = data.session;
       } catch (_) {}
       if (!session?.access_token) {
+        try { await authClient.auth.signOut({ scope: "local" }); } catch (_) {}
+        setSignedIn(null);
+        throw new Error("session_expired");
+      }
+      try {
+        const { data, error } = await authClient.auth.getUser(session.access_token);
+        if (error || !data?.user || data.user.id !== session.user?.id) throw error || new Error("invalid_user");
+      } catch (_) {
         try { await authClient.auth.signOut({ scope: "local" }); } catch (_) {}
         setSignedIn(null);
         throw new Error("session_expired");
@@ -1609,8 +1628,11 @@
           return;
         } else {
           await callPinApi("verify", { pin });
+          const verifiedSession = await requireActiveEmailSession();
+          pinVerifiedUserId = verifiedSession.user.id;
         }
-        unlockApp();
+        const activeSession = await requireActiveEmailSession();
+        unlockApp(activeSession.user.id);
       } catch (error) {
         const code = error?.details?.error || error.message;
         if (code === "session_expired" || code === "no_session" || error?.status === 401 || error?.status === 403) {
@@ -1657,7 +1679,19 @@
         auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
       });
 
-      authClient.auth.onAuthStateChange((_event, session) => setSignedIn(session));
+      const forceLogoutRequested = new URLSearchParams(window.location.search).get("forceLogout") === "1";
+      if (forceLogoutRequested) {
+        try { await authClient.auth.signOut({ scope: "local" }); } catch (_) {}
+        window.history.replaceState(null, "", window.location.pathname + window.location.hash);
+        pinVerifiedUserId = null;
+        setSignedIn(null);
+        return;
+      }
+
+      authClient.auth.onAuthStateChange((_event, session) => {
+        if (!session) pinVerifiedUserId = null;
+        setSignedIn(session);
+      });
       const { data, error } = await authClient.auth.getSession();
       if (error) {
         setSignedIn(null);
@@ -1665,6 +1699,24 @@
         return;
       }
       setSignedIn(data.session);
+      // 앱으로 돌아올 때마다 이메일 세션이 실제로 유효한지 서버에 확인
+      let resumeCheckRunning = false;
+      const validateSessionOnResume = async () => {
+        if (resumeCheckRunning || document.visibilityState === "hidden") return;
+        resumeCheckRunning = true;
+        try {
+          const { data: userData, error: userError } = await authClient.auth.getUser();
+          if (userError || !userData?.user) {
+            pinVerifiedUserId = null;
+            try { await authClient.auth.signOut({ scope: "local" }); } catch (_) {}
+            setSignedIn(null);
+          }
+        } finally {
+          resumeCheckRunning = false;
+        }
+      };
+      document.addEventListener("visibilitychange", validateSessionOnResume);
+      window.addEventListener("focus", validateSessionOnResume);
     }
 
     form.addEventListener("submit", async event => {
