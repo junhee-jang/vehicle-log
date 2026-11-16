@@ -44,6 +44,7 @@
       color: #c5ccd5; border-radius: 9px; font-size: 12px; font-weight: 650;
     }
     .login-resend-button:disabled { opacity: .55; cursor: wait; }
+    .signed-in-name { margin-top: 4px; color: #c5ccd5; font-size: 12px; font-weight: 650; }
     .email-confirm-panel { margin-top: 14px; padding: 20px; border: 1px solid var(--border); border-radius: 15px; background: var(--panel); }
     .email-confirm-panel h2 { margin: 0 0 8px; font-size: 18px; }
     .email-confirm-panel p { color: var(--muted); font-size: 13px; line-height: 1.5; }
@@ -533,6 +534,10 @@
     <form class="login-card" id="loginForm">
       <h2>로그인</h2>
       <p class="login-description">업무 시스템 계정으로 로그인해 주세요.</p>
+      <div class="login-field hidden" id="signupDisplayNameWrap">
+        <label for="signupDisplayName">사용자명</label>
+        <input id="signupDisplayName" name="displayName" type="text" placeholder="앱에 표시할 이름" autocomplete="nickname" maxlength="20">
+      </div>
       <div class="login-field">
         <label for="loginEmail">이메일</label>
         <input id="loginEmail" name="email" type="email" placeholder="이메일 주소" autocomplete="username" required>
@@ -583,6 +588,7 @@
     <div class="app-header-copy">
       <h1>차량운행일지</h1>
       <p>제한진천팀</p>
+      <p class="signed-in-name" id="signedInUserName" hidden></p>
     </div>
     <button class="logout-button" id="logoutButton" type="button">로그아웃</button>
   </header>
@@ -1473,6 +1479,9 @@
     const resendConfirmationButton = document.getElementById("resendConfirmationButton");
     const signupPasswordConfirmWrap = document.getElementById("signupPasswordConfirmWrap");
     const signupPasswordConfirm = document.getElementById("signupPasswordConfirm");
+    const signupDisplayNameWrap = document.getElementById("signupDisplayNameWrap");
+    const signupDisplayName = document.getElementById("signupDisplayName");
+    const signedInUserName = document.getElementById("signedInUserName");
     const loginHeading = form?.querySelector("h2");
     const loginDescription = form?.querySelector(".login-description");
     let authMode = "login";
@@ -1569,7 +1578,13 @@
       const ticket = ++gateCheck;
       const signedIn = Boolean(session?.user);
       pinVerifiedUserId = null;
+      if (signedInUserName) {
+        const displayName = String(session?.user?.user_metadata?.display_name || "").trim();
+        signedInUserName.textContent = displayName ? displayName + "님" : "사용자명 미등록";
+        signedInUserName.hidden = false;
+      }
       if (!signedIn) {
+        if (signedInUserName) signedInUserName.hidden = true;
         document.body.classList.remove("pin-required");
         document.body.classList.add("login-required");
         screen.hidden = false;
@@ -1812,12 +1827,14 @@
       const signingUp = authMode === "signup";
       loginHeading.textContent = signingUp ? "회원가입" : "로그인";
       loginDescription.textContent = signingUp
-        ? "처음 이용하는 분은 이메일 인증 후 계정을 만들 수 있어."
+        ? "사용자명과 계정 정보를 입력한 뒤 이메일 인증을 진행해 줘."
         : "업무 시스템 계정으로 로그인해 주세요.";
       loginButton.textContent = signingUp ? "회원가입" : "로그인";
       loginModeToggle.textContent = signingUp ? "이미 계정이 있나요? 로그인" : "처음 이용하시나요? 회원가입";
       signupPasswordConfirmWrap.classList.toggle("hidden", !signingUp);
       signupPasswordConfirm.required = signingUp;
+      signupDisplayNameWrap.classList.toggle("hidden", !signingUp);
+      signupDisplayName.required = signingUp;
       document.getElementById("loginPassword").autocomplete = signingUp ? "new-password" : "current-password";
       notice.textContent = "";
       notice.style.color = "#e4c78a";
@@ -1864,7 +1881,13 @@
       }
       const email = document.getElementById("loginEmail").value.trim();
       const password = document.getElementById("loginPassword").value;
+      const displayName = signupDisplayName.value.trim();
       if (!email || !password) return;
+      if (authMode === "signup" && !displayName) {
+        showLoginError("앱에 표시할 사용자명을 입력해 줘.");
+        signupDisplayName.focus();
+        return;
+      }
       if (authMode === "signup" && password !== signupPasswordConfirm.value) {
         showLoginError("비밀번호가 서로 달라. 다시 확인해 줘.");
         return;
@@ -1878,7 +1901,10 @@
           const { data, error } = await authClient.auth.signUp({
             email,
             password,
-            options: { emailRedirectTo }
+            options: {
+              emailRedirectTo,
+              data: { display_name: displayName }
+            }
           });
           if (error) throw error;
           if (data.session) {
