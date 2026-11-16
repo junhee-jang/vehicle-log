@@ -1583,7 +1583,10 @@
             return;
           }
           await callPinApi("setup", { pin, confirm_pin: pin });
-          await callPinApi("verify", { pin });
+          showPinGate("verify");
+          pinNotice.textContent = "PIN 등록 완료! 등록한 6자리를 다시 입력해 인증해 줘.";
+          pinInput.focus();
+          return;
         } else {
           await callPinApi("verify", { pin });
         }
