@@ -537,7 +537,7 @@
       <span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span>
     </div>
     <form id="pinForm" class="pin-card">
-      <input class="pin-hidden-input" id="pinInput" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" minlength="6" autocomplete="one-time-code" aria-label="6자리 PIN 입력" required>
+      <input class="pin-hidden-input" id="pinInput" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" minlength="6" autocomplete="off" aria-label="6자리 PIN 입력" required>
       <div id="pinConfirmWrap" class="pin-confirm-wrap" hidden>
         <input id="pinConfirmInput" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" minlength="6" autocomplete="off" aria-label="PIN 다시 입력">
       </div>
@@ -1473,12 +1473,13 @@
       pinConfirmWrap.hidden = mode !== "setup";
       pinTitle.textContent = mode === "setup" ? "핀 번호 등록" : "핀 번호 입력";
       pinDescription.textContent = "";
-      pinSubmit.textContent = "확인";
+      pinSubmit.textContent = mode === "verify" ? "인증하기" : "다음";
       setupFirstPin = "";
       pinInput.value = "";
       pinConfirmInput.value = "";
       pinNotice.textContent = "";
       updatePinDots();
+      setTimeout(() => { if (!pinScreen.hidden && !pinForm.hidden) pinInput.focus(); }, 80);
     }
 
     function updatePinDots() {
@@ -1488,7 +1489,6 @@
     pinInput.addEventListener("input", () => {
       pinInput.value = pinInput.value.replace(/[^0-9]/g, "").slice(0, 6);
       updatePinDots();
-      if (pinInput.value.length === 6) pinForm.requestSubmit();
     });
     pinDots.addEventListener("click", () => pinInput.focus());
     pinScreen.addEventListener("click", event => {
@@ -1570,7 +1570,8 @@
           setupFirstPin = pin;
           pinInput.value = "";
           pinTitle.textContent = "핀 번호 확인";
-          pinNotice.textContent = "같은 PIN을 한 번 더 입력해 줘.";
+          pinSubmit.textContent = "등록 확인";
+          pinNotice.textContent = "같은 PIN을 한 번 더 입력한 뒤 등록 확인을 눌러 줘.";
           updatePinDots();
           return;
         } else if (pinMode === "setup") {
@@ -1578,13 +1579,14 @@
             setupFirstPin = "";
             pinInput.value = "";
             pinTitle.textContent = "핀 번호 등록";
+            pinSubmit.textContent = "다음";
             pinNotice.textContent = "PIN이 일치하지 않아. 처음부터 다시 입력해 줘.";
             updatePinDots();
             return;
           }
           await callPinApi("setup", { pin, confirm_pin: pin });
           showPinGate("verify");
-          pinNotice.textContent = "PIN 등록 완료! 등록한 6자리를 다시 입력해 인증해 줘.";
+          pinNotice.textContent = "PIN 등록 완료! 등록한 6자리를 다시 입력한 뒤 인증하기를 눌러 줘.";
           pinInput.focus();
           return;
         } else {
@@ -1600,7 +1602,7 @@
         else pinNotice.textContent = "PIN 처리에 실패했어. 잠시 후 다시 시도해 줘.";
       } finally {
         pinSubmit.disabled = false;
-        pinSubmit.textContent = "확인";
+        pinSubmit.textContent = pinMode === "verify" ? "인증하기" : (setupFirstPin ? "등록 확인" : "다음");
         if (pinMode === "verify" || pinMode === "setup") pinInput.value = "";
         updatePinDots();
       }
