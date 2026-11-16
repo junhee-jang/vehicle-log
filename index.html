@@ -72,6 +72,46 @@
     .pin-footnote { display:none; }
     @media(max-height:650px) { .pin-panel h1{top:12%}.pin-dots{top:25%}.pin-reregister{top:46%;min-height:62px} }
 
+    .home-screen[hidden], .vehicle-log-page[hidden] { display: none !important; }
+    .home-screen { min-height: calc(100vh - 36px); }
+    .home-header {
+      display: flex; align-items: center; gap: 13px;
+      padding: 19px 20px; margin-bottom: 24px;
+      border: 1px solid #292e37; border-radius: 15px;
+      background: linear-gradient(135deg, #191c22, #12151a 78%);
+    }
+    .home-brand-logo { display: block; width: 78px; height: auto; flex: 0 0 78px; }
+    .home-header-copy { min-width: 0; flex: 1; }
+    .home-header-copy h1 { margin: 0 0 5px; font-size: 20px; letter-spacing: -.6px; }
+    .home-header-copy p { margin: 0; color: #aab2bd; font-size: 12px; }
+    .home-user-divider { color: #5c6673; padding: 0 3px; }
+    .home-logout-button { min-height: 34px; padding: 7px 9px; font-size: 11px; }
+    .home-menu-heading {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 54px; margin: 0 0 19px; padding: 12px 14px;
+      border: 1px solid #292e37; border-radius: 11px;
+      background: #191c22; color: #f0f2f5;
+      text-align: center; font-size: 14px; font-weight: 700;
+      letter-spacing: -.2px;
+    }
+    .home-menu-grid {
+      display: grid; grid-template-columns: repeat(2, minmax(0, 164px));
+      gap: 13px; justify-content: start; align-items: start;
+    }
+    .home-menu-card {
+      position: relative; display: flex; flex-direction: column;
+      justify-content: space-between; align-items: stretch;
+      width: 100%; aspect-ratio: 1 / 1; min-height: 0;
+      padding: 13px; overflow: hidden; text-align: left;
+      border: 1px solid #292e37; border-radius: 12px;
+      background: linear-gradient(145deg, #191c22, #12151a 80%);
+      color: #f1f3f6; box-shadow: 0 5px 15px #0003;
+      transition: border-color .16s ease, transform .16s ease, background .16s ease;
+    }
+    .home-menu-card:active { transform: scale(.98); border-color: #647181; }
+    .home-menu-title { position: relative; z-index: 1; font-size: 13px; font-weight: 750; letter-spacing: -.35px; }
+    .home-menu-image { display: block; width: 78%; max-width: 116px; height: auto; align-self: flex-end; margin: auto 0 0 auto; opacity: .94; }
+    .home-menu-notice { min-height: 20px; margin: 13px 2px 0; color: #aab4c2; font-size: 12px; text-align: center; }
     .brand-logo {
       display: block; width: 88px; height: auto; flex: 0 0 88px;
       max-width: 100%; overflow: visible;
@@ -375,6 +415,17 @@
       body { padding: 10px; }
       header { padding: 14px 12px; gap: 10px; }
       .brand-logo { width: 76px; height: auto; flex: 0 0 76px; }
+      .home-screen { min-height: calc(100vh - 20px); }
+      .home-header { gap: 9px; padding: 15px 12px; margin-bottom: 20px; }
+      .home-brand-logo { width: 62px; flex-basis: 62px; }
+      .home-header-copy h1 { font-size: 17px; }
+      .home-header-copy p { font-size: 11px; }
+      .home-logout-button { padding: 6px 7px; font-size: 10px; }
+      .home-menu-heading { min-height: 49px; margin-bottom: 16px; font-size: 13px; }
+      .home-menu-grid { grid-template-columns: repeat(2, minmax(0, 142px)); gap: 11px; }
+      .home-menu-card { padding: 11px; }
+      .home-menu-title { font-size: 12px; }
+      .home-menu-image { width: 80%; }
       h1 { font-size: 21px; }
       .card { padding: 15px; }
       /* 주유 카드 외곽 패딩은 제거하고 제목 버튼의 좌우 여백을 메모 헤더와 동일하게 유지 */
@@ -585,6 +636,55 @@
   </div>
 </div>
 <main class="container">
+  <section class="home-screen" id="homeScreen">
+    <header class="home-header">
+      <img class="home-brand-logo" src="sv-logo.svg?v=original-trace-2" alt="충북제한단속 시스템 로고">
+      <div class="home-header-copy">
+        <h1>충북제한단속 시스템</h1>
+        <p>제한진천팀 <span class="home-user-divider">·</span> <span id="homeUserName">사용자</span></p>
+      </div>
+      <button class="logout-button home-logout-button" id="homeLogoutButton" type="button">로그아웃</button>
+    </header>
+
+    <div class="home-menu-heading">이용하실 메뉴를 선택해 주세요.</div>
+    <div class="home-menu-grid">
+      <button class="home-menu-card" type="button" data-home-menu="vehicle-log" aria-label="차량운행일지">
+        <span class="home-menu-title">차량운행일지</span>
+        <svg class="home-menu-image" viewBox="0 0 120 76" role="img" aria-label="차량 그림">
+          <path d="M18 48 25 28c2-6 7-9 14-9h42c7 0 12 3 15 9l8 20 5 5v13H11V53z" fill="#303b49" stroke="#91a0b1" stroke-width="2.5" stroke-linejoin="round"/>
+          <path d="m31 30 5-7h45l8 7 5 15H25z" fill="#111820" stroke="#647487" stroke-width="2"/>
+          <path d="M13 49h94M18 57h9m66 0h9" stroke="#79d7b0" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="31" cy="64" r="8" fill="#090c10" stroke="#9ba8b7" stroke-width="3"/>
+          <circle cx="91" cy="64" r="8" fill="#090c10" stroke="#9ba8b7" stroke-width="3"/>
+          <path d="M17 49h8m70 0h8" stroke="#d4e0e9" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <button class="home-menu-card" type="button" data-home-menu="vehicle-spec" aria-label="차량제원등록">
+        <span class="home-menu-title">차량제원등록</span>
+        <svg class="home-menu-image" viewBox="0 0 120 76" role="img" aria-label="차량 제원 그림">
+          <path d="M12 47h96l-7 13H19z" fill="#303b49" stroke="#91a0b1" stroke-width="2.5" stroke-linejoin="round"/>
+          <path d="M25 46 35 25h49l12 21" fill="#1b2530" stroke="#91a0b1" stroke-width="2.5" stroke-linejoin="round"/>
+          <path d="M42 28h34l9 16H34z" fill="#10171f" stroke="#647487" stroke-width="2"/>
+          <circle cx="34" cy="60" r="8" fill="#090c10" stroke="#9ba8b7" stroke-width="3"/>
+          <circle cx="87" cy="60" r="8" fill="#090c10" stroke="#9ba8b7" stroke-width="3"/>
+          <path d="M18 49h10m64 0h10" stroke="#79d7b0" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <button class="home-menu-card" type="button" data-home-menu="other" aria-label="기타">
+        <span class="home-menu-title">기타</span>
+        <svg class="home-menu-image" viewBox="0 0 120 76" role="img" aria-label="기타 메뉴 그림">
+          <rect x="27" y="13" width="27" height="22" rx="5" fill="#303b49" stroke="#8292a4" stroke-width="2"/>
+          <rect x="66" y="13" width="27" height="22" rx="5" fill="#303b49" stroke="#8292a4" stroke-width="2"/>
+          <rect x="27" y="43" width="27" height="22" rx="5" fill="#303b49" stroke="#8292a4" stroke-width="2"/>
+          <rect x="66" y="43" width="27" height="22" rx="5" fill="#263b35" stroke="#79d7b0" stroke-width="2"/>
+          <path d="M40 20v8m-4-4h8M79 20v8m-4-4h8M40 50v8m-4-4h8" stroke="#aab6c4" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+    <p class="home-menu-notice" id="homeMenuNotice" role="status" aria-live="polite"></p>
+  </section>
+
+  <div class="vehicle-log-page" id="vehicleLogPage" hidden>
   <header>
     <img class="brand-logo" src="sv-logo.svg?v=original-trace-2" alt="SV 로고">
     <div class="app-header-copy">
@@ -594,7 +694,7 @@
         <p class="signed-in-name" id="signedInUserName" hidden></p>
       </div>
     </div>
-    <button class="logout-button" id="logoutButton" type="button">로그아웃</button>
+    <button class="logout-button" id="logoutButton" type="button">메인으로</button>
   </header>
 
   <form id="logForm">
@@ -722,6 +822,7 @@
     <button class="primary" type="submit">입력 내용 확인</button>
     <p id="message" role="status"></p>
   </form>
+  </div>
 </main>
 
 <dialog id="routePickerDialog">
@@ -1490,6 +1591,11 @@
     const loginDescription = form?.querySelector(".login-description");
     let authMode = "login";
     const logoutButton = document.getElementById("logoutButton");
+    const homeScreen = document.getElementById("homeScreen");
+    const vehicleLogPage = document.getElementById("vehicleLogPage");
+    const homeUserName = document.getElementById("homeUserName");
+    const homeLogoutButton = document.getElementById("homeLogoutButton");
+    const homeMenuNotice = document.getElementById("homeMenuNotice");
     if (!form || !notice || !screen || !loginButton || !logoutButton) return;
 
     const SUPABASE_URL = "https://cjrylcrenuammqznpzeo.supabase.co";
@@ -1575,6 +1681,9 @@
       document.body.classList.remove("login-required", "pin-required");
       screen.hidden = true;
       pinScreen.hidden = true;
+      if (homeScreen) homeScreen.hidden = false;
+      if (vehicleLogPage) vehicleLogPage.hidden = true;
+      window.scrollTo(0, 0);
       return true;
     }
 
@@ -1586,6 +1695,7 @@
         const displayName = String(session?.user?.user_metadata?.display_name || "").trim();
         signedInUserName.textContent = displayName ? displayName + "님" : "사용자명 미등록";
         signedInUserName.hidden = false;
+        if (homeUserName) homeUserName.textContent = displayName ? displayName + "님" : "사용자명 미등록";
       }
       if (!signedIn) {
         if (signedInUserName) signedInUserName.hidden = true;
@@ -1930,9 +2040,30 @@
       }
     });
 
-    logoutButton.addEventListener("click", async () => {
+    function returnToHome() {
+      if (vehicleLogPage) vehicleLogPage.hidden = true;
+      if (homeScreen) homeScreen.hidden = false;
+      if (homeMenuNotice) homeMenuNotice.textContent = "";
+      window.scrollTo(0, 0);
+    }
+    document.querySelectorAll("[data-home-menu]").forEach(button => {
+      button.addEventListener("click", () => {
+        const menu = button.dataset.homeMenu;
+        if (menu === "vehicle-log") {
+          if (homeScreen) homeScreen.hidden = true;
+          if (vehicleLogPage) vehicleLogPage.hidden = false;
+          window.scrollTo(0, 0);
+        } else if (homeMenuNotice) {
+          homeMenuNotice.textContent = menu === "vehicle-spec"
+            ? "차량제원등록 메뉴는 준비 중이야."
+            : "기타 메뉴는 준비 중이야.";
+        }
+      });
+    });
+    logoutButton.addEventListener("click", returnToHome);
+    homeLogoutButton?.addEventListener("click", async () => {
       if (!authClient) return;
-      logoutButton.disabled = true;
+      homeLogoutButton.disabled = true;
       try {
         const { error } = await authClient.auth.signOut();
         if (error) throw error;
@@ -1940,7 +2071,7 @@
       } catch (_error) {
         window.alert("로그아웃하지 못했어. 다시 시도해 줘.");
       } finally {
-        logoutButton.disabled = false;
+        homeLogoutButton.disabled = false;
       }
     });
 
