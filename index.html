@@ -38,6 +38,11 @@
       border-radius: 9px; font-size: 12px; font-weight: 700;
     }
     .logout-button:active { filter: brightness(.92); }
+    .email-confirm-panel { margin-top: 14px; padding: 20px; border: 1px solid var(--border); border-radius: 15px; background: var(--panel); }
+    .email-confirm-panel h2 { margin: 0 0 8px; font-size: 18px; }
+    .email-confirm-panel p { color: var(--muted); font-size: 13px; line-height: 1.5; }
+    .email-confirm-panel .login-submit { margin-top: 10px; }
+    .email-confirm-panel .login-notice { color: #e4c78a; }
     .login-screen[hidden], .pin-screen[hidden] { display: none !important; }
     body.pin-required { min-height: 100vh; overflow: hidden; padding: 0; }
     body.pin-required .container { display: none; }
@@ -538,6 +543,12 @@
       <button class="login-mode-toggle" id="loginModeToggle" type="button">처음 이용하시나요? 회원가입</button>
       <p class="login-notice" id="loginNotice" role="status" aria-live="polite"></p>
     </form>
+    <div class="email-confirm-panel hidden" id="emailConfirmPanel">
+      <h2>이메일 인증</h2>
+      <p>메일 주소 확인을 마무리하려면 아래 버튼을 눌러 줘.</p>
+      <button class="login-submit" id="emailConfirmButton" type="button">이메일 인증 완료</button>
+      <p class="login-notice" id="emailConfirmNotice" role="status" aria-live="polite"></p>
+    </div>
     <p class="login-footnote">로그인 상태는 안전하게 유지돼. 로그아웃하면 다시 로그인해야 해.</p>
   </div>
 </div>
@@ -1725,6 +1736,42 @@
         if (!session) pinVerifiedUserId = null;
         setSignedIn(session);
       });
+
+      // 이메일 링크의 토큰은 메일 보안검사기가 미리 열어 소비할 수 있어,
+      // 링크 접속만으로 인증하지 않고 사용자가 버튼을 누를 때 POST 검증한다.
+      const confirmationParams = new URLSearchParams(window.location.search);
+      const confirmationTokenHash = confirmationParams.get("token_hash");
+      const confirmationType = confirmationParams.get("type");
+      if (confirmationTokenHash && confirmationType === "email") {
+        screen.hidden = false;
+        document.body.classList.add("login-required");
+        document.getElementById("emailConfirmPanel").classList.remove("hidden");
+        document.getElementById("loginForm").classList.add("hidden");
+        document.querySelector(".login-footnote").classList.add("hidden");
+        document.getElementById("emailConfirmButton").addEventListener("click", async () => {
+          const confirmButton = document.getElementById("emailConfirmButton");
+          const confirmNotice = document.getElementById("emailConfirmNotice");
+          confirmButton.disabled = true;
+          confirmButton.textContent = "인증 확인 중...";
+          confirmNotice.textContent = "";
+          try {
+            const { data: verified, error: verifyError } = await authClient.auth.verifyOtp({
+              token_hash: confirmationTokenHash,
+              type: "email"
+            });
+            if (verifyError) throw verifyError;
+            window.history.replaceState(null, "", window.location.pathname);
+            document.getElementById("emailConfirmPanel").classList.add("hidden");
+            setSignedIn(verified.session);
+          } catch (verifyError) {
+            confirmNotice.textContent = "인증 링크가 만료됐거나 이미 사용됐어. 새 인증 메일을 요청해 줘.";
+            confirmButton.disabled = false;
+            confirmButton.textContent = "다시 인증 시도";
+          }
+        });
+        return;
+      }
+
       const { data, error } = await authClient.auth.getSession();
       if (error) {
         setSignedIn(null);
