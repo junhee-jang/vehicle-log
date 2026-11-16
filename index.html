@@ -1490,6 +1490,21 @@
     pinInput.addEventListener("input", () => {
       pinInput.value = pinInput.value.replace(/[^0-9]/g, "").slice(0, 6);
       updatePinDots();
+
+      // PIN 최초 등록은 첫 6자리 입력 즉시 확인 입력 단계로 전환
+      if (pinMode === "setup" && pinInput.value.length === 6) {
+        if (!setupFirstPin) {
+          setupFirstPin = pinInput.value;
+          pinInput.value = "";
+          pinTitle.textContent = "핀 번호 다시 입력";
+          pinNotice.textContent = "같은 6자리를 한 번 더 입력해 줘.";
+          updatePinDots();
+          pinInput.focus();
+        } else {
+          // 두 번째 6자리 입력이 끝나면 일치 여부 확인 및 등록 진행
+          pinForm.requestSubmit();
+        }
+      }
     });
     pinDots.addEventListener("click", () => pinInput.focus());
     pinScreen.addEventListener("click", event => {
@@ -1603,22 +1618,18 @@
       pinSubmit.textContent = "확인 중...";
       pinNotice.textContent = "";
       try {
-        if (pinMode === "setup" && !setupFirstPin) {
-          setupFirstPin = pin;
-          pinInput.value = "";
-          pinTitle.textContent = "핀 번호 확인";
-          pinSubmit.textContent = "등록 확인";
-          pinNotice.textContent = "같은 PIN을 한 번 더 입력한 뒤 등록 확인을 눌러 줘.";
-          updatePinDots();
-          return;
-        } else if (pinMode === "setup") {
+        if (pinMode === "setup") {
+          if (!setupFirstPin) {
+            pinNotice.textContent = "PIN 6자리를 입력해 줘.";
+            return;
+          }
           if (pin !== setupFirstPin) {
             setupFirstPin = "";
             pinInput.value = "";
             pinTitle.textContent = "핀 번호 등록";
-            pinSubmit.textContent = "다음";
-            pinNotice.textContent = "PIN이 일치하지 않아. 처음부터 다시 입력해 줘.";
+            pinNotice.textContent = "두 PIN이 일치하지 않아. 처음부터 다시 입력해 줘.";
             updatePinDots();
+            pinInput.focus();
             return;
           }
           await callPinApi("setup", { pin, confirm_pin: pin });
