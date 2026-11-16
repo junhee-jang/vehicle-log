@@ -41,17 +41,22 @@
     .login-screen[hidden], .pin-screen[hidden] { display: none !important; }
     body.pin-required { min-height: 100vh; overflow: hidden; padding: 0; }
     body.pin-required .container { display: none; }
-    .pin-screen { position: fixed; inset: 0; z-index: 9100; display:flex; align-items:center; justify-content:center; padding:24px; background:radial-gradient(ellipse at 50% 38%,rgba(70,80,95,.16),transparent 48%),#101216; }
-    .pin-panel { width:min(100%,390px); text-align:center; }
-    .pin-brand-mark { width:54px;height:54px;margin:0 auto 20px;border:1px solid #46505e;border-radius:16px;display:grid;place-items:center;color:#e8ebef;font-weight:800;letter-spacing:-2px;background:#1b1f27; }
-    .pin-panel h1 { margin:0 0 8px;font-size:23px; }
-    .pin-description,.pin-footnote { color:#9ba5b3;font-size:13px;line-height:1.6; }
-    .pin-card { margin-top:24px;padding:22px;border:1px solid #343b47;border-radius:16px;background:#1b1f27;text-align:left; }
-    .pin-card label { display:block;margin:0 0 8px;color:#cbd1d9;font-size:13px;font-weight:650; }
-    .pin-card input { width:100%;height:52px;margin-bottom:16px;border:1px solid #424b59;border-radius:10px;background:#111318;color:#f3f5f7;text-align:center;font-size:22px;letter-spacing:9px; }
-    .pin-submit { width:100%;height:48px;border:0;border-radius:10px;background:#303640;color:#f3f5f7;font-size:15px;font-weight:750; }
-    .pin-notice { min-height:20px;margin:12px 0 0;color:#e4c78a;font-size:12px;text-align:center; }
-    .pin-footnote { margin-top:18px;font-size:11px; }
+    .pin-screen { position:fixed; inset:0; z-index:9100; display:flex; justify-content:center; padding:0 30px; background:#111318; }
+    .pin-panel { position:relative; width:min(100%,430px); height:100%; text-align:center; }
+    .pin-panel h1 { position:absolute; top:15.5%; left:0; right:0; margin:0; color:#f3f5f7; font-size:30px; font-weight:800; letter-spacing:-1.2px; }
+    .pin-description { display:none; }
+    .pin-card { position:absolute; inset:0; margin:0; padding:0; border:0; background:transparent; }
+    .pin-card label, .pin-confirm-wrap { display:none !important; }
+    .pin-dots { position:absolute; top:26.2%; left:0; right:0; display:flex; justify-content:center; gap:14px; }
+    .pin-dot { width:13px; height:13px; border:1.5px solid #87909b; border-radius:50%; background:transparent; transition:background .12s,border-color .12s; }
+    .pin-dot.filled { background:#dce2e9; border-color:#dce2e9; }
+    .pin-hidden-input { position:absolute; top:24%; left:50%; width:1px !important; height:1px !important; opacity:0; padding:0; border:0; pointer-events:none; }
+    .pin-submit { display:none; }
+    .pin-notice { position:absolute; top:32%; left:0; right:0; min-height:22px; margin:0; color:#e4c78a; font-size:13px; text-align:center; }
+    .pin-reregister { position:absolute; top:46.5%; left:0; right:0; width:100%; min-height:76px; border:1px solid #3a4657; border-radius:18px; background:#26364d; color:#f3f5f7; font-size:21px; font-weight:700; letter-spacing:-.5px; }
+    .pin-reregister:active { background:#314765; }
+    .pin-footnote { display:none; }
+    @media(max-height:650px) { .pin-panel h1{top:12%}.pin-dots{top:25%}.pin-reregister{top:46%;min-height:62px} }
 
     .brand-logo {
       display: block; width: 88px; height: auto; flex: 0 0 88px;
@@ -527,20 +532,20 @@
 </div>
 <div class="pin-screen" id="pinScreen" hidden>
   <div class="pin-panel">
-    <div class="pin-brand-mark">SV</div>
-    <h1 id="pinTitle">PIN 등록</h1>
-    <p class="pin-description" id="pinDescription">매일 사용할 6자리 PIN을 등록해 줘.</p>
+    <h1 id="pinTitle">핀 번호 입력</h1>
+    <div class="pin-dots" id="pinDots" aria-hidden="true">
+      <span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span>
+    </div>
     <form id="pinForm" class="pin-card">
-      <label for="pinInput" id="pinInputLabel">PIN 6자리</label>
-      <input id="pinInput" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" minlength="6" autocomplete="off" placeholder="숫자 6자리" required>
-      <div id="pinConfirmWrap" hidden>
-        <label for="pinConfirmInput">PIN 다시 입력</label>
-        <input id="pinConfirmInput" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" minlength="6" autocomplete="off" placeholder="한 번 더 입력">
+      <input class="pin-hidden-input" id="pinInput" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" minlength="6" autocomplete="one-time-code" aria-label="6자리 PIN 입력" required>
+      <div id="pinConfirmWrap" class="pin-confirm-wrap" hidden>
+        <input id="pinConfirmInput" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" minlength="6" autocomplete="off" aria-label="PIN 다시 입력">
       </div>
       <button class="pin-submit" id="pinSubmit" type="submit">확인</button>
       <p class="pin-notice" id="pinNotice" role="status" aria-live="polite"></p>
     </form>
-    <p class="pin-footnote">PIN은 6자리 숫자로 설정돼. 5회 연속 실패하면 15분간 잠겨.</p>
+    <button class="pin-reregister" id="pinReregister" type="button">핀 번호 재등록</button>
+    <p class="pin-description" id="pinDescription"></p>
   </div>
 </div>
 <main class="container">
@@ -1451,23 +1456,44 @@
     const pinDescription = document.getElementById("pinDescription");
     const pinNotice = document.getElementById("pinNotice");
     const pinSubmit = document.getElementById("pinSubmit");
+    const pinDots = document.getElementById("pinDots");
+    const pinReregister = document.getElementById("pinReregister");
     let pinMode = "setup";
+    let setupFirstPin = "";
     let gateCheck = 0;
 
     function showPinGate(mode) {
       pinMode = mode;
+      pinForm.hidden = false;
+      pinReregister.hidden = mode === "setup";
       document.body.classList.remove("login-required");
       document.body.classList.add("pin-required");
       screen.hidden = true;
       pinScreen.hidden = false;
       pinConfirmWrap.hidden = mode !== "setup";
-      pinTitle.textContent = mode === "setup" ? "PIN 등록" : "PIN 입력";
-      pinDescription.textContent = mode === "setup" ? "매일 사용할 6자리 PIN을 등록해 줘." : "오늘 사용할 6자리 PIN을 입력해 줘.";
-      pinSubmit.textContent = mode === "setup" ? "PIN 등록" : "확인";
+      pinTitle.textContent = mode === "setup" ? "핀 번호 등록" : "핀 번호 입력";
+      pinDescription.textContent = "";
+      pinSubmit.textContent = "확인";
+      setupFirstPin = "";
       pinInput.value = "";
       pinConfirmInput.value = "";
       pinNotice.textContent = "";
+      updatePinDots();
     }
+
+    function updatePinDots() {
+      const count = pinInput.value.length;
+      [...pinDots.children].forEach((dot, index) => dot.classList.toggle("filled", index < count));
+    }
+    pinInput.addEventListener("input", () => {
+      pinInput.value = pinInput.value.replace(/[^0-9]/g, "").slice(0, 6);
+      updatePinDots();
+      if (pinInput.value.length === 6) pinForm.requestSubmit();
+    });
+    pinDots.addEventListener("click", () => pinInput.focus());
+    pinScreen.addEventListener("click", event => {
+      if (event.target === pinScreen || event.target === pinDots || event.target.classList.contains("pin-dot")) pinInput.focus();
+    });
 
     function unlockApp() {
       document.body.classList.remove("login-required", "pin-required");
@@ -1529,9 +1555,24 @@
       pinSubmit.textContent = "확인 중...";
       pinNotice.textContent = "";
       try {
-        if (pinMode === "setup") {
-          if (pin !== pinConfirmInput.value) throw new Error("pin_mismatch");
-          await callPinApi("setup", { pin, confirm_pin: pinConfirmInput.value });
+        if (pinMode === "setup" && !setupFirstPin) {
+          setupFirstPin = pin;
+          pinInput.value = "";
+          pinTitle.textContent = "핀 번호 확인";
+          pinNotice.textContent = "같은 PIN을 한 번 더 입력해 줘.";
+          updatePinDots();
+          return;
+        } else if (pinMode === "setup") {
+          if (pin !== setupFirstPin) {
+            setupFirstPin = "";
+            pinInput.value = "";
+            pinTitle.textContent = "핀 번호 등록";
+            pinNotice.textContent = "PIN이 일치하지 않아. 처음부터 다시 입력해 줘.";
+            updatePinDots();
+            return;
+          }
+          await callPinApi("setup", { pin, confirm_pin: pin });
+          await callPinApi("verify", { pin });
         } else {
           await callPinApi("verify", { pin });
         }
@@ -1545,9 +1586,14 @@
         else pinNotice.textContent = "PIN 처리에 실패했어. 잠시 후 다시 시도해 줘.";
       } finally {
         pinSubmit.disabled = false;
-        pinSubmit.textContent = pinMode === "setup" ? "PIN 등록" : "확인";
-        if (pinMode === "verify") pinInput.value = "";
+        pinSubmit.textContent = "확인";
+        if (pinMode === "verify" || pinMode === "setup") pinInput.value = "";
+        updatePinDots();
       }
+    });
+
+    pinReregister.addEventListener("click", () => {
+      pinNotice.textContent = "PIN 재등록은 이메일 재인증 절차를 거쳐야 해. 복구 기능을 연결할 때까지 기존 PIN을 유지해 줘.";
     });
 
     function friendlyAuthError(error) {
