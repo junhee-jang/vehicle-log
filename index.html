@@ -38,6 +38,12 @@
       border-radius: 9px; font-size: 12px; font-weight: 700;
     }
     .logout-button:active { filter: brightness(.92); }
+    .login-resend-button {
+      display: block; width: 100%; min-height: 38px; margin-top: 8px;
+      padding: 8px 10px; background: transparent; border: 1px solid #424b59;
+      color: #c5ccd5; border-radius: 9px; font-size: 12px; font-weight: 650;
+    }
+    .login-resend-button:disabled { opacity: .55; cursor: wait; }
     .email-confirm-panel { margin-top: 14px; padding: 20px; border: 1px solid var(--border); border-radius: 15px; background: var(--panel); }
     .email-confirm-panel h2 { margin: 0 0 8px; font-size: 18px; }
     .email-confirm-panel p { color: var(--muted); font-size: 13px; line-height: 1.5; }
@@ -541,6 +547,7 @@
       </div>
       <button class="login-submit" id="loginSubmit" type="submit">로그인</button>
       <button class="login-mode-toggle" id="loginModeToggle" type="button">처음 이용하시나요? 회원가입</button>
+      <button class="login-resend-button" id="resendConfirmationButton" type="button">인증메일 재발송</button>
       <p class="login-notice" id="loginNotice" role="status" aria-live="polite"></p>
     </form>
     <div class="email-confirm-panel hidden" id="emailConfirmPanel">
@@ -1463,6 +1470,7 @@
     const screen = document.getElementById("loginScreen");
     const loginButton = document.getElementById("loginSubmit");
     const loginModeToggle = document.getElementById("loginModeToggle");
+    const resendConfirmationButton = document.getElementById("resendConfirmationButton");
     const signupPasswordConfirmWrap = document.getElementById("signupPasswordConfirmWrap");
     const signupPasswordConfirm = document.getElementById("signupPasswordConfirm");
     const loginHeading = form?.querySelector("h2");
@@ -1813,6 +1821,39 @@
       document.getElementById("loginPassword").autocomplete = signingUp ? "new-password" : "current-password";
       notice.textContent = "";
       notice.style.color = "#e4c78a";
+    });
+
+    resendConfirmationButton.addEventListener("click", async () => {
+      if (!authClient) {
+        showLoginError("로그인 서버를 준비 중이야. 잠시 후 다시 시도해 줘.");
+        return;
+      }
+      const email = document.getElementById("loginEmail").value.trim();
+      if (!email) {
+        showLoginError("인증메일을 받을 이메일 주소를 먼저 입력해 줘.");
+        document.getElementById("loginEmail").focus();
+        return;
+      }
+      resendConfirmationButton.disabled = true;
+      resendConfirmationButton.textContent = "인증메일 보내는 중...";
+      notice.style.color = "#a8d8bd";
+      notice.textContent = "";
+      try {
+        const emailRedirectTo = window.location.origin + window.location.pathname;
+        const { error } = await authClient.auth.resend({
+          type: "signup",
+          email,
+          options: { emailRedirectTo }
+        });
+        if (error) throw error;
+        notice.style.color = "#a8d8bd";
+        notice.textContent = "인증메일 재발송을 요청했어. 받은 편지함에서 가장 최근 메일을 열고, 인증 링크는 크롬에서 한 번만 눌러 줘.";
+      } catch (error) {
+        showLoginError(friendlyAuthError(error));
+      } finally {
+        resendConfirmationButton.disabled = false;
+        resendConfirmationButton.textContent = "인증메일 재발송";
+      }
     });
 
     form.addEventListener("submit", async event => {
