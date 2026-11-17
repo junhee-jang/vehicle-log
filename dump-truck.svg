@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 420" role="img" aria-label="왼쪽을 향한 흰색 운전석과 은회색 적재함의 덤프트럭">
 <defs>
- <linearGradient id="bed" x2="0" y2="1"><stop stop-color="#dce1e6"/><stop offset=".52" stop-color="#aab3bd"/><stop offset="1" stop-color="#7b8793"/></linearGradient>
- <linearGradient id="cab" x2=".8" y2="1"><stop stop-color="#fff"/><stop offset=".62" stop-color="#edf1f4"/><stop offset="1" stop-color="#c4cdd5"/></linearGradient>
- <linearGradient id="glass" x2="1" y2="1"><stop stop-color="#263746"/><stop offset=".55" stop-color="#506778"/><stop offset="1" stop-color="#17232d"/></linearGradient>
+ <linearGradient id="bed" x2="0" y2="1"><stop stop-color="#ffffff"/><stop offset=".52" stop-color="#ffffff"/><stop offset="1" stop-color="#f1f4f6"/></linearGradient>
+ <linearGradient id="cab" x2=".8" y2="1"><stop stop-color="#35c78a"/><stop offset=".62" stop-color="#22ad73"/><stop offset="1" stop-color="#16885a"/></linearGradient>
+ <linearGradient id="glass" x2="1" y2="1"><stop stop-color="#ffffff"/><stop offset=".55" stop-color="#ffffff"/><stop offset="1" stop-color="#f5f7f8"/></linearGradient>
  <linearGradient id="rubber" x2="0" y2="1"><stop stop-color="#343c45"/><stop offset=".55" stop-color="#11161b"/><stop offset="1" stop-color="#252d35"/></linearGradient>
  <linearGradient id="rim" x2="1" y2="1"><stop stop-color="#f4f6f8"/><stop offset=".5" stop-color="#aab4be"/><stop offset="1" stop-color="#687581"/></linearGradient>
 </defs>
@@ -17,47 +17,47 @@
 <rect x="525" y="301" width="96" height="34" rx="4" fill="#65727e"/>
 <!-- dump bed -->
 <path d="M318 75H916L949 265 913 299H326L296 268Z" fill="url(#bed)" stroke="#626e79" stroke-width="7" stroke-linejoin="round"/>
-<path d="M337 91H900L925 251H337Z" fill="#cbd2d9" opacity=".55"/>
-<path d="M352 101V247M463 101V247M574 101V247M685 101V247M796 101V247M907 101V247" stroke="#77838e" stroke-width="8" opacity=".72"/>
-<path d="M337 101H904M337 249H926" stroke="#eef1f4" stroke-width="7" opacity=".72"/>
-<path d="M318 75H916L909 95H326Z" fill="#eef1f4" stroke="#68747f" stroke-width="5"/>
-<path d="M914 78 949 265 930 285 906 105Z" fill="#77838e" stroke="#596570" stroke-width="5"/>
-<path d="M326 268H913L900 294H330Z" fill="#65717d"/>
+<path d="M337 91H900L925 251H337Z" fill="#ffffff" opacity="1"/>
+<path d="M352 101V247M463 101V247M574 101V247M685 101V247M796 101V247M907 101V247" stroke="#ffffff" stroke-width="7" opacity="1"/>
+<path d="M337 101H904M337 249H926" stroke="#ffffff" stroke-width="7" opacity="1"/>
+<path d="M318 75H916L909 95H326Z" fill="#ffffff" stroke="#d2d9df" stroke-width="5"/>
+<path d="M914 78 949 265 930 285 906 105Z" fill="#ffffff" stroke="#d2d9df" stroke-width="5"/>
+<path d="M326 268H913L900 294H330Z" fill="#ffffff"/>
 <!-- cab silhouette -->
 <path d="M90 166 111 111Q127 76 174 70H270Q304 73 323 108L347 162 365 283 332 317H153L100 296 76 250Z" fill="url(#cab)" stroke="#697681" stroke-width="7" stroke-linejoin="round"/>
 <!-- roof visor and roof line -->
-<path d="M119 115Q137 69 180 62H269Q309 65 329 104L317 117H128Z" fill="#dce2e7" stroke="#687580" stroke-width="6"/>
-<path d="M122 112 100 103 93 119 126 135" fill="#313b45" stroke="#687580" stroke-width="5"/>
+<path d="M119 115Q137 69 180 62H269Q309 65 329 104L317 117H128Z" fill="#22ad73" stroke="#16885a" stroke-width="6"/>
+<path d="M122 112 100 103 93 119 126 135" fill="#16885a" stroke="#16885a" stroke-width="5"/>
 <!-- side window -->
-<path d="M168 92H264Q291 94 302 120L318 177H158Z" fill="url(#glass)" stroke="#d9e0e6" stroke-width="8" stroke-linejoin="round"/>
-<path d="M181 101H258Q281 103 291 124L304 164H181Z" fill="#8da5b5" opacity=".18"/>
-<path d="M239 96 249 96 294 166" stroke="#b9c9d3" stroke-width="5" opacity=".32"/>
-<path d="M155 181H318" stroke="#a7b1ba" stroke-width="5"/>
+<path d="M168 92H264Q291 94 302 120L318 177H158Z" fill="url(#glass)" stroke="#ffffff" stroke-width="8" stroke-linejoin="round"/>
+<path d="M181 101H258Q281 103 291 124L304 164H181Z" fill="#ffffff" opacity=".2"/>
+<path d="M239 96 249 96 294 166" stroke="#ffffff" stroke-width="5" opacity=".32"/>
+<path d="M155 181H318" stroke="#16885a" stroke-width="5"/>
 <!-- front windshield -->
 <path d="M111 125Q123 98 151 95L161 98 154 179 97 193Z" fill="url(#glass)" stroke="#dce2e7" stroke-width="7"/>
-<path d="M121 130Q132 107 149 106L145 170 108 181Z" fill="#9bb0bf" opacity=".2"/>
+<path d="M121 130Q132 107 149 106L145 170 108 181Z" fill="#ffffff" opacity=".2"/>
 <!-- front grille and bumper -->
 <path d="M88 190 154 180 151 271 111 286 79 258 74 221Z" fill="url(#cab)" stroke="#697681" stroke-width="6"/>
-<path d="M82 207 145 197 143 240 84 247Z" fill="#303b46" stroke="#687580" stroke-width="5"/>
-<path d="M90 214 139 207M88 225 139 218M87 236 138 229" stroke="#aeb8c1" stroke-width="5"/>
-<path d="M77 254 147 246 146 280 92 286 72 270Z" fill="#dce2e7" stroke="#65717c" stroke-width="5"/>
+<path d="M82 207 145 197 143 240 84 247Z" fill="#16885a" stroke="#16885a" stroke-width="5"/>
+<path d="M90 214 139 207M88 225 139 218M87 236 138 229" stroke="#d9f4e8" stroke-width="5"/>
+<path d="M77 254 147 246 146 280 92 286 72 270Z" fill="#22ad73" stroke="#16885a" stroke-width="5"/>
 <path d="M86 267h40" stroke="#64717d" stroke-width="6" stroke-linecap="round"/>
 <!-- headlamps -->
 <path d="M77 235 95 231 96 253 79 257Z" fill="#f3f5f6" stroke="#67737e" stroke-width="4"/>
-<path d="M78 262h16v9H78Z" fill="#e8a35c"/>
+<path d="M78 262h16v9H78Z" fill="#ffffff"/>
 <!-- door and details -->
-<path d="M165 190 310 190 326 281 164 281Z" fill="#e7ecef" opacity=".6"/>
-<path d="M169 198V279M169 279H311" stroke="#8995a0" stroke-width="4" fill="none"/>
-<path d="M274 211h29q8 0 8 8v8h-37Z" fill="#29343e" stroke="#7b8792" stroke-width="4"/>
+<path d="M165 190 310 190 326 281 164 281Z" fill="#22ad73" opacity=".55"/>
+<path d="M169 198V279M169 279H311" stroke="#16885a" stroke-width="4" fill="none"/>
+<path d="M274 211h29q8 0 8 8v8h-37Z" fill="#16885a" stroke="#16885a" stroke-width="4"/>
 <path d="M177 205h81" stroke="#fff" stroke-width="5" opacity=".8"/>
-<path d="M315 183 342 190 350 216 323 211Z" fill="#d5dce2" stroke="#73808b" stroke-width="4"/>
+<path d="M315 183 342 190 350 216 323 211Z" fill="#22ad73" stroke="#16885a" stroke-width="4"/>
 <!-- mirror -->
 <path d="M113 145 92 136 84 151 105 166" fill="none" stroke="#333e48" stroke-width="7" stroke-linecap="round"/>
 <rect x="72" y="143" width="21" height="37" rx="5" fill="#26323c" stroke="#71808c" stroke-width="4"/>
 <!-- steps / fuel tank -->
 <path d="M194 292h83l-6 17h-76Z" fill="#7f8b96" stroke="#4e5a65" stroke-width="4"/>
-<path d="M203 300h59" stroke="#e3e8ec" stroke-width="4"/>
-<rect x="293" y="296" width="46" height="29" rx="4" fill="#aeb8c2" stroke="#687580" stroke-width="4"/>
+<path d="M203 300h59" stroke="#d9f4e8" stroke-width="4"/>
+<rect x="293" y="296" width="46" height="29" rx="4" fill="#22ad73" stroke="#16885a" stroke-width="4"/>
 <!-- wheels -->
 <g>
  <g transform="translate(230 315)">
