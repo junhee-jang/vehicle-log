@@ -95,7 +95,14 @@
     .documents-month input { min-width:0; min-height:39px; padding:7px 9px; }
     .weather-calendar { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:6px; }
     .weather-weekday { padding:7px 2px; text-align:center; color:#9eabb9; font-size:11px; font-weight:700; }
+    .weather-weekday:first-child { color:#ff8585; }
+    .weather-weekday:last-child { color:#80b9ff; }
     .weather-day { min-height:66px; padding:7px 5px; border:1px solid #343e4c; border-radius:9px; background:#171c24; color:#e7edf4; }
+    .weather-day.sunday, .weather-day.holiday { border-color:#704044; background:#281d22; }
+    .weather-day.saturday { border-color:#354f70; background:#1b2532; }
+    .weather-day.sunday .weather-day-number, .weather-day.holiday .weather-day-number { color:#ff8585; }
+    .weather-day.saturday .weather-day-number { color:#80b9ff; }
+    .weather-day.holiday .weather-day-number { font-weight:800; }
     .weather-day-number { display:block; font-size:12px; color:#9eabb9; }
     .weather-day-value { display:block; margin-top:8px; color:#9fe5cb; font-size:12px; font-weight:700; text-align:center; }
     .documents-table-wrap { overflow-x:auto; border:1px solid #343e4c; border-radius:10px; }
@@ -936,43 +943,8 @@
         <div class="documents-card-heading">
           <div><h2>날씨 조회</h2><div class="documents-card-note">운행일지에 기록한 날씨를 날짜별 달력으로 확인합니다.</div></div>
         </div>
-        <div class="weather-calendar" aria-label="월간 날씨 달력">
+        <div class="weather-calendar" id="weatherCalendar" aria-label="월간 날씨 달력">
           <div class="weather-weekday">일</div><div class="weather-weekday">월</div><div class="weather-weekday">화</div><div class="weather-weekday">수</div><div class="weather-weekday">목</div><div class="weather-weekday">금</div><div class="weather-weekday">토</div>
-          <div class="weather-day"><span class="weather-day-number">1</span><span class="weather-day-value"></span></div>
-          <div class="weather-day"><span class="weather-day-number">2</span><span class="weather-day-value"></span></div>
-          <div class="weather-day"><span class="weather-day-number">3</span><span class="weather-day-value"></span></div>
-          <div class="weather-day"><span class="weather-day-number">4</span><span class="weather-day-value"></span></div>
-          <div class="weather-day"><span class="weather-day-number">5</span><span class="weather-day-value"></span></div>
-          <div class="weather-day"><span class="weather-day-number">6</span><span class="weather-day-value"></span></div>
-          <div class="weather-day"><span class="weather-day-number">7</span><span class="weather-day-value"></span></div>
-          <div class="weather-day"><span class="weather-day-number">8</span><span class="weather-day-value"></span></div>
-          <div class="weather-day"><span class="weather-day-number">9</span><span class="weather-day-value"></span></div>
-          <div class="weather-day"><span class="weather-day-number">10</span><span class="weather-day-value"></span></div>
-          <div class="weather-day"><span class="weather-day-number">11</span><span class="weather-day-value"></span></div>
-          <div class="weather-day"><span class="weather-day-number">12</span><span class="weather-day-value"></span></div>
-          <div class="weather-day"><span class="weather-day-number">13</span><span class="weather-day-value"></span></div>
-          <div class="weather-day"><span class="weather-day-number">14</span><span class="weather-day-value"></span></div>
-          <div class="weather-day"><span class="weather-day-number">15</span><span class="weather-day-value"></span></div>
-          <div class="weather-day"><span class="weather-day-number">16</span><span class="weather-day-value"></span></div>
-          <div class="weather-day"><span class="weather-day-number">17</span><span class="weather-day-value"></span></div>
-          <div class="weather-day"><span class="weather-day-number">18</span><span class="weather-day-value"></span></div>
-          <div class="weather-day"><span class="weather-day-number">19</span><span class="weather-day-value"></span></div>
-          <div class="weather-day"><span class="weather-day-number">20</span><span class="weather-day-value"></span></div>
-          <div class="weather-day"><span class="weather-day-number">21</span><span class="weather-day-value"></span></div>
-          <div class="weather-day"><span class="weather-day-number">22</span><span class="weather-day-value"></span></div>
-          <div class="weather-day"><span class="weather-day-number">23</span><span class="weather-day-value"></span></div>
-          <div class="weather-day"><span class="weather-day-number">24</span><span class="weather-day-value"></span></div>
-          <div class="weather-day"><span class="weather-day-number">25</span><span class="weather-day-value"></span></div>
-          <div class="weather-day"><span class="weather-day-number">26</span><span class="weather-day-value"></span></div>
-          <div class="weather-day"><span class="weather-day-number">27</span><span class="weather-day-value"></span></div>
-          <div class="weather-day"><span class="weather-day-number">28</span><span class="weather-day-value"></span></div>
-          <div class="weather-day"><span class="weather-day-number">29</span><span class="weather-day-value"></span></div>
-          <div class="weather-day"><span class="weather-day-number">30</span><span class="weather-day-value"></span></div>
-          <div class="weather-day"><span class="weather-day-number">31</span><span class="weather-day-value"></span></div>
-          <div class="weather-day"><span class="weather-day-number"></span><span class="weather-day-value"></span></div>
-          <div class="weather-day"><span class="weather-day-number"></span><span class="weather-day-value"></span></div>
-          <div class="weather-day"><span class="weather-day-number"></span><span class="weather-day-value"></span></div>
-          <div class="weather-day"><span class="weather-day-number"></span><span class="weather-day-value"></span></div>
         </div>
       </section>
     </section>
@@ -2236,6 +2208,71 @@
     }
     documentsYear.value = String(documentsDefaultYear);
     documentsMonth.value = String(documentsDefaultDate.getMonth() + 1);
+
+    const weatherCalendar = document.getElementById("weatherCalendar");
+    const koreanHolidayCache = new Map();
+    async function getKoreanHolidays(year) {
+      if (koreanHolidayCache.has(year)) return koreanHolidayCache.get(year);
+      try {
+        const response = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${year}/KR`);
+        if (!response.ok) throw new Error("공휴일 정보를 불러오지 못했습니다.");
+        const holidays = await response.json();
+        const holidayMap = new Map(holidays.map(item => [item.date, item.localName || item.name]));
+        koreanHolidayCache.set(year, holidayMap);
+        return holidayMap;
+      } catch (error) {
+        koreanHolidayCache.set(year, new Map());
+        return koreanHolidayCache.get(year);
+      }
+    }
+    async function renderWeatherCalendar() {
+      if (!weatherCalendar) return;
+      const year = Number(documentsYear.value);
+      const month = Number(documentsMonth.value);
+      const holidayMap = await getKoreanHolidays(year);
+      if (year !== Number(documentsYear.value) || month !== Number(documentsMonth.value)) return;
+      weatherCalendar.querySelectorAll(".weather-day").forEach(day => day.remove());
+      const firstWeekday = new Date(year, month - 1, 1).getDay();
+      const daysInMonth = new Date(year, month, 0).getDate();
+      for (let blank = 0; blank < firstWeekday; blank++) {
+        const spacer = document.createElement("div");
+        spacer.className = "weather-day calendar-empty";
+        spacer.style.visibility = "hidden";
+        weatherCalendar.appendChild(spacer);
+      }
+      for (let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(year, month - 1, day);
+        const dateKey = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+        const holidayName = holidayMap.get(dateKey);
+        const cell = document.createElement("div");
+        cell.className = "weather-day";
+        if (holidayName) {
+          cell.classList.add("holiday");
+          cell.title = holidayName;
+        } else if (date.getDay() === 0) {
+          cell.classList.add("sunday");
+        } else if (date.getDay() === 6) {
+          cell.classList.add("saturday");
+        }
+        const number = document.createElement("span");
+        number.className = "weather-day-number";
+        number.textContent = String(day);
+        const value = document.createElement("span");
+        value.className = "weather-day-value";
+        cell.append(number, value);
+        weatherCalendar.appendChild(cell);
+      }
+      const trailing = (7 - ((firstWeekday + daysInMonth) % 7)) % 7;
+      for (let blank = 0; blank < trailing; blank++) {
+        const spacer = document.createElement("div");
+        spacer.className = "weather-day calendar-empty";
+        spacer.style.visibility = "hidden";
+        weatherCalendar.appendChild(spacer);
+      }
+    }
+    documentsYear.addEventListener("change", renderWeatherCalendar);
+    documentsMonth.addEventListener("change", renderWeatherCalendar);
+    renderWeatherCalendar();
     document.querySelectorAll("[data-doc-tab]").forEach(tab => {
       tab.addEventListener("click", () => {
         const selected = tab.dataset.docTab;
