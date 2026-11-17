@@ -80,7 +80,7 @@
       border: 1px solid #292e37; border-radius: 15px;
       background: linear-gradient(135deg, #191c22, #12151a 78%);
     }
-    .home-brand-logo { display: block; width: 78px; height: auto; flex: 0 0 78px; }
+    .home-brand-logo { display: block; width: 48px; height: 48px; flex: 0 0 48px; }
     .home-header-copy { min-width: 0; flex: 1; }
     .home-header-copy h1 { margin: 0 0 5px; font-size: 20px; letter-spacing: -.6px; }
     .home-header-copy p { margin: 0; color: #aab2bd; font-size: 12px; }
@@ -101,7 +101,7 @@
     .home-menu-card {
       position: relative; display: flex; flex-direction: column;
       justify-content: space-between; align-items: stretch;
-      width: 100%; aspect-ratio: 1 / 1; min-width: 0; min-height: 0;
+      width: 100%; aspect-ratio: 1.16 / 1; min-width: 0; min-height: 0;
       padding: 16px 15px; overflow: hidden; text-align: left;
       border: 1px solid #292e37; border-radius: 12px;
       background: linear-gradient(145deg, #191c22, #12151a 80%);
@@ -109,11 +109,11 @@
       transition: border-color .16s ease, transform .16s ease, background .16s ease;
     }
     .home-menu-card:active { transform: scale(.98); border-color: #647181; }
-    .home-menu-title { position: relative; z-index: 1; font-size: clamp(12px, 1.6vw, 15px); white-space: nowrap; font-weight: 750; letter-spacing: -.55px; }
-    .home-menu-image { display: block; width: 100%; max-width: 205px; height: auto; align-self: flex-end; margin: auto 0 0 auto; opacity: .98; filter: drop-shadow(0 5px 7px #0008); }
+    .home-menu-title { position: relative; z-index: 1; font-size: clamp(14px, 1.8vw, 17px); white-space: nowrap; font-weight: 750; letter-spacing: -.45px; }
+    .home-menu-image { display: block; width: 86%; max-width: 180px; height: auto; align-self: flex-end; margin: auto 0 0 auto; opacity: .98; filter: drop-shadow(0 5px 7px #0008); }
     .home-menu-notice { min-height: 20px; margin: 13px 2px 0; color: #aab4c2; font-size: 12px; text-align: center; }
     .brand-logo {
-      display: block; width: 88px; height: auto; flex: 0 0 88px;
+      display: block; width: 52px; height: 52px; flex: 0 0 52px;
       max-width: 100%; overflow: visible;
     }
     h1 { font-size: 23px; margin: 0 0 5px; }
@@ -417,15 +417,15 @@
       .brand-logo { width: 76px; height: auto; flex: 0 0 76px; }
       .home-screen { min-height: calc(100vh - 20px); }
       .home-header { gap: 9px; padding: 15px 12px; margin-bottom: 20px; }
-      .home-brand-logo { width: 62px; flex-basis: 62px; }
+      .home-brand-logo { width: 42px; height: 42px; flex-basis: 42px; }
       .home-header-copy h1 { font-size: 17px; }
       .home-header-copy p { font-size: 11px; }
       .home-logout-button { padding: 6px 7px; font-size: 10px; }
       .home-menu-heading { min-height: 49px; margin-bottom: 16px; font-size: 13px; }
       .home-menu-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 12px; }
-      .home-menu-card { padding: 10px 7px; border-radius: 10px; }
-      .home-menu-title { font-size: clamp(9px, 2.65vw, 12px); letter-spacing: -.7px; }
-      .home-menu-image { width: 108%; max-width: none; margin-right: -3px; }
+      .home-menu-card { padding: 10px 10px; border-radius: 10px; }
+      .home-menu-title { font-size: clamp(13px, 3.5vw, 15px); letter-spacing: -.4px; }
+      .home-menu-image { width: 88%; max-width: 160px; margin-right: 0; }
       h1 { font-size: 21px; }
       .card { padding: 15px; }
       /* 주유 카드 외곽 패딩은 제거하고 제목 버튼의 좌우 여백을 메모 헤더와 동일하게 유지 */
@@ -480,7 +480,7 @@
       transition: opacity .48s ease, visibility .48s ease;
     }
     .system-splash.is-leaving { opacity: 0; visibility: hidden; pointer-events: none; }
-    .system-splash-logo { display: block; width: 116px; height: auto; flex: 0 0 auto; }
+    .system-splash-logo { display: block; width: 76px; height: 76px; flex: 0 0 auto; }
     .system-splash-title {
       margin: 0; color: #f0f2f4; font-size: 19px; line-height: 1.45;
       font-weight: 750; letter-spacing: -.045em; text-align: center;
@@ -497,7 +497,7 @@
     .system-splash-accent { animation-delay: .16s; }
     @media (max-width: 520px) {
       .system-splash { gap: 21px; }
-      .system-splash-logo { width: 104px; }
+      .system-splash-logo { width: 68px; height: 68px; }
       .system-splash-title { font-size: 18px; }
     }
     @media (prefers-reduced-motion: reduce) {
@@ -519,7 +519,7 @@
     }
     .login-panel { width: min(100%, 390px); }
     .login-brand { display: flex; flex-direction: column; align-items: center; gap: 15px; margin-bottom: 34px; }
-    .login-brand-logo { display: block; width: 78px; height: auto; }
+    .login-brand-logo { display: block; width: 56px; height: 56px; }
     .login-brand-title { margin: 0; color: #f0f2f4; font-size: 21px; font-weight: 760; letter-spacing: -.05em; text-align: center; }
     .login-card {
       padding: 25px 23px 21px; border: 1px solid #303742; border-radius: 18px;
@@ -550,7 +550,7 @@
     @media (max-width: 520px) {
       .login-screen { padding: 22px; }
       .login-brand { margin-bottom: 29px; gap: 13px; }
-      .login-brand-logo { width: 70px; }
+      .login-brand-logo { width: 50px; height: 50px; }
       .login-brand-title { font-size: 19px; }
       .login-card { padding: 23px 19px 19px; }
     }
@@ -573,7 +573,7 @@
 <body class="splash-active login-required">
 
 <div class="system-splash" id="systemSplash" role="status" aria-label="충북제한단속 시스템 시작">
-  <img class="system-splash-logo" src="sv-logo.svg?v=original-trace-2" alt="SV 로고">
+  <img class="system-splash-logo" src="system-mark.svg?v=1" alt="시스템 심볼">
   <h1 class="system-splash-title">충북제한단속 시스템</h1>
   <span class="system-splash-accent" aria-hidden="true"></span>
 </div>
@@ -581,7 +581,7 @@
 <div class="login-screen" id="loginScreen">
   <div class="login-panel">
     <div class="login-brand">
-      <img class="login-brand-logo" src="sv-logo.svg?v=original-trace-2" alt="SV 로고">
+      <img class="login-brand-logo" src="system-mark.svg?v=1" alt="시스템 심볼">
       <h1 class="login-brand-title">충북제한단속 시스템</h1>
     </div>
     <form class="login-card" id="loginForm">
@@ -638,7 +638,7 @@
 <main class="container">
   <section class="home-screen" id="homeScreen">
     <header class="home-header">
-      <img class="home-brand-logo" src="sv-logo.svg?v=original-trace-2" alt="충북제한단속 시스템 로고">
+      <img class="home-brand-logo" src="system-mark.svg?v=1" alt="충북제한단속 시스템 심볼">
       <div class="home-header-copy">
         <h1>충북제한단속 시스템</h1>
         <p>제한진천팀 <span class="home-user-divider">·</span> <span id="homeUserName">사용자</span></p>
@@ -718,7 +718,7 @@
 
   <div class="vehicle-log-page" id="vehicleLogPage" hidden>
   <header>
-    <img class="brand-logo" src="sv-logo.svg?v=original-trace-2" alt="SV 로고">
+    <img class="brand-logo" src="system-mark.svg?v=1" alt="시스템 심볼">
     <div class="app-header-copy">
       <h1>차량운행일지</h1>
       <div class="app-header-subline">
