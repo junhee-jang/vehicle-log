@@ -1884,6 +1884,25 @@
     let gateCheck = 0;
     let pinVerifiedUserId = null;
 
+    // 브라우저별 고유 ID: 모바일/PC 및 브라우저마다 독립 PIN 인증을 유지한다.
+    const DEVICE_ID_STORAGE_KEY = "vehicle_log_device_id_v1";
+    function getDeviceId() {
+      try {
+        let id = localStorage.getItem(DEVICE_ID_STORAGE_KEY);
+        if (!id) {
+          id = (globalThis.crypto?.randomUUID?.() ||
+            "dev-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2));
+          localStorage.setItem(DEVICE_ID_STORAGE_KEY, id);
+        }
+        return id;
+      } catch (_) {
+        return "tab-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2);
+      }
+    }
+    const DEVICE_ID = getDeviceId();
+    const DEVICE_TYPE = (navigator.userAgentData?.mobile ||
+      /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)) ? "mobile" : "pc";
+
     function showPinGate(mode) {
       pinMode = mode;
       pinForm.hidden = false;
@@ -2032,7 +2051,7 @@
       const response = await fetch(SUPABASE_URL + "/functions/v1/pin-auth", {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": "Bearer " + session.access_token, "apikey": SUPABASE_PUBLISHABLE_KEY },
-        body: JSON.stringify({ action, ...payload })
+        body: JSON.stringify({ action, ...payload, device_id: DEVICE_ID, device_type: DEVICE_TYPE })
       });
       const result = await response.json().catch(() => ({}));
       // PIN 불일치도 서버에서 401로 오므로, 실제 인증 토큰 오류와 구분한다.
