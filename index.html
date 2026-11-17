@@ -72,7 +72,35 @@
     .pin-footnote { display:none; }
     @media(max-height:650px) { .pin-panel h1{top:12%}.pin-dots{top:25%}.pin-reregister{top:46%;min-height:62px} }
 
-    .home-screen[hidden], .vehicle-log-page[hidden] { display: none !important; }
+    .home-screen[hidden], .vehicle-log-page[hidden], .documents-page[hidden] { display: none !important; }
+    .documents-page { max-width: 980px; margin: 0 auto; }
+    .documents-header { display:flex; align-items:center; gap:12px; margin-bottom:18px; padding:15px 16px; border:1px solid #303947; border-radius:15px; background:linear-gradient(135deg,#191f28,#141820); }
+    .documents-header-copy { flex:1; min-width:0; }
+    .documents-header h1 { margin:0 0 4px; font-size:20px; }
+    .documents-header p { margin:0; color:#9da9b8; font-size:12px; }
+    .documents-back { width:auto; min-height:38px; padding:8px 12px; white-space:nowrap; }
+    .documents-card { background:var(--panel); border:1px solid var(--border); border-radius:15px; padding:17px; margin-bottom:14px; }
+    .documents-card-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; }
+    .documents-card-heading h2 { margin:0; font-size:17px; }
+    .documents-card-note { color:var(--muted); font-size:11px; line-height:1.45; }
+    .documents-month { display:flex; align-items:center; gap:9px; width:min(100%,220px); }
+    .documents-month label { margin:0; white-space:nowrap; }
+    .documents-month input { min-width:0; min-height:39px; padding:7px 9px; }
+    .weather-calendar { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:6px; }
+    .weather-weekday { padding:7px 2px; text-align:center; color:#9eabb9; font-size:11px; font-weight:700; }
+    .weather-day { min-height:66px; padding:7px 5px; border:1px solid #343e4c; border-radius:9px; background:#171c24; color:#e7edf4; }
+    .weather-day-number { display:block; font-size:12px; color:#9eabb9; }
+    .weather-day-value { display:block; margin-top:8px; color:#9fe5cb; font-size:12px; font-weight:700; text-align:center; }
+    .documents-table-wrap { overflow-x:auto; border:1px solid #343e4c; border-radius:10px; }
+    .documents-table { width:100%; min-width:560px; border-collapse:collapse; font-size:12px; }
+    .documents-table th,.documents-table td { padding:11px 9px; border-bottom:1px solid #343e4c; text-align:center; white-space:nowrap; }
+    .documents-table th { background:#252d39; color:#dce5ef; font-weight:700; }
+    .documents-table td { color:#aab5c2; }
+    .documents-empty { padding:24px 10px !important; color:#7f8b99 !important; text-align:center !important; }
+    .documents-actions { display:flex; align-items:center; justify-content:flex-end; gap:8px; margin-top:12px; }
+    .documents-actions button { width:auto; min-height:38px; padding:8px 13px; }
+    .documents-copy-hint { margin:10px 0 0; color:#9ba7b5; font-size:11px; line-height:1.5; }
+
     .home-screen { min-height: calc(100vh - 36px); }
     .home-header {
       display: flex; align-items: center; gap: 13px;
@@ -418,6 +446,19 @@
       body { padding: 10px; }
       header { padding: 14px 12px; gap: 10px; }
       .brand-logo { width: 76px; height: auto; flex: 0 0 76px; }
+      .documents-header { gap:9px; padding:13px 11px; }
+      .documents-header h1 { font-size:18px; }
+      .documents-header p { font-size:10px; }
+      .documents-back { min-height:35px; padding:7px 9px; font-size:11px; }
+      .documents-card { padding:13px; margin-bottom:11px; }
+      .documents-card-heading { align-items:flex-start; flex-direction:column; gap:9px; }
+      .documents-card-heading h2 { font-size:15px; }
+      .documents-month { width:100%; }
+      .weather-calendar { gap:4px; }
+      .weather-day { min-height:55px; padding:6px 3px; }
+      .weather-day-value { font-size:10px; margin-top:7px; }
+      .documents-actions { justify-content:stretch; }
+      .documents-actions button { flex:1; }
       .home-screen { min-height: calc(100vh - 20px); }
       .home-header { gap: 9px; padding: 15px 12px; margin-bottom: 20px; }
       .home-brand-logo { width: 42px; height: 42px; flex-basis: 42px; }
@@ -843,6 +884,109 @@
     <p id="message" role="status"></p>
   </form>
   </div>
+
+  <section class="documents-page" id="documentsPage" hidden>
+    <header class="documents-header">
+      <div class="documents-header-copy">
+        <h1>자료받기</h1>
+        <p>월말 제출용 운행·차량 소모비용 자료</p>
+      </div>
+      <button class="secondary documents-back" id="documentsBackButton" type="button">메인으로</button>
+    </header>
+
+    <section class="documents-card">
+      <div class="documents-card-heading">
+        <div>
+          <h2>🌤️ 날씨 조회</h2>
+          <div class="documents-card-note">운행일지에 기록한 날씨를 날짜별 달력으로 확인합니다.</div>
+        </div>
+        <div class="documents-month">
+          <label for="weatherMonth">조회 월</label>
+          <input id="weatherMonth" type="month" aria-label="날씨 조회 월">
+        </div>
+      </div>
+      <div class="weather-calendar" aria-label="월간 날씨 달력">
+        <div class="weather-weekday">일</div><div class="weather-weekday">월</div><div class="weather-weekday">화</div><div class="weather-weekday">수</div><div class="weather-weekday">목</div><div class="weather-weekday">금</div><div class="weather-weekday">토</div>
+        <div class="weather-day"><span class="weather-day-number">1</span><span class="weather-day-value"></span></div>
+        <div class="weather-day"><span class="weather-day-number">2</span><span class="weather-day-value"></span></div>
+        <div class="weather-day"><span class="weather-day-number">3</span><span class="weather-day-value"></span></div>
+        <div class="weather-day"><span class="weather-day-number">4</span><span class="weather-day-value"></span></div>
+        <div class="weather-day"><span class="weather-day-number">5</span><span class="weather-day-value"></span></div>
+        <div class="weather-day"><span class="weather-day-number">6</span><span class="weather-day-value"></span></div>
+        <div class="weather-day"><span class="weather-day-number">7</span><span class="weather-day-value"></span></div>
+        <div class="weather-day"><span class="weather-day-number">8</span><span class="weather-day-value"></span></div>
+        <div class="weather-day"><span class="weather-day-number">9</span><span class="weather-day-value"></span></div>
+        <div class="weather-day"><span class="weather-day-number">10</span><span class="weather-day-value"></span></div>
+        <div class="weather-day"><span class="weather-day-number">11</span><span class="weather-day-value"></span></div>
+        <div class="weather-day"><span class="weather-day-number">12</span><span class="weather-day-value"></span></div>
+        <div class="weather-day"><span class="weather-day-number">13</span><span class="weather-day-value"></span></div>
+        <div class="weather-day"><span class="weather-day-number">14</span><span class="weather-day-value"></span></div>
+        <div class="weather-day"><span class="weather-day-number">15</span><span class="weather-day-value"></span></div>
+        <div class="weather-day"><span class="weather-day-number">16</span><span class="weather-day-value"></span></div>
+        <div class="weather-day"><span class="weather-day-number">17</span><span class="weather-day-value"></span></div>
+        <div class="weather-day"><span class="weather-day-number">18</span><span class="weather-day-value"></span></div>
+        <div class="weather-day"><span class="weather-day-number">19</span><span class="weather-day-value"></span></div>
+        <div class="weather-day"><span class="weather-day-number">20</span><span class="weather-day-value"></span></div>
+        <div class="weather-day"><span class="weather-day-number">21</span><span class="weather-day-value"></span></div>
+        <div class="weather-day"><span class="weather-day-number">22</span><span class="weather-day-value"></span></div>
+        <div class="weather-day"><span class="weather-day-number">23</span><span class="weather-day-value"></span></div>
+        <div class="weather-day"><span class="weather-day-number">24</span><span class="weather-day-value"></span></div>
+        <div class="weather-day"><span class="weather-day-number">25</span><span class="weather-day-value"></span></div>
+        <div class="weather-day"><span class="weather-day-number">26</span><span class="weather-day-value"></span></div>
+        <div class="weather-day"><span class="weather-day-number">27</span><span class="weather-day-value"></span></div>
+        <div class="weather-day"><span class="weather-day-number">28</span><span class="weather-day-value"></span></div>
+        <div class="weather-day"><span class="weather-day-number">29</span><span class="weather-day-value"></span></div>
+        <div class="weather-day"><span class="weather-day-number">30</span><span class="weather-day-value"></span></div>
+        <div class="weather-day"><span class="weather-day-number">31</span><span class="weather-day-value"></span></div>
+        <div class="weather-day"><span class="weather-day-number"></span><span class="weather-day-value"></span></div>
+        <div class="weather-day"><span class="weather-day-number"></span><span class="weather-day-value"></span></div>
+        <div class="weather-day"><span class="weather-day-number"></span><span class="weather-day-value"></span></div>
+        <div class="weather-day"><span class="weather-day-number"></span><span class="weather-day-value"></span></div>
+      </div>
+    </section>
+
+    <section class="documents-card">
+      <div class="documents-card-heading">
+        <div>
+          <h2>🚚 운행기록 내려받기</h2>
+          <div class="documents-card-note">엑셀 서식에 바로 붙여넣을 수 있는 셀 형태로 표시합니다.</div>
+        </div>
+        <div class="documents-month">
+          <label for="drivingMonth">대상 월</label>
+          <input id="drivingMonth" type="month" aria-label="운행기록 대상 월">
+        </div>
+      </div>
+      <div class="documents-table-wrap">
+        <table class="documents-table">
+          <thead><tr><th>운행일자</th><th>운행 전</th><th>운행 후</th><th>운행거리(Km)</th><th>운행구간</th></tr></thead>
+          <tbody><tr><td class="documents-empty" colspan="5">운행기록 표시 영역</td></tr></tbody>
+        </table>
+      </div>
+      <div class="documents-actions"><button class="primary" type="button" disabled>표 복사</button></div>
+      <p class="documents-copy-hint">표의 열과 행을 유지한 상태로 복사해 엑셀 셀에 붙여넣는 형태로 구성할 예정입니다.</p>
+    </section>
+
+    <section class="documents-card">
+      <div class="documents-card-heading">
+        <div>
+          <h2>⛽ 주유 · 요소수</h2>
+          <div class="documents-card-note">월말 차량 소모비용 입력용 자료를 셀 형태로 표시합니다.</div>
+        </div>
+        <div class="documents-month">
+          <label for="expenseMonth">대상 월</label>
+          <input id="expenseMonth" type="month" aria-label="주유 및 요소수 대상 월">
+        </div>
+      </div>
+      <div class="documents-table-wrap">
+        <table class="documents-table">
+          <thead><tr><th>일자</th><th>구분</th><th>수량(L)</th><th>단가(원)</th><th>금액(원)</th><th>비고</th></tr></thead>
+          <tbody><tr><td class="documents-empty" colspan="6">주유 · 요소수 표시 영역</td></tr></tbody>
+        </table>
+      </div>
+      <div class="documents-actions"><button class="primary" type="button" disabled>표 복사</button></div>
+      <p class="documents-copy-hint">엑셀의 차량 소모비용 입력란에 그대로 붙여넣을 수 있도록 구성할 예정입니다.</p>
+    </section>
+  </section>
 </main>
 
 <dialog id="routePickerDialog">
@@ -2060,12 +2204,15 @@
       }
     });
 
+    const documentsPage = document.getElementById("documentsPage");
     function returnToHome() {
       if (vehicleLogPage) vehicleLogPage.hidden = true;
+      if (documentsPage) documentsPage.hidden = true;
       if (homeScreen) homeScreen.hidden = false;
       if (homeMenuNotice) homeMenuNotice.textContent = "";
       window.scrollTo(0, 0);
     }
+    document.getElementById("documentsBackButton")?.addEventListener("click", returnToHome);
     document.querySelectorAll("[data-home-menu]").forEach(button => {
       button.addEventListener("click", () => {
         const menu = button.dataset.homeMenu;
@@ -2073,12 +2220,15 @@
           if (homeScreen) homeScreen.hidden = true;
           if (vehicleLogPage) vehicleLogPage.hidden = false;
           window.scrollTo(0, 0);
+        } else if (menu === "documents") {
+          if (homeScreen) homeScreen.hidden = true;
+          if (documentsPage) documentsPage.hidden = false;
+          if (homeMenuNotice) homeMenuNotice.textContent = "";
+          window.scrollTo(0, 0);
         } else if (homeMenuNotice) {
           homeMenuNotice.textContent = menu === "vehicle-spec"
             ? "차량제원등록 메뉴는 준비 중이야."
-            : menu === "documents"
-              ? "자료받기 메뉴는 준비 중이야. 월말 서류 제출용 조회 기능을 여기에 연결할 예정이야."
-              : "기타 메뉴는 준비 중이야.";
+            : "기타 메뉴는 준비 중이야.";
         }
       });
     });
