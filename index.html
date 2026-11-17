@@ -896,23 +896,22 @@
           </div>
           <div>
             <label for="eventType">종류</label>
-            <select id="eventType"><option value="주유">주유</option><option value="요소수">요소수</option></select>
+            <select id="eventType"><option value="주유">주유</option><option value="요소수">요소수</option><option value="엔진오일교체">엔진오일 교체</option><option value="타이어교체">타이어 교체</option><option value="기타">기타 (직접입력)</option></select>
           </div>
           <div id="unitPriceField">
             <label for="eventUnitPrice">주유 단가 (원/L)</label>
             <input type="text" inputmode="numeric" id="eventUnitPrice" placeholder="예: 1,650">
           </div>
-          <div>
+          <div id="eventAmountField">
             <label for="eventAmount" id="eventAmountLabel">주유량 (L)</label>
             <input type="text" inputmode="decimal" id="eventAmount" placeholder="예: 32.78" value="32.78">
           </div>
-          <div>
-            <label for="eventCost">주유 금액 (원)</label>
+          <div id="eventCostField">
+            <label for="eventCost" id="eventCostLabel">주유 금액 (원)</label>
             <input type="text" inputmode="numeric" id="eventCost" placeholder="예: 60,000" value="60,000">
           </div>
         </div>
-        <label for="eventMemo">주유소 / 메모 (선택)</label>
-        <input id="eventMemo" placeholder="주유소명 또는 특이사항">
+        <div id="eventMemoField"><label for="eventMemo" id="eventMemoLabel">주유소 / 메모 (선택)</label><input id="eventMemo" placeholder="주유소명 또는 특이사항"></div>
         <button type="button" class="secondary" id="addEvent" style="margin-top:12px;">＋ 기록 추가</button>
         <div id="eventList" class="event-list"></div>
       </div>
@@ -1170,11 +1169,18 @@
   });
   setCollapseState($("fuelToggle"), $("fuelContent"), $("fuelToggleText"), false);
   function updateFuelFields() {
-    const isFuel = $("eventType").value === "주유";
+    const type = $("eventType").value;
+    const isFuel = type === "주유";
+    const isAdBlue = type === "요소수";
+    const isFluid = isFuel || isAdBlue;
     $("unitPriceField").classList.toggle("fuel-field-hidden", !isFuel);
+    $("eventAmountField").classList.toggle("fuel-field-hidden", !isFluid);
+    $("eventMemoField").classList.toggle("fuel-field-hidden", type === "엔진오일교체" || type === "타이어교체");
     $("eventAmountLabel").textContent = isFuel ? "주유량 (L)" : "요소수량 (L)";
-    $("eventCost").previousElementSibling.textContent = isFuel ? "주유 금액 (원)" : "요소수 금액 (원)";
+    $("eventCostLabel").textContent = isFuel ? "주유 금액 (원)" : isAdBlue ? "요소수 금액 (원)" : "정비 금액 (원)";
     $("eventAmount").placeholder = isFuel ? "예: 32.78" : "요소수량 입력";
+    $("eventMemoLabel").textContent = type === "기타" ? "정비 내역 (필수)" : isFluid ? "주유소 / 메모 (선택)" : "정비 메모 (선택)";
+    $("eventMemo").placeholder = type === "기타" ? "정비 내용을 직접 입력하세요" : isFluid ? "주유소명 또는 특이사항" : "추가 메모";
   }
   $("eventType").addEventListener("change", updateFuelFields);
   function calculateFuelAmount() {
@@ -1661,8 +1667,18 @@
     const costText = $("eventCost").value.trim();
     const unitPriceText = type === "주유" ? $("eventUnitPrice").value.trim() : "";
     const memo = $("eventMemo").value.trim();
-    if (!amountText && !costText && !memo) {
+    const isFluid = type === "주유" || type === "요소수";
+    if (type === "기타" && !memo) {
+      alert("기타 정비 내역을 직접 입력해 주세요.");
+      $("eventMemo").focus();
+      return;
+    }
+    if (isFluid && !amountText && !costText && !memo) {
       alert("주유량(요소수량), 금액 또는 메모 중 하나는 입력해 주세요.");
+      return;
+    }
+    if (!isFluid && type !== "기타" && !costText && !memo) {
+      alert("정비 금액 또는 메모를 입력해 주세요.");
       return;
     }
     eventList.push({
@@ -1679,6 +1695,8 @@
     $("eventCost").value = type === "주유" ? "60,000" : "";
     $("eventMemo").value = "";
     $("fuelDate").value = localDateTimeString(new Date());
+    updateFuelFields();
+    renderExportTableRows();
     });
   function renderEvents() {
     const holder = $("eventList");
@@ -2326,9 +2344,27 @@
       const expenseRows = document.getElementById("expenseExportRows");
       if (expenseRows) {
         expenseRows.replaceChildren();
-        for (let i = 0; i < 10; i++) {
+        const inSelectedMonth = item => {
+          if (!item.time) return false;
+          const date = new Date(item.time);
+          return date.getFullYear() === year && date.getMonth() + 1 === month;
+        };
+        const byDate = (a, b) => a.time.localeCompare(b.time);
+        const fuelEvents = eventList.filter(item => item.type === "주유" && inSelectedMonth(item)).sort(byDate);
+        const maintenanceEvents = eventList.filter(item => item.type !== "주유" && inSelectedMonth(item)).sort(byDate);
+        const rowCount = Math.max(10, fuelEvents.length, maintenanceEvents.length);
+        const addCell = (row, value) => { const cell = document.createElement("td"); cell.textContent = value == null ? "" : String(value); row.appendChild(cell); };
+        for (let i = 0; i < rowCount; i++) {
           const row = document.createElement("tr");
-          for (let col = 0; col < 7; col++) row.appendChild(document.createElement("td"));
+          const fuel = fuelEvents[i], maintenance = maintenanceEvents[i];
+          addCell(row, fuel ? `${month}월 ${Number(fuel.time.slice(8,10))}일` : "");
+          addCell(row, fuel?.amount != null ? fuel.amount.toFixed(2) : "");
+          addCell(row, fuel?.unitPrice != null ? fuel.unitPrice.toLocaleString("ko-KR") : "");
+          addCell(row, fuel?.cost != null ? fuel.cost.toLocaleString("ko-KR") : "");
+          addCell(row, maintenance ? `${month}월 ${Number(maintenance.time.slice(8,10))}일` : "");
+          const label = maintenance ? (maintenance.type === "기타" ? maintenance.memo : maintenance.type === "요소수" ? "요소수 충전" : maintenance.type === "엔진오일교체" ? "엔진오일 교체" : maintenance.type === "타이어교체" ? "타이어 교체" : maintenance.type) : "";
+          addCell(row, label);
+          addCell(row, maintenance?.cost != null ? maintenance.cost.toLocaleString("ko-KR") : "");
           expenseRows.appendChild(row);
         }
       }
