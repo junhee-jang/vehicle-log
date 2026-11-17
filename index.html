@@ -79,6 +79,13 @@
     .documents-header h1 { margin:0 0 4px; font-size:20px; }
     .documents-header p { margin:0; color:#9da9b8; font-size:12px; }
     .documents-back { width:auto; min-height:38px; padding:8px 12px; white-space:nowrap; }
+    .documents-title-group { display:flex; align-items:center; gap:10px; flex:1; min-width:0; }
+    .documents-title-icon { width:48px; height:40px; flex:0 0 48px; }
+    .documents-period { display:flex; align-items:center; gap:4px; padding:7px 9px; border:1px solid #354151; border-radius:10px; background:#111720; color:#c5d0dc; font-size:12px; white-space:nowrap; }
+    .documents-period label { color:#9da9b8; margin-right:3px; }
+    .documents-period select { min-width:58px; width:auto; min-height:32px; padding:4px 5px; border:1px solid #3a4655; border-radius:7px; background:#202833; color:#edf4fa; font-size:13px; }
+    .documents-period select:last-of-type { min-width:48px; }
+    @media(max-width:560px) { .documents-header { flex-wrap:wrap; gap:10px; } .documents-title-group { flex:1 1 calc(100% - 105px); } .documents-period { order:3; flex:1; justify-content:center; } .documents-back { order:2; } }
     .documents-card { background:var(--panel); border:1px solid var(--border); border-radius:15px; padding:17px; margin-bottom:14px; }
     .documents-card-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; }
     .documents-card-heading h2 { margin:0; font-size:17px; }
@@ -893,9 +900,27 @@
 
   <section class="documents-page" id="documentsPage" hidden>
     <header class="documents-header">
-      <div class="documents-header-copy">
-        <h1>자료받기</h1>
-        <p>월말 제출용 운행·차량 소모비용 자료</p>
+      <div class="documents-title-group">
+        <svg class="documents-title-icon" viewBox="0 0 150 112" role="img" aria-label="자료받기 문서 아이콘">
+          <path d="M36 9h48l28 28v62H36z" fill="#e9eef4" stroke="#aeb9c7" stroke-width="4" stroke-linejoin="round"/>
+          <path d="M84 9v28h28" fill="#cbd5e0" stroke="#aeb9c7" stroke-width="3" stroke-linejoin="round"/>
+          <path d="M51 52h43M51 68h43M51 84h29" stroke="#aab6c5" stroke-width="6" stroke-linecap="round"/>
+          <circle cx="111" cy="83" r="27" fill="#20c99d" stroke="#8af0d2" stroke-width="3"/>
+          <path d="M111 65v29m-11-11 11 11 11-11" fill="none" stroke="#f5fffc" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="documents-header-copy">
+          <h1>자료받기</h1>
+          <p>월말 제출용 자료 조회</p>
+        </div>
+      </div>
+      <div class="documents-period">
+        <label for="documentsYear">조회월</label>
+        <select id="documentsYear" aria-label="조회 연도"></select>
+        <span>년</span>
+        <select id="documentsMonth" aria-label="조회 월">
+          <option value="1">01</option><option value="2">02</option><option value="3">03</option><option value="4">04</option><option value="5">05</option><option value="6">06</option><option value="7">07</option><option value="8">08</option><option value="9">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option>
+        </select>
+        <span>월</span>
       </div>
       <button class="secondary documents-back" id="documentsBackButton" type="button">메인으로</button>
     </header>
@@ -910,7 +935,6 @@
       <section class="documents-card">
         <div class="documents-card-heading">
           <div><h2>날씨 조회</h2><div class="documents-card-note">운행일지에 기록한 날씨를 날짜별 달력으로 확인합니다.</div></div>
-          <div class="documents-month"><label for="weatherMonth">조회 월</label><input id="weatherMonth" type="month" aria-label="날씨 조회 월"></div>
         </div>
         <div class="weather-calendar" aria-label="월간 날씨 달력">
           <div class="weather-weekday">일</div><div class="weather-weekday">월</div><div class="weather-weekday">화</div><div class="weather-weekday">수</div><div class="weather-weekday">목</div><div class="weather-weekday">금</div><div class="weather-weekday">토</div>
@@ -957,7 +981,6 @@
       <section class="documents-card">
         <div class="documents-card-heading">
           <div><h2>운행기록 내려받기</h2><div class="documents-card-note">엑셀 서식에 바로 붙여넣을 수 있는 셀 형태로 표시합니다.</div></div>
-          <div class="documents-month"><label for="drivingMonth">대상 월</label><input id="drivingMonth" type="month" aria-label="운행기록 대상 월"></div>
         </div>
         <div class="documents-table-wrap"><table class="documents-table">
           <thead><tr><th>운행일자</th><th>운행 전</th><th>운행 후</th><th>운행거리(Km)</th><th>운행구간</th></tr></thead>
@@ -972,7 +995,6 @@
       <section class="documents-card">
         <div class="documents-card-heading">
           <div><h2>주유 · 요소수 · 정비내역</h2><div class="documents-card-note">월말 차량 소모비용 입력용 자료를 셀 형태로 표시합니다.</div></div>
-          <div class="documents-month"><label for="expenseMonth">대상 월</label><input id="expenseMonth" type="month" aria-label="주유 및 정비내역 대상 월"></div>
         </div>
         <div class="documents-table-wrap"><table class="documents-table">
           <thead><tr><th>일자</th><th>구분</th><th>수량</th><th>단가(원)</th><th>금액(원)</th><th>비고</th></tr></thead>
@@ -2201,6 +2223,19 @@
     });
 
     const documentsPage = document.getElementById("documentsPage");
+    const documentsYear = document.getElementById("documentsYear");
+    const documentsMonth = document.getElementById("documentsMonth");
+    const documentsToday = new Date();
+    const documentsDefaultDate = new Date(documentsToday.getFullYear(), documentsToday.getMonth() - (documentsToday.getDate() < 10 ? 1 : 0), 1);
+    const documentsDefaultYear = documentsDefaultDate.getFullYear();
+    for (let year = documentsToday.getFullYear() - 5; year <= documentsToday.getFullYear() + 1; year++) {
+      const option = document.createElement("option");
+      option.value = String(year);
+      option.textContent = String(year);
+      documentsYear.appendChild(option);
+    }
+    documentsYear.value = String(documentsDefaultYear);
+    documentsMonth.value = String(documentsDefaultDate.getMonth() + 1);
     document.querySelectorAll("[data-doc-tab]").forEach(tab => {
       tab.addEventListener("click", () => {
         const selected = tab.dataset.docTab;
