@@ -109,7 +109,7 @@
       transition: border-color .16s ease, transform .16s ease, background .16s ease;
     }
     .home-menu-card:active { transform: scale(.98); border-color: #647181; }
-    .home-menu-title { position: relative; z-index: 1; font-size: clamp(14px, 1.8vw, 17px); white-space: nowrap; font-weight: 750; letter-spacing: -.45px; }
+    .home-menu-title { position: relative; z-index: 1; font-size: clamp(14px, 1.8vw, 17px); white-space: normal; line-height: 1.18; font-weight: 750; letter-spacing: -.45px; }
     .home-menu-image { display: block; width: 86%; max-width: 180px; height: auto; align-self: flex-end; margin: auto 0 0 auto; opacity: .98; filter: drop-shadow(0 5px 7px #0008); }
     .home-menu-notice { min-height: 20px; margin: 13px 2px 0; color: #aab4c2; font-size: 12px; text-align: center; }
     .brand-logo {
@@ -424,7 +424,7 @@
       .home-menu-heading { min-height: 49px; margin-bottom: 16px; font-size: 13px; }
       .home-menu-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 12px; }
       .home-menu-card { padding: 10px 10px; border-radius: 10px; }
-      .home-menu-title { font-size: clamp(13px, 3.5vw, 15px); letter-spacing: -.4px; }
+      .home-menu-title { font-size: clamp(13px, 3.5vw, 15px); line-height: 1.18; letter-spacing: -.4px; }
       .home-menu-image { width: 88%; max-width: 160px; margin-right: 0; }
       h1 { font-size: 21px; }
       .card { padding: 15px; }
@@ -649,35 +649,24 @@
     <div class="home-menu-heading">이용하실 메뉴를 선택해 주세요.</div>
     <div class="home-menu-grid">
       <button class="home-menu-card" type="button" data-home-menu="vehicle-log" aria-label="차량운행일지">
-        <span class="home-menu-title">차량운행일지</span>
-        <svg class="home-menu-image" viewBox="0 0 220 126" role="img" aria-label="5세대 스포티지 NQ5 SUV 일러스트">
+        <span class="home-menu-title">차량운행<br>일지</span>
+        <svg class="home-menu-image" viewBox="0 0 220 126" role="img" aria-label="도로 안내 표지판 일러스트">
           <defs>
-            <linearGradient id="nq5Body" x1="0" y1="0" x2="0.15" y2="1"><stop stop-color="#f0f3f6"/><stop offset=".38" stop-color="#aab4bf"/><stop offset=".78" stop-color="#596573"/><stop offset="1" stop-color="#c4cbd2"/></linearGradient>
-            <linearGradient id="nq5Glass" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#415365"/><stop offset="1" stop-color="#111a24"/></linearGradient>
-            <linearGradient id="nq5Wheel" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#58616b"/><stop offset="1" stop-color="#090c10"/></linearGradient>
+            <linearGradient id="roadSignBoard" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#21e0b0"/><stop offset="1" stop-color="#087f78"/></linearGradient>
+            <linearGradient id="roadSurface" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#4b5866"/><stop offset="1" stop-color="#202833"/></linearGradient>
           </defs>
-          <ellipse cx="111" cy="105" rx="96" ry="8" fill="#000" opacity=".42"/>
-          <path d="M17 82 21 66q2-9 12-13l31-8 24-25q5-5 13-5h43q11 0 18 8l23 25 15 7q8 4 9 13l1 13q0 8-9 9h-12a20 20 0 0 0-39 0H75a20 20 0 0 0-39 0H25q-9 0-8-8z" fill="url(#nq5Body)" stroke="#e0e5ea" stroke-width="1.8"/>
-          <path d="m68 43 24-25q3-3 9-3h22v31z" fill="url(#nq5Glass)" stroke="#8c9aa8" stroke-width="1.5"/>
-          <path d="M128 15h14q8 0 13 7l19 24h-46z" fill="url(#nq5Glass)" stroke="#8c9aa8" stroke-width="1.5"/>
-          <path d="M126 16v29M65 47h111" stroke="#dce2e8" stroke-width="1.4"/>
-          <path d="m19 66 15-8 8 4-5 8H20z" fill="#dce9f2"/><path d="m190 57 14 5 2 8-17-1z" fill="#dce9f2"/>
-          <path d="M21 81h18m133 0h26" stroke="#79d7b0" stroke-width="2.8" stroke-linecap="round"/>
-          <path d="M22 73h15m160 0h11" stroke="#26313d" stroke-width="3"/>
-          <path d="M49 50 61 47m116 0 13 5" stroke="#f7f9fb" stroke-width="1.5" opacity=".7"/>
-          <path d="M82 49v31m50-31v31m31-30 2 30" stroke="#677381" stroke-width="1.2" opacity=".8"/>
-          <g fill="url(#nq5Wheel)" stroke="#c1cad2" stroke-width="2.2">
-            <circle cx="55" cy="87" r="19"/><circle cx="174" cy="87" r="19"/>
-          </g>
-          <g fill="#c5cdd5" stroke="#485563" stroke-width="2">
-            <circle cx="55" cy="87" r="10"/><circle cx="174" cy="87" r="10"/>
-          </g>
-          <g fill="#536170"><circle cx="55" cy="87" r="3.5"/><circle cx="174" cy="87" r="3.5"/></g>
-          <path d="M41 88q4-13 14-13t14 13m91 0q4-13 14-13t14 13" fill="none" stroke="#e2e7ec" stroke-width="1" opacity=".55"/>
+          <ellipse cx="111" cy="113" rx="91" ry="7" fill="#000" opacity=".32"/>
+          <path d="M57 112 91 58h39l34 54z" fill="url(#roadSurface)"/>
+          <path d="M108 65v9m0 9v9m0 9v8" stroke="#f1f4f6" stroke-width="4" stroke-linecap="round" stroke-dasharray="7 7"/>
+          <path d="M77 57V24m64 33V24" stroke="#aab7c4" stroke-width="4" stroke-linecap="round"/>
+          <rect x="58" y="12" width="124" height="39" rx="4" fill="url(#roadSignBoard)" stroke="#76f2d2" stroke-width="3"/>
+          <path d="M72 24h43m-43 10h29" stroke="#eafffa" stroke-width="4" stroke-linecap="round"/>
+          <path d="m148 36 10-11 10 11m-10-11v18" fill="none" stroke="#eafffa" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M27 108q8-17 20-12 6-14 18-8l8 12-8 12H29zM169 111q6-17 17-12 7-13 17-5l7 17z" fill="#279c68"/>
         </svg>
       </button>
       <button class="home-menu-card" type="button" data-home-menu="vehicle-spec" aria-label="차량제원등록">
-        <span class="home-menu-title">차량제원등록</span>
+        <span class="home-menu-title">차량제원<br>등록</span>
         <svg class="home-menu-image" viewBox="0 0 220 126" role="img" aria-label="대형 3축 덤프트럭 왼쪽 방향 일러스트">
           <defs>
             <linearGradient id="dumpBed" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#f0c36b"/><stop offset=".55" stop-color="#b77a2e"/><stop offset="1" stop-color="#70451e"/></linearGradient>
