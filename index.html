@@ -464,13 +464,11 @@
     .event-entry-grid > div { min-width: 0; }
     .event-entry-grid label { white-space: nowrap; }
     .event-entry-grid select { width: 100%; min-width: 0; }
-    .event-type-field { grid-column: 1 / -1; }
-    .event-type-field select { width: auto; min-width: 155px; max-width: 100%; }
+    .event-type-field { grid-column: auto; }
+    .event-type-field select { width: 100%; min-width: 0; max-width: 100%; }
     #eventShopField select { width: auto; min-width: 190px; max-width: 100%; }
     @media(max-width:520px) {
       .event-entry-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
-      .event-type-field { grid-column: 1 / -1; }
-      .event-type-field select { width: 100%; }
       #eventShopField select { width: 100%; min-width: 0; }
     }
     .fuel-card { padding: 0; overflow: hidden; }
@@ -910,7 +908,7 @@
         <div class="fuel-grid event-entry-grid">
           <div id="eventTypeField" class="event-type-field">
             <label for="eventType">종류</label>
-            <select id="eventType"><option value="주유">주유</option><option value="요소수">요소수</option><option value="엔진오일교체">엔진오일 교체</option><option value="타이어교체">타이어 교체</option><option value="기타">기타 (직접입력)</option></select>
+            <select id="eventType"><option value="주유">주유</option><option value="요소수">요소수</option><option value="엔진오일교체">엔진오일</option><option value="타이어교체">타이어</option><option value="기타">기타</option></select>
           </div>
           <div id="unitPriceField">
             <label for="eventUnitPrice">주유 단가 (원/L)</label>
