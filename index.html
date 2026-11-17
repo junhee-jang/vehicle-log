@@ -115,16 +115,18 @@
     .driving-export-table th:nth-child(4) { width:14%; }
     .driving-export-table th:nth-child(5) { width:45%; }
     .driving-export-table td { height:34px; }
-    .expense-export-grid { display:grid; grid-template-columns:1.2fr 1fr; gap:12px; align-items:start; }
-    .expense-export-table { min-width:0; table-layout:fixed; }
+    .expense-export-wrap { overflow-x:auto; }
+    .expense-export-table { min-width:760px; table-layout:fixed; }
     .expense-export-table th, .expense-export-table td { padding:10px 5px; }
     .expense-export-table .expense-table-title { background:#303946; font-size:15px; letter-spacing:4px; padding:12px 5px; }
     .expense-export-table tbody td { height:42px; }
-    .expense-export-table th:first-child, .expense-export-table td:first-child { width:25%; }
-    @media (max-width: 700px) {
-      .expense-export-grid { grid-template-columns:1fr; }
-      .expense-export-table { min-width:0; }
-    }
+    .expense-export-table th:nth-child(1), .expense-export-table td:nth-child(1),
+    .expense-export-table th:nth-child(5), .expense-export-table td:nth-child(5) { width:13%; }
+    .expense-export-table th:nth-child(2), .expense-export-table td:nth-child(2) { width:13%; }
+    .expense-export-table th:nth-child(3), .expense-export-table td:nth-child(3) { width:15%; }
+    .expense-export-table th:nth-child(4), .expense-export-table td:nth-child(4),
+    .expense-export-table th:nth-child(7), .expense-export-table td:nth-child(7) { width:15%; }
+    .expense-export-table th:nth-child(6), .expense-export-table td:nth-child(6) { width:16%; }
     .documents-table td { color:#aab5c2; }
     .documents-empty { padding:24px 10px !important; color:#7f8b99 !important; text-align:center !important; }
     .documents-actions { display:flex; align-items:center; justify-content:flex-end; gap:8px; margin-top:12px; }
@@ -984,19 +986,14 @@
         <div class="documents-card-heading">
           <div><h2>주유 · 요소수 · 정비내역</h2><div class="documents-card-note">월말 차량 소모비용 입력용 자료를 셀 형태로 표시합니다.</div></div>
         </div>
-        <div class="expense-export-grid">
-          <div class="documents-table-wrap">
-            <table class="documents-table expense-export-table">
-              <thead><tr><th colspan="4" class="expense-table-title">주 유 내 역</th></tr><tr><th>날짜</th><th>주유량(L)</th><th>주유단가(원)</th><th>금액(원)</th></tr></thead>
-              <tbody id="fuelExportRows"></tbody>
-            </table>
-          </div>
-          <div class="documents-table-wrap">
-            <table class="documents-table expense-export-table">
-              <thead><tr><th colspan="3" class="expense-table-title">정 비 내 역</th></tr><tr><th>날짜</th><th>내역</th><th>금액(원)</th></tr></thead>
-              <tbody id="maintenanceExportRows"></tbody>
-            </table>
-          </div>
+        <div class="documents-table-wrap expense-export-wrap">
+          <table class="documents-table expense-export-table">
+            <thead>
+              <tr><th colspan="4" class="expense-table-title">주 유 내 역</th><th colspan="3" class="expense-table-title">정 비 내 역</th></tr>
+              <tr><th>날짜</th><th>주유량(L)</th><th>주유단가(원)</th><th>금액(원)</th><th>날짜</th><th>내역</th><th>금액(원)</th></tr>
+            </thead>
+            <tbody id="expenseExportRows"></tbody>
+          </table>
         </div>
         <div class="documents-actions"><button class="primary" type="button" disabled>표 복사</button></div>
         <p class="documents-copy-hint">엑셀의 차량 소모비용 입력란에 그대로 붙여넣을 수 있도록 구성할 예정입니다.</p>
@@ -2326,8 +2323,15 @@
           body.appendChild(row);
         }
       };
-      makeBlankRows("fuelExportRows", 10, 4);
-      makeBlankRows("maintenanceExportRows", 10, 3);
+      const expenseRows = document.getElementById("expenseExportRows");
+      if (expenseRows) {
+        expenseRows.replaceChildren();
+        for (let i = 0; i < 10; i++) {
+          const row = document.createElement("tr");
+          for (let col = 0; col < 7; col++) row.appendChild(document.createElement("td"));
+          expenseRows.appendChild(row);
+        }
+      }
     }
     documentsYear.addEventListener("change", renderExportTableRows);
     documentsMonth.addEventListener("change", renderExportTableRows);
