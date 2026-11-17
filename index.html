@@ -100,6 +100,12 @@
     .documents-actions { display:flex; align-items:center; justify-content:flex-end; gap:8px; margin-top:12px; }
     .documents-actions button { width:auto; min-height:38px; padding:8px 13px; }
     .documents-copy-hint { margin:10px 0 0; color:#9ba7b5; font-size:11px; line-height:1.5; }
+    .documents-tabs { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; margin:0 0 14px; padding:5px; border:1px solid #303947; border-radius:14px; background:#171c24; }
+    .documents-tab { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; min-width:0; min-height:68px; padding:9px 5px; border:1px solid transparent; border-radius:10px; background:transparent; color:#aab5c2; font-size:12px; font-weight:700; white-space:nowrap; }
+    .documents-tab-icon { font-size:19px; line-height:1; }
+    .documents-tab.active { border-color:#4a8d79; background:#243b36; color:#baf2dc; box-shadow:inset 0 1px 0 #ffffff0b; }
+    .documents-panel[hidden] { display:none !important; }
+    @media(max-width:480px) { .documents-tabs { gap:5px; padding:4px; } .documents-tab { min-height:62px; font-size:11px; } .documents-tab-icon { font-size:18px; } }
 
     .home-screen { min-height: calc(100vh - 36px); }
     .home-header {
@@ -894,99 +900,89 @@
       <button class="secondary documents-back" id="documentsBackButton" type="button">메인으로</button>
     </header>
 
-    <section class="documents-card">
-      <div class="documents-card-heading">
-        <div>
-          <h2>🌤️ 날씨 조회</h2>
-          <div class="documents-card-note">운행일지에 기록한 날씨를 날짜별 달력으로 확인합니다.</div>
+    <nav class="documents-tabs" aria-label="자료 종류">
+      <button type="button" class="documents-tab active" data-doc-tab="weather" aria-pressed="true"><span class="documents-tab-icon">☀</span><span>날씨 조회</span></button>
+      <button type="button" class="documents-tab" data-doc-tab="driving" aria-pressed="false"><span class="documents-tab-icon">▤</span><span>운행기록</span></button>
+      <button type="button" class="documents-tab" data-doc-tab="expenses" aria-pressed="false"><span class="documents-tab-icon">⛽</span><span>주유/정비내역</span></button>
+    </nav>
+
+    <section class="documents-panel" data-doc-panel="weather">
+      <section class="documents-card">
+        <div class="documents-card-heading">
+          <div><h2>날씨 조회</h2><div class="documents-card-note">운행일지에 기록한 날씨를 날짜별 달력으로 확인합니다.</div></div>
+          <div class="documents-month"><label for="weatherMonth">조회 월</label><input id="weatherMonth" type="month" aria-label="날씨 조회 월"></div>
         </div>
-        <div class="documents-month">
-          <label for="weatherMonth">조회 월</label>
-          <input id="weatherMonth" type="month" aria-label="날씨 조회 월">
+        <div class="weather-calendar" aria-label="월간 날씨 달력">
+          <div class="weather-weekday">일</div><div class="weather-weekday">월</div><div class="weather-weekday">화</div><div class="weather-weekday">수</div><div class="weather-weekday">목</div><div class="weather-weekday">금</div><div class="weather-weekday">토</div>
+          <div class="weather-day"><span class="weather-day-number">1</span><span class="weather-day-value"></span></div>
+          <div class="weather-day"><span class="weather-day-number">2</span><span class="weather-day-value"></span></div>
+          <div class="weather-day"><span class="weather-day-number">3</span><span class="weather-day-value"></span></div>
+          <div class="weather-day"><span class="weather-day-number">4</span><span class="weather-day-value"></span></div>
+          <div class="weather-day"><span class="weather-day-number">5</span><span class="weather-day-value"></span></div>
+          <div class="weather-day"><span class="weather-day-number">6</span><span class="weather-day-value"></span></div>
+          <div class="weather-day"><span class="weather-day-number">7</span><span class="weather-day-value"></span></div>
+          <div class="weather-day"><span class="weather-day-number">8</span><span class="weather-day-value"></span></div>
+          <div class="weather-day"><span class="weather-day-number">9</span><span class="weather-day-value"></span></div>
+          <div class="weather-day"><span class="weather-day-number">10</span><span class="weather-day-value"></span></div>
+          <div class="weather-day"><span class="weather-day-number">11</span><span class="weather-day-value"></span></div>
+          <div class="weather-day"><span class="weather-day-number">12</span><span class="weather-day-value"></span></div>
+          <div class="weather-day"><span class="weather-day-number">13</span><span class="weather-day-value"></span></div>
+          <div class="weather-day"><span class="weather-day-number">14</span><span class="weather-day-value"></span></div>
+          <div class="weather-day"><span class="weather-day-number">15</span><span class="weather-day-value"></span></div>
+          <div class="weather-day"><span class="weather-day-number">16</span><span class="weather-day-value"></span></div>
+          <div class="weather-day"><span class="weather-day-number">17</span><span class="weather-day-value"></span></div>
+          <div class="weather-day"><span class="weather-day-number">18</span><span class="weather-day-value"></span></div>
+          <div class="weather-day"><span class="weather-day-number">19</span><span class="weather-day-value"></span></div>
+          <div class="weather-day"><span class="weather-day-number">20</span><span class="weather-day-value"></span></div>
+          <div class="weather-day"><span class="weather-day-number">21</span><span class="weather-day-value"></span></div>
+          <div class="weather-day"><span class="weather-day-number">22</span><span class="weather-day-value"></span></div>
+          <div class="weather-day"><span class="weather-day-number">23</span><span class="weather-day-value"></span></div>
+          <div class="weather-day"><span class="weather-day-number">24</span><span class="weather-day-value"></span></div>
+          <div class="weather-day"><span class="weather-day-number">25</span><span class="weather-day-value"></span></div>
+          <div class="weather-day"><span class="weather-day-number">26</span><span class="weather-day-value"></span></div>
+          <div class="weather-day"><span class="weather-day-number">27</span><span class="weather-day-value"></span></div>
+          <div class="weather-day"><span class="weather-day-number">28</span><span class="weather-day-value"></span></div>
+          <div class="weather-day"><span class="weather-day-number">29</span><span class="weather-day-value"></span></div>
+          <div class="weather-day"><span class="weather-day-number">30</span><span class="weather-day-value"></span></div>
+          <div class="weather-day"><span class="weather-day-number">31</span><span class="weather-day-value"></span></div>
+          <div class="weather-day"><span class="weather-day-number"></span><span class="weather-day-value"></span></div>
+          <div class="weather-day"><span class="weather-day-number"></span><span class="weather-day-value"></span></div>
+          <div class="weather-day"><span class="weather-day-number"></span><span class="weather-day-value"></span></div>
+          <div class="weather-day"><span class="weather-day-number"></span><span class="weather-day-value"></span></div>
         </div>
-      </div>
-      <div class="weather-calendar" aria-label="월간 날씨 달력">
-        <div class="weather-weekday">일</div><div class="weather-weekday">월</div><div class="weather-weekday">화</div><div class="weather-weekday">수</div><div class="weather-weekday">목</div><div class="weather-weekday">금</div><div class="weather-weekday">토</div>
-        <div class="weather-day"><span class="weather-day-number">1</span><span class="weather-day-value"></span></div>
-        <div class="weather-day"><span class="weather-day-number">2</span><span class="weather-day-value"></span></div>
-        <div class="weather-day"><span class="weather-day-number">3</span><span class="weather-day-value"></span></div>
-        <div class="weather-day"><span class="weather-day-number">4</span><span class="weather-day-value"></span></div>
-        <div class="weather-day"><span class="weather-day-number">5</span><span class="weather-day-value"></span></div>
-        <div class="weather-day"><span class="weather-day-number">6</span><span class="weather-day-value"></span></div>
-        <div class="weather-day"><span class="weather-day-number">7</span><span class="weather-day-value"></span></div>
-        <div class="weather-day"><span class="weather-day-number">8</span><span class="weather-day-value"></span></div>
-        <div class="weather-day"><span class="weather-day-number">9</span><span class="weather-day-value"></span></div>
-        <div class="weather-day"><span class="weather-day-number">10</span><span class="weather-day-value"></span></div>
-        <div class="weather-day"><span class="weather-day-number">11</span><span class="weather-day-value"></span></div>
-        <div class="weather-day"><span class="weather-day-number">12</span><span class="weather-day-value"></span></div>
-        <div class="weather-day"><span class="weather-day-number">13</span><span class="weather-day-value"></span></div>
-        <div class="weather-day"><span class="weather-day-number">14</span><span class="weather-day-value"></span></div>
-        <div class="weather-day"><span class="weather-day-number">15</span><span class="weather-day-value"></span></div>
-        <div class="weather-day"><span class="weather-day-number">16</span><span class="weather-day-value"></span></div>
-        <div class="weather-day"><span class="weather-day-number">17</span><span class="weather-day-value"></span></div>
-        <div class="weather-day"><span class="weather-day-number">18</span><span class="weather-day-value"></span></div>
-        <div class="weather-day"><span class="weather-day-number">19</span><span class="weather-day-value"></span></div>
-        <div class="weather-day"><span class="weather-day-number">20</span><span class="weather-day-value"></span></div>
-        <div class="weather-day"><span class="weather-day-number">21</span><span class="weather-day-value"></span></div>
-        <div class="weather-day"><span class="weather-day-number">22</span><span class="weather-day-value"></span></div>
-        <div class="weather-day"><span class="weather-day-number">23</span><span class="weather-day-value"></span></div>
-        <div class="weather-day"><span class="weather-day-number">24</span><span class="weather-day-value"></span></div>
-        <div class="weather-day"><span class="weather-day-number">25</span><span class="weather-day-value"></span></div>
-        <div class="weather-day"><span class="weather-day-number">26</span><span class="weather-day-value"></span></div>
-        <div class="weather-day"><span class="weather-day-number">27</span><span class="weather-day-value"></span></div>
-        <div class="weather-day"><span class="weather-day-number">28</span><span class="weather-day-value"></span></div>
-        <div class="weather-day"><span class="weather-day-number">29</span><span class="weather-day-value"></span></div>
-        <div class="weather-day"><span class="weather-day-number">30</span><span class="weather-day-value"></span></div>
-        <div class="weather-day"><span class="weather-day-number">31</span><span class="weather-day-value"></span></div>
-        <div class="weather-day"><span class="weather-day-number"></span><span class="weather-day-value"></span></div>
-        <div class="weather-day"><span class="weather-day-number"></span><span class="weather-day-value"></span></div>
-        <div class="weather-day"><span class="weather-day-number"></span><span class="weather-day-value"></span></div>
-        <div class="weather-day"><span class="weather-day-number"></span><span class="weather-day-value"></span></div>
-      </div>
+      </section>
     </section>
 
-    <section class="documents-card">
-      <div class="documents-card-heading">
-        <div>
-          <h2>🚚 운행기록 내려받기</h2>
-          <div class="documents-card-note">엑셀 서식에 바로 붙여넣을 수 있는 셀 형태로 표시합니다.</div>
+    <section class="documents-panel" data-doc-panel="driving" hidden>
+      <section class="documents-card">
+        <div class="documents-card-heading">
+          <div><h2>운행기록 내려받기</h2><div class="documents-card-note">엑셀 서식에 바로 붙여넣을 수 있는 셀 형태로 표시합니다.</div></div>
+          <div class="documents-month"><label for="drivingMonth">대상 월</label><input id="drivingMonth" type="month" aria-label="운행기록 대상 월"></div>
         </div>
-        <div class="documents-month">
-          <label for="drivingMonth">대상 월</label>
-          <input id="drivingMonth" type="month" aria-label="운행기록 대상 월">
-        </div>
-      </div>
-      <div class="documents-table-wrap">
-        <table class="documents-table">
+        <div class="documents-table-wrap"><table class="documents-table">
           <thead><tr><th>운행일자</th><th>운행 전</th><th>운행 후</th><th>운행거리(Km)</th><th>운행구간</th></tr></thead>
           <tbody><tr><td class="documents-empty" colspan="5">운행기록 표시 영역</td></tr></tbody>
-        </table>
-      </div>
-      <div class="documents-actions"><button class="primary" type="button" disabled>표 복사</button></div>
-      <p class="documents-copy-hint">표의 열과 행을 유지한 상태로 복사해 엑셀 셀에 붙여넣는 형태로 구성할 예정입니다.</p>
+        </table></div>
+        <div class="documents-actions"><button class="primary" type="button" disabled>표 복사</button></div>
+        <p class="documents-copy-hint">표의 열과 행을 유지한 상태로 복사해 엑셀 셀에 붙여넣는 형태로 구성할 예정입니다.</p>
+      </section>
     </section>
 
-    <section class="documents-card">
-      <div class="documents-card-heading">
-        <div>
-          <h2>⛽ 주유 · 요소수</h2>
-          <div class="documents-card-note">월말 차량 소모비용 입력용 자료를 셀 형태로 표시합니다.</div>
+    <section class="documents-panel" data-doc-panel="expenses" hidden>
+      <section class="documents-card">
+        <div class="documents-card-heading">
+          <div><h2>주유 · 요소수 · 정비내역</h2><div class="documents-card-note">월말 차량 소모비용 입력용 자료를 셀 형태로 표시합니다.</div></div>
+          <div class="documents-month"><label for="expenseMonth">대상 월</label><input id="expenseMonth" type="month" aria-label="주유 및 정비내역 대상 월"></div>
         </div>
-        <div class="documents-month">
-          <label for="expenseMonth">대상 월</label>
-          <input id="expenseMonth" type="month" aria-label="주유 및 요소수 대상 월">
-        </div>
-      </div>
-      <div class="documents-table-wrap">
-        <table class="documents-table">
-          <thead><tr><th>일자</th><th>구분</th><th>수량(L)</th><th>단가(원)</th><th>금액(원)</th><th>비고</th></tr></thead>
-          <tbody><tr><td class="documents-empty" colspan="6">주유 · 요소수 표시 영역</td></tr></tbody>
-        </table>
-      </div>
-      <div class="documents-actions"><button class="primary" type="button" disabled>표 복사</button></div>
-      <p class="documents-copy-hint">엑셀의 차량 소모비용 입력란에 그대로 붙여넣을 수 있도록 구성할 예정입니다.</p>
+        <div class="documents-table-wrap"><table class="documents-table">
+          <thead><tr><th>일자</th><th>구분</th><th>수량</th><th>단가(원)</th><th>금액(원)</th><th>비고</th></tr></thead>
+          <tbody><tr><td class="documents-empty" colspan="6">주유 · 요소수 · 정비내역 표시 영역</td></tr></tbody>
+        </table></div>
+        <div class="documents-actions"><button class="primary" type="button" disabled>표 복사</button></div>
+        <p class="documents-copy-hint">엑셀의 차량 소모비용 입력란에 그대로 붙여넣을 수 있도록 구성할 예정입니다.</p>
+      </section>
     </section>
-  </section>
+</section>
 </main>
 
 <dialog id="routePickerDialog">
@@ -2205,6 +2201,19 @@
     });
 
     const documentsPage = document.getElementById("documentsPage");
+    document.querySelectorAll("[data-doc-tab]").forEach(tab => {
+      tab.addEventListener("click", () => {
+        const selected = tab.dataset.docTab;
+        document.querySelectorAll("[data-doc-tab]").forEach(item => {
+          const active = item === tab;
+          item.classList.toggle("active", active);
+          item.setAttribute("aria-pressed", active ? "true" : "false");
+        });
+        document.querySelectorAll("[data-doc-panel]").forEach(panel => {
+          panel.hidden = panel.dataset.docPanel !== selected;
+        });
+      });
+    });
     function returnToHome() {
       if (vehicleLogPage) vehicleLogPage.hidden = true;
       if (documentsPage) documentsPage.hidden = true;
