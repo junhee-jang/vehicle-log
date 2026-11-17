@@ -87,30 +87,32 @@
     .home-user-divider { color: #5c6673; padding: 0 3px; }
     .home-logout-button { min-height: 34px; padding: 7px 9px; font-size: 11px; }
     .home-menu-heading {
-      display: flex; align-items: center; justify-content: center;
-      min-height: 54px; margin: 0 0 19px; padding: 12px 14px;
-      border: 1px solid #292e37; border-radius: 11px;
-      background: #191c22; color: #f0f2f5;
-      text-align: center; font-size: 14px; font-weight: 700;
-      letter-spacing: -.2px;
+      display: flex; align-items: center; justify-content: flex-start;
+      min-height: 58px; margin: 0 0 22px; padding: 12px 18px 12px 30px;
+      position: relative; border: 1px solid #303947; border-radius: 20px;
+      background: linear-gradient(120deg, #202733, #171d27 82%); color: #cbd3df;
+      text-align: left; font-size: 17px; font-weight: 600; letter-spacing: -.35px;
+      box-shadow: inset 0 1px 0 #ffffff08;
     }
+    .home-menu-heading::before { content: ""; position: absolute; left: 16px; top: 25%; bottom: 25%; width: 5px; border-radius: 9px; background: #38e3b4; }
     .home-menu-grid {
       display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 16px; justify-content: stretch; align-items: stretch;
+      gap: 18px; justify-content: stretch; align-items: stretch;
     }
     .home-menu-card {
       position: relative; display: flex; flex-direction: column;
       justify-content: space-between; align-items: stretch;
-      width: 100%; aspect-ratio: 1.16 / 1; min-width: 0; min-height: 0;
-      padding: 16px 15px; overflow: hidden; text-align: left;
-      border: 1px solid #292e37; border-radius: 12px;
-      background: linear-gradient(145deg, #191c22, #12151a 80%);
-      color: #f1f3f6; box-shadow: 0 5px 15px #0003;
+      width: 100%; aspect-ratio: 1.12 / 1; min-width: 0; min-height: 0;
+      padding: 20px 19px 16px; overflow: hidden; text-align: left;
+      border: 1px solid #303947; border-radius: 22px;
+      background: linear-gradient(145deg, #252d39, #1b222d 86%);
+      color: #f5f7fa; box-shadow: inset 0 1px 0 #ffffff0a, 0 7px 18px #0004;
       transition: border-color .16s ease, transform .16s ease, background .16s ease;
     }
-    .home-menu-card:active { transform: scale(.98); border-color: #647181; }
-    .home-menu-title { position: relative; z-index: 1; font-size: clamp(14px, 1.8vw, 17px); white-space: normal; line-height: 1.18; font-weight: 750; letter-spacing: -.45px; }
-    .home-menu-image { display: block; width: 86%; max-width: 180px; height: auto; align-self: flex-end; margin: auto 0 0 auto; opacity: .98; filter: drop-shadow(0 5px 7px #0008); }
+    .home-menu-card:active { transform: scale(.985); border-color: #65778c; }
+    .home-menu-title { position: relative; z-index: 1; font-size: clamp(18px, 2.2vw, 23px); white-space: normal; line-height: 1.22; font-weight: 780; letter-spacing: -.65px; }
+    .home-menu-image { display: block; width: 78%; max-width: 190px; max-height: 112px; height: auto; align-self: flex-end; margin: auto 0 0 auto; opacity: 1; filter: drop-shadow(0 5px 7px #0007); }
+    .home-menu-external { position: absolute; left: 19px; bottom: 17px; width: 22px; height: 22px; color: #aab6c5; opacity: .9; }
     .home-menu-notice { min-height: 20px; margin: 13px 2px 0; color: #aab4c2; font-size: 12px; text-align: center; }
     .brand-logo {
       display: block; width: 52px; height: 52px; flex: 0 0 52px;
@@ -421,11 +423,13 @@
       .home-header-copy h1 { font-size: 17px; }
       .home-header-copy p { font-size: 11px; }
       .home-logout-button { padding: 6px 7px; font-size: 10px; }
-      .home-menu-heading { min-height: 49px; margin-bottom: 16px; font-size: 13px; }
-      .home-menu-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 12px; }
-      .home-menu-card { padding: 10px 10px; border-radius: 10px; }
-      .home-menu-title { font-size: clamp(13px, 3.5vw, 15px); line-height: 1.18; letter-spacing: -.4px; }
-      .home-menu-image { width: 88%; max-width: 160px; margin-right: 0; }
+      .home-menu-heading { min-height: 58px; margin-bottom: 18px; padding: 12px 14px 12px 29px; font-size: 15px; border-radius: 17px; }
+      .home-menu-heading::before { left: 14px; }
+      .home-menu-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 13px; }
+      .home-menu-card { aspect-ratio: 1.08 / 1; padding: 16px 14px 13px; border-radius: 18px; }
+      .home-menu-title { font-size: clamp(17px, 5.2vw, 22px); line-height: 1.2; letter-spacing: -.55px; }
+      .home-menu-image { width: 82%; max-width: 155px; max-height: 94px; margin-right: 0; }
+      .home-menu-external { left: 14px; bottom: 13px; width: 19px; height: 19px; }
       h1 { font-size: 21px; }
       .card { padding: 15px; }
       /* 주유 카드 외곽 패딩은 제거하고 제목 버튼의 좌우 여백을 메모 헤더와 동일하게 유지 */
@@ -664,42 +668,56 @@
           <path d="m148 36 10-11 10 11m-10-11v18" fill="none" stroke="#eafffa" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M27 108q8-17 20-12 6-14 18-8l8 12-8 12H29zM169 111q6-17 17-12 7-13 17-5l7 17z" fill="#279c68"/>
         </svg>
+              <svg class="home-menu-external" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 4h7v7M20 4 10 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
       <button class="home-menu-card" type="button" data-home-menu="vehicle-spec" aria-label="차량제원등록">
         <span class="home-menu-title">차량제원<br>등록</span>
-        <svg class="home-menu-image" viewBox="0 0 220 126" role="img" aria-label="대형 3축 덤프트럭 왼쪽 방향 일러스트">
+        <svg class="home-menu-image" viewBox="0 0 320 150" role="img" aria-label="흰색 운전석과 회색 적재함의 3축 덤프트럭">
           <defs>
-            <linearGradient id="dumpBed" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#f0c36b"/><stop offset=".55" stop-color="#b77a2e"/><stop offset="1" stop-color="#70451e"/></linearGradient>
-            <linearGradient id="dumpCab" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e6edf2"/><stop offset=".5" stop-color="#9aa8b5"/><stop offset="1" stop-color="#465361"/></linearGradient>
-            <linearGradient id="dumpWheel" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#424b55"/><stop offset="1" stop-color="#070a0e"/></linearGradient>
+            <linearGradient id="truckBedSilver" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#dce1e6"/><stop offset=".48" stop-color="#929ca7"/><stop offset="1" stop-color="#59636e"/></linearGradient>
+            <linearGradient id="truckCabWhite" x1="0" y1="0" x2=".9" y2="1"><stop stop-color="#fff"/><stop offset=".58" stop-color="#dce2e8"/><stop offset="1" stop-color="#8e9aa6"/></linearGradient>
+            <linearGradient id="truckGlass" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#263c50"/><stop offset="1" stop-color="#101b27"/></linearGradient>
+            <linearGradient id="truckTire" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#4b535c"/><stop offset="1" stop-color="#090c11"/></linearGradient>
           </defs>
-          <ellipse cx="110" cy="107" rx="96" ry="7" fill="#000" opacity=".42"/>
-          <path d="M19 25 176 25 168 78 28 78z" fill="url(#dumpBed)" stroke="#f0c987" stroke-width="1.8"/>
-          <path d="M27 31 168 31M31 42h133M29 55h136M27 68h138" stroke="#714b24" stroke-width="1.2" opacity=".65"/>
-          <path d="M18 23h160l-4 9H22z" fill="#d8a34f" stroke="#f1d49b" stroke-width="1.2"/>
-          <path d="M19 24 10 75l12 3 13-53z" fill="#6e7780" stroke="#aeb8c2" stroke-width="1.4"/>
-          <path d="M18 76h16l7 9h-24z" fill="#697582"/>
-          <path d="M30 50h-5l-9 10v22h13l7-8 10-3V54z" fill="url(#dumpCab)" stroke="#dbe2e8" stroke-width="1.8"/>
-          <path d="m20 55 10-2v19H17v-9z" fill="#172533" stroke="#aab8c5" stroke-width="1.2"/>
-          <path d="M31 54v23m-8 0h20" stroke="#dce4eb" stroke-width="1.2"/>
-          <path d="M16 66h-5v8h7" fill="#e7eef3"/><path d="M34 79h137" stroke="#79d7b0" stroke-width="2.5"/>
-          <path d="M45 85h13m25 0h13m24 0h13m24 0h13" stroke="#8794a1" stroke-width="2"/>
-          <g fill="url(#dumpWheel)" stroke="#bac4ce" stroke-width="2">
-            <circle cx="48" cy="88" r="12"/><circle cx="112" cy="88" r="12"/><circle cx="145" cy="88" r="12"/><circle cx="177" cy="88" r="12"/>
+          <ellipse cx="165" cy="139" rx="145" ry="7" fill="#080b10" opacity=".48"/>
+          <path d="M105 22 299 25 293 94 112 94z" fill="url(#truckBedSilver)" stroke="#e1e5e9" stroke-width="2"/>
+          <path d="M116 34 293 36M114 48 292 50M113 63 291 65M112 78 290 80" stroke="#69737e" stroke-width="1.6" opacity=".65"/>
+          <path d="M119 25 126 94M153 26 158 94M190 26 194 94M229 26 232 94M267 26 269 94" stroke="#eef1f4" stroke-width="3" opacity=".45"/>
+          <path d="M103 19 299 22 300 31 104 29z" fill="#e6eaee" stroke="#aeb7c0" stroke-width="1.5"/>
+          <path d="M103 22 95 91 109 96 126 25z" fill="#68727d" stroke="#aeb8c2" stroke-width="1.5"/>
+          <path d="M100 91h197v13H96z" fill="#303944"/>
+          <path d="M22 91 28 55q2-10 12-15l28-8 18-23q4-5 13-5h28q12 0 18 10l17 24 10 8q7 6 7 16v30q0 9-10 10h-8a22 22 0 0 0-43 0H75a22 22 0 0 0-43 0h-4q-9 0-6-11z" fill="url(#truckCabWhite)" stroke="#f7f9fb" stroke-width="2"/>
+          <path d="m69 34 20-24q3-3 9-3h24v35H63z" fill="url(#truckGlass)" stroke="#9ca9b5" stroke-width="2"/>
+          <path d="M128 7h8q9 0 14 9l16 26h-38z" fill="url(#truckGlass)" stroke="#9ca9b5" stroke-width="2"/>
+          <path d="M126 8v33m-59-7h99" stroke="#dfe5ea" stroke-width="1.6"/>
+          <path d="M21 55 8 63v23h17l8-12-3-17z" fill="#87939f" stroke="#dce2e8" stroke-width="1.5"/>
+          <path d="M16 62 29 57v21H12v-9z" fill="#263b4d"/>
+          <path d="M28 86h20m111 0h21" stroke="#8995a1" stroke-width="2"/>
+          <path d="M17 82h15v8H17z" fill="#f6d28b"/><path d="M17 91h17v4H17z" fill="#e9eef2"/>
+          <path d="M36 101h265" stroke="#141a22" stroke-width="7"/>
+          <g fill="url(#truckTire)" stroke="#b8c1ca" stroke-width="3">
+            <circle cx="66" cy="111" r="24"/><circle cx="203" cy="111" r="21"/><circle cx="250" cy="111" r="21"/><circle cx="288" cy="111" r="21"/>
           </g>
-          <g fill="#9daab6"><circle cx="48" cy="88" r="4"/><circle cx="112" cy="88" r="4"/><circle cx="145" cy="88" r="4"/><circle cx="177" cy="88" r="4"/></g>
-          <path d="M40 88h16m48 0h16m33 0h16m24 0h10" stroke="#e1e7ec" stroke-width="1" opacity=".55"/>
-        </svg>
+          <g fill="#c7ced5" stroke="#66717c" stroke-width="2">
+            <circle cx="66" cy="111" r="12"/><circle cx="203" cy="111" r="10"/><circle cx="250" cy="111" r="10"/><circle cx="288" cy="111" r="10"/>
+          </g>
+          <g fill="#59636e"><circle cx="66" cy="111" r="4"/><circle cx="203" cy="111" r="3.5"/><circle cx="250" cy="111" r="3.5"/><circle cx="288" cy="111" r="3.5"/></g>
+          <path d="M44 111a22 22 0 0 1 44 0m137 0a20 20 0 0 1 40 0m7 0a20 20 0 0 1 40 0" fill="none" stroke="#e8edf1" stroke-width="1.2" opacity=".5"/>
+          <path d="M94 101h37v8H94zM145 99h26v8h-26z" fill="#697581"/>
+        </svg>             <svg class="home-menu-external" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 4h7v7M20 4 10 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
       <button class="home-menu-card" type="button" data-home-menu="other" aria-label="기타">
         <span class="home-menu-title">기타</span>
-        <svg class="home-menu-image" viewBox="0 0 120 76" role="img" aria-label="기타 메뉴 그림">
-          <rect x="27" y="13" width="27" height="22" rx="5" fill="#303b49" stroke="#8292a4" stroke-width="2"/>
-          <rect x="66" y="13" width="27" height="22" rx="5" fill="#303b49" stroke="#8292a4" stroke-width="2"/>
-          <rect x="27" y="43" width="27" height="22" rx="5" fill="#303b49" stroke="#8292a4" stroke-width="2"/>
-          <rect x="66" y="43" width="27" height="22" rx="5" fill="#263b35" stroke="#79d7b0" stroke-width="2"/>
-          <path d="M40 20v8m-4-4h8M79 20v8m-4-4h8M40 50v8m-4-4h8" stroke="#aab6c4" stroke-width="2" stroke-linecap="round"/>
-        </svg>
+        <svg class="home-menu-image" viewBox="0 0 150 112" role="img" aria-label="체크리스트와 추가 아이콘">
+          <ellipse cx="77" cy="103" rx="70" ry="8" fill="#090d14" opacity=".35"/>
+          <rect x="30" y="13" width="83" height="88" rx="10" fill="#172331" stroke="#344457" stroke-width="5"/>
+          <rect x="39" y="22" width="65" height="70" rx="5" fill="#eef2f6"/>
+          <path d="M58 12h29q5 0 5 6v10H53V18q0-6 5-6z" fill="#2ed9ac" stroke="#7cf0d2" stroke-width="3"/>
+          <path d="m49 43 5 5 9-10m-14 26 5 5 9-10m-14 25 5 5 9-10" fill="none" stroke="#269b82" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M72 43h22M72 69h22M72 86h17" stroke="#a9b4c2" stroke-width="5" stroke-linecap="round"/>
+          <circle cx="112" cy="83" r="25" fill="#edf2f7" stroke="#aab7c5" stroke-width="4"/>
+          <path d="M112 70v26m-13-13h26" stroke="#273443" stroke-width="6" stroke-linecap="round"/>
+        </svg>             <svg class="home-menu-external" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 4h7v7M20 4 10 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
     </div>
     <p class="home-menu-notice" id="homeMenuNotice" role="status" aria-live="polite"></p>
