@@ -1100,6 +1100,7 @@
   const $ = id => document.getElementById(id);
   const waypointList = [];
   const eventList = [];
+  let refreshExportTables = () => {};
   const originTimes = { departureTime: "", arrivalTime: "", memo: "" };
   let selectedBranch = "";
   let routeEditMode = "add";
@@ -1696,7 +1697,7 @@
     $("eventMemo").value = "";
     $("fuelDate").value = localDateTimeString(new Date());
     updateFuelFields();
-    renderExportTableRows();
+    refreshExportTables();
     });
   function renderEvents() {
     const holder = $("eventList");
@@ -1717,7 +1718,7 @@
       remove.type = "button";
       remove.className = "danger";
       remove.textContent = "삭제";
-      remove.addEventListener("click", () => { eventList.splice(index, 1); renderEvents(); });
+      remove.addEventListener("click", () => { eventList.splice(index, 1); renderEvents(); refreshExportTables(); });
       row.append(detail, remove);
       holder.appendChild(row);
     });
@@ -2369,9 +2370,10 @@
         }
       }
     }
+    refreshExportTables = renderExportTableRows;
     documentsYear.addEventListener("change", renderExportTableRows);
     documentsMonth.addEventListener("change", renderExportTableRows);
-    renderExportTableRows();
+    refreshExportTables();
     document.querySelectorAll("[data-doc-tab]").forEach(tab => {
       tab.addEventListener("click", () => {
         const selected = tab.dataset.docTab;
