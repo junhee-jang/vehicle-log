@@ -696,15 +696,27 @@
           <path d="M17 82h15v8H17z" fill="#f6d28b"/><path d="M17 91h17v4H17z" fill="#e9eef2"/>
           <path d="M36 101h265" stroke="#141a22" stroke-width="7"/>
           <g fill="url(#truckTire)" stroke="#b8c1ca" stroke-width="3">
-            <circle cx="66" cy="111" r="24"/><circle cx="203" cy="111" r="21"/><circle cx="250" cy="111" r="21"/><circle cx="288" cy="111" r="21"/>
+            <circle cx="66" cy="111" r="24"/><circle cx="224" cy="111" r="21"/><circle cx="280" cy="111" r="21"/>
           </g>
           <g fill="#c7ced5" stroke="#66717c" stroke-width="2">
-            <circle cx="66" cy="111" r="12"/><circle cx="203" cy="111" r="10"/><circle cx="250" cy="111" r="10"/><circle cx="288" cy="111" r="10"/>
+            <circle cx="66" cy="111" r="12"/><circle cx="224" cy="111" r="10"/><circle cx="280" cy="111" r="10"/>
           </g>
-          <g fill="#59636e"><circle cx="66" cy="111" r="4"/><circle cx="203" cy="111" r="3.5"/><circle cx="250" cy="111" r="3.5"/><circle cx="288" cy="111" r="3.5"/></g>
-          <path d="M44 111a22 22 0 0 1 44 0m137 0a20 20 0 0 1 40 0m7 0a20 20 0 0 1 40 0" fill="none" stroke="#e8edf1" stroke-width="1.2" opacity=".5"/>
-          <path d="M94 101h37v8H94zM145 99h26v8h-26z" fill="#697581"/>
+          <g fill="#59636e"><circle cx="66" cy="111" r="4"/><circle cx="224" cy="111" r="3.5"/><circle cx="280" cy="111" r="3.5"/></g>
+          <path d="M44 111a22 22 0 0 1 44 0m158 0a20 20 0 0 1 40 0" fill="none" stroke="#e8edf1" stroke-width="1.2" opacity=".5"/>
+          <path d="M94 101h37v8H94zM151 99h26v8h-26z" fill="#697581"/>
         </svg>             <svg class="home-menu-external" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 4h7v7M20 4 10 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="home-menu-card" type="button" data-home-menu="documents" aria-label="자료받기">
+        <span class="home-menu-title">자료받기</span>
+        <svg class="home-menu-image" viewBox="0 0 150 112" role="img" aria-label="문서 다운로드 아이콘">
+          <ellipse cx="76" cy="103" rx="65" ry="7" fill="#080c12" opacity=".35"/>
+          <path d="M36 9h48l28 28v62H36z" fill="#e9eef4" stroke="#aeb9c7" stroke-width="4" stroke-linejoin="round"/>
+          <path d="M84 9v28h28" fill="#cbd5e0" stroke="#aeb9c7" stroke-width="3" stroke-linejoin="round"/>
+          <path d="M51 52h43M51 68h43M51 84h29" stroke="#aab6c5" stroke-width="6" stroke-linecap="round"/>
+          <circle cx="111" cy="83" r="27" fill="#20c99d" stroke="#8af0d2" stroke-width="3"/>
+          <path d="M111 65v29m-11-11 11 11 11-11" fill="none" stroke="#f5fffc" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <svg class="home-menu-external" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 4h7v7M20 4 10 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
       <button class="home-menu-card" type="button" data-home-menu="other" aria-label="기타">
         <span class="home-menu-title">기타</span>
@@ -2095,7 +2107,9 @@
         } else if (homeMenuNotice) {
           homeMenuNotice.textContent = menu === "vehicle-spec"
             ? "차량제원등록 메뉴는 준비 중이야."
-            : "기타 메뉴는 준비 중이야.";
+            : menu === "documents"
+              ? "자료받기 메뉴는 준비 중이야. 월말 서류 제출용 조회 기능을 여기에 연결할 예정이야."
+              : "기타 메뉴는 준비 중이야.";
         }
       });
     });
