@@ -119,6 +119,10 @@
     .expense-export-table { min-width:760px; table-layout:fixed; }
     .expense-export-table th, .expense-export-table td { padding:10px 5px; }
     .expense-export-table .expense-table-title { background:#303946; font-size:15px; letter-spacing:4px; padding:12px 5px; }
+    /* 엑셀처럼 주유 영역과 정비 영역 사이를 세로 구분선으로 분리 */
+    .expense-export-table thead tr:first-child th:nth-child(2),
+    .expense-export-table thead tr:nth-child(2) th:nth-child(5),
+    .expense-export-table tbody td:nth-child(5) { border-left:2px solid #687484; }
     .expense-export-table tbody td { height:42px; }
     .expense-export-table th:nth-child(1), .expense-export-table td:nth-child(1),
     .expense-export-table th:nth-child(5), .expense-export-table td:nth-child(5) { width:13%; }
@@ -2319,29 +2323,20 @@
     function renderExportTableRows() {
       const year = Number(documentsYear.value);
       const month = Number(documentsMonth.value);
-      const dayCount = new Date(year, month, 0).getDate();
       const drivingRows = document.getElementById("drivingExportRows");
       if (drivingRows) {
         drivingRows.replaceChildren();
-        for (let day = 1; day <= dayCount; day++) {
-          const row = document.createElement("tr");
-          const dateCell = document.createElement("td");
-          dateCell.textContent = `${month}월 ${String(day).padStart(2, "0")}일`;
-          row.appendChild(dateCell);
-          for (let col = 0; col < 4; col++) row.appendChild(document.createElement("td"));
-          drivingRows.appendChild(row);
-        }
+        // 현재 운행기록은 서버 저장/조회 기능이 아직 연결되지 않아,
+        // 실제 운행 데이터가 없을 때는 빈 날짜 행 대신 안내 문구를 표시한다.
+        const emptyRow = document.createElement("tr");
+        const emptyCell = document.createElement("td");
+        emptyCell.colSpan = 5;
+        emptyCell.className = "documents-empty";
+        emptyCell.textContent = "조회된 내역이 없습니다";
+        emptyRow.appendChild(emptyCell);
+        drivingRows.appendChild(emptyRow);
       }
-      const makeBlankRows = (id, count, columns) => {
-        const body = document.getElementById(id);
-        if (!body) return;
-        body.replaceChildren();
-        for (let i = 0; i < count; i++) {
-          const row = document.createElement("tr");
-          for (let col = 0; col < columns; col++) row.appendChild(document.createElement("td"));
-          body.appendChild(row);
-        }
-      };
+
       const expenseRows = document.getElementById("expenseExportRows");
       if (expenseRows) {
         expenseRows.replaceChildren();
@@ -2353,8 +2348,22 @@
         const byDate = (a, b) => a.time.localeCompare(b.time);
         const fuelEvents = eventList.filter(item => item.type === "주유" && inSelectedMonth(item)).sort(byDate);
         const maintenanceEvents = eventList.filter(item => item.type !== "주유" && inSelectedMonth(item)).sort(byDate);
-        const rowCount = Math.max(10, fuelEvents.length, maintenanceEvents.length);
-        const addCell = (row, value) => { const cell = document.createElement("td"); cell.textContent = value == null ? "" : String(value); row.appendChild(cell); };
+        const rowCount = Math.max(fuelEvents.length, maintenanceEvents.length);
+        const addCell = (row, value) => {
+          const cell = document.createElement("td");
+          cell.textContent = value == null ? "" : String(value);
+          row.appendChild(cell);
+        };
+        if (rowCount === 0) {
+          const row = document.createElement("tr");
+          const cell = document.createElement("td");
+          cell.colSpan = 7;
+          cell.className = "documents-empty";
+          cell.textContent = "조회된 내역이 없습니다";
+          row.appendChild(cell);
+          expenseRows.appendChild(row);
+          return;
+        }
         for (let i = 0; i < rowCount; i++) {
           const row = document.createElement("tr");
           const fuel = fuelEvents[i], maintenance = maintenanceEvents[i];
