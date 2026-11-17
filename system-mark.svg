@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="추상형 시스템 심볼">
+  <defs><linearGradient id="g" x1="18" y1="12" x2="108" y2="116" gradientUnits="userSpaceOnUse"><stop stop-color="#a1f0d1"/><stop offset="1" stop-color="#48b994"/></linearGradient></defs>
+  <rect x="5" y="5" width="118" height="118" rx="34" fill="#1b2428" stroke="#354b47" stroke-width="2"/>
+  <path d="M31 83 52 42c3-6 11-6 14 0l31 58" fill="none" stroke="url(#g)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M40 92h48" fill="none" stroke="#e4fff4" stroke-width="7" stroke-linecap="round" opacity=".92"/>
+  <circle cx="64" cy="64" r="6" fill="#1b2428" stroke="#e4fff4" stroke-width="4"/>
+</svg>
