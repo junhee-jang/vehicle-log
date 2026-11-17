@@ -816,7 +816,7 @@
     <button class="logout-button" id="logoutButton" type="button">메인으로</button>
   </header>
 
-  <form id="logForm">
+  <div id="logForm">
     <section class="card">
       <h2>📅 운행 기본정보</h2>
       <div class="basic-info-grid">
@@ -941,9 +941,7 @@
       </div>
     </section>
 
-    <button class="primary" type="submit">입력 내용 확인</button>
-    <p id="message" role="status"></p>
-  </form>
+  </div>
   </div>
 
   <section class="documents-page" id="documentsPage" hidden>
@@ -1797,39 +1795,7 @@
     });
   }
 
-  $("logForm").addEventListener("submit", event => {
-    event.preventDefault();
-    const previousKmRaw = $("previousKm").value.trim();
-    const previousKm = previousKmRaw ? parseNumber(previousKmRaw) : null;
-    const weather = $("weather").value === "기타" ? $("customWeather").value.trim() : $("weather").value;
-    const result = {
-      date: $("date").value,
-      weather,
-      previousKm,
-      origin: $("origin").value.trim(),
-      destination: $("destination").value.trim(),
-      waypoints: waypointList.map(point => point.name).join("-"),
-      routeDetails: [
-        { name: $("origin").value.trim(), type: "origin", ...originTimes },
-        ...waypointList.map(point => ({ type: "waypoint", ...point }))
-      ].filter(point => point.name),
-      fuelAndAdBlue: eventList,
-      memo: $("memo").value.trim()
-    };
-    const finalRoute = waypointList.map(point => point.name);
 
-    // 도착지를 아직 적용하지 않았다면 최종 경로에만 표시
-    if (
-      result.destination &&
-      finalRoute[finalRoute.length - 1] !== result.destination
-    ) {
-      finalRoute.push(result.destination);
-    }
-
-    $("message").textContent =
-      `입력 확인 완료 · 경로: ${[result.origin, ...finalRoute].filter(Boolean).join("-") || "없음"} · 주유/요소수 기록 ${eventList.length}건. 현재는 화면 입력 확인 단계이며 서버에 영구 저장되지는 않습니다.`;
-    console.log("차량운행일지 입력 확인:", result);
-  });
 
   // 시작 스플래시: 기존 차량운행일지 화면으로 자연스럽게 연결
   (() => {
