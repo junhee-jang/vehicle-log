@@ -254,8 +254,8 @@
     }
     .route-entry-control input:focus { outline: none; border-color: transparent; }
     .route-entry-button {
-      width: auto; flex: 0 0 auto; min-height: 43px;
-      padding: 7px 9px; font-size: 11px; white-space: nowrap;
+      width: auto; flex: 0 0 50%; min-height: 43px;
+      padding: 7px 5px; font-size: 11px; white-space: nowrap;
       border: 0; border-left: 1px solid #3b4350; border-radius: 0;
     }
     .route-add-group button {
@@ -488,6 +488,7 @@
     }
     .fuel-toggle[aria-expanded="true"] .fuel-chevron { transform: rotate(90deg); }
     .time-picker-option.preview { color: #e0e4e9; background: #303640; border-color: #596270; }
+    .route-memo-card { margin-top: 15px; padding-top: 14px; border-top: 1px solid #343b47; }
     .memo-heading-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
     .memo-heading-row h2 { margin: 0; min-width: 0; }
     .memo-heading-note { color: var(--muted); font-size: 11px; font-weight: 450; }
@@ -881,9 +882,8 @@
           <span class="empty-route">출발지를 기준으로 경유지를 추가해 주세요.</span>
         </div>
       </div>
-      <p class="small-note">경로 목록의 장소를 누르면 변경·추가·삭제할 수 있습니다. 첫 번째 출발지도 같은 방식으로 관리합니다.</p>    </section>
-
-    <section class="card memo-card">
+      <p class="small-note">경로 목록의 장소를 누르면 변경·추가·삭제할 수 있습니다. 첫 번째 출발지도 같은 방식으로 관리합니다.</p>
+      <div class="memo-card route-memo-card">
       <div class="memo-heading-row">
         <h2>📝 비고 및 메모 <span class="memo-heading-note">(해당일자의 특이사항을 메모합니다.)</span></h2>
         <button type="button" class="collapse-action" id="memoToggle" aria-expanded="true" aria-controls="memoContent">
@@ -893,6 +893,7 @@
       </div>
       <div id="memoContent">
         <textarea id="memo" placeholder="특이사항이나 메모 입력"></textarea>
+      </div>
       </div>
     </section>
 
@@ -2481,26 +2482,68 @@
         });
       });
     });
-    function returnToHome() {
-      if (vehicleLogPage) vehicleLogPage.hidden = true;
-      if (documentsPage) documentsPage.hidden = true;
-      if (homeScreen) homeScreen.hidden = false;
-      if (homeMenuNotice) homeMenuNotice.textContent = "";
+    let currentAppScreen = "home";
+    let appHistoryInitialized = false;
+    function renderAppScreen(name) {
+      currentAppScreen = name;
+      if (homeScreen) homeScreen.hidden = name !== "home";
+      if (vehicleLogPage) vehicleLogPage.hidden = name !== "vehicle-log";
+      if (documentsPage) documentsPage.hidden = name !== "documents";
+      if (name === "home" && homeMenuNotice) homeMenuNotice.textContent = "";
       window.scrollTo(0, 0);
     }
+    function setAppScreen(name) {
+      if (!appHistoryInitialized) {
+        window.history.replaceState({ vehicleLogApp: true, screen: "home" }, "", window.location.href);
+        appHistoryInitialized = true;
+      }
+      window.history.pushState({ vehicleLogApp: true, screen: name }, "", window.location.href);
+      renderAppScreen(name);
+    }
+    function returnToHome() {
+      if (appHistoryInitialized) {
+        window.history.replaceState({ vehicleLogApp: true, screen: "home" }, "", window.location.href);
+      }
+      renderAppScreen("home");
+    }
+    window.addEventListener("popstate", event => {
+      const openDialog = document.querySelector("dialog[open]");
+      if (openDialog) {
+        openDialog.close();
+        if (appHistoryInitialized) {
+          window.history.pushState({ vehicleLogApp: true, screen: currentAppScreen }, "", window.location.href);
+        }
+        return;
+      }
+      if (event.state?.vehicleLogApp) {
+        appHistoryInitialized = true;
+        renderAppScreen(event.state.screen || "home");
+      } else if (appHistoryInitialized) {
+        renderAppScreen("home");
+        window.history.pushState({ vehicleLogApp: true, screen: "home" }, "", window.location.href);
+      }
+    });
+    document.addEventListener("keydown", event => {
+      if (event.key !== "Backspace" || event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
+      const target = event.target;
+      if (target instanceof HTMLElement && target.isContentEditable) return;
+      if (target instanceof HTMLElement && target.matches("input, textarea, select")) return;
+      event.preventDefault();
+      const openDialog = document.querySelector("dialog[open]");
+      if (openDialog) {
+        openDialog.close();
+        return;
+      }
+      if (appHistoryInitialized && currentAppScreen !== "home") window.history.back();
+    });
     document.getElementById("documentsBackButton")?.addEventListener("click", returnToHome);
     document.querySelectorAll("[data-home-menu]").forEach(button => {
       button.addEventListener("click", () => {
         const menu = button.dataset.homeMenu;
         if (menu === "vehicle-log") {
-          if (homeScreen) homeScreen.hidden = true;
-          if (vehicleLogPage) vehicleLogPage.hidden = false;
-          window.scrollTo(0, 0);
+          setAppScreen("vehicle-log");
         } else if (menu === "documents") {
-          if (homeScreen) homeScreen.hidden = true;
-          if (documentsPage) documentsPage.hidden = false;
-          if (homeMenuNotice) homeMenuNotice.textContent = "";
-          window.scrollTo(0, 0);
+          setAppScreen("documents");
         } else if (homeMenuNotice) {
           homeMenuNotice.textContent = menu === "vehicle-spec"
             ? "차량제원등록 메뉴는 준비 중이야."
