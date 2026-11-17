@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 360" role="img" aria-label="흰색 운전석과 은회색 적재함의 대형 덤프트럭">
+<defs>
+  <linearGradient id="bed" x1="0" y1="0" x2="0.9" y2="1"><stop stop-color="#f0f2f4"/><stop offset=".42" stop-color="#aeb7c1"/><stop offset="1" stop-color="#687482"/></linearGradient>
+  <linearGradient id="cab" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff"/><stop offset=".55" stop-color="#e8edf1"/><stop offset="1" stop-color="#aeb8c2"/></linearGradient>
+  <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#273746"/><stop offset=".55" stop-color="#647989"/><stop offset="1" stop-color="#17232e"/></linearGradient>
+  <linearGradient id="tire" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#424a53"/><stop offset=".5" stop-color="#11161c"/><stop offset="1" stop-color="#303943"/></linearGradient>
+  <linearGradient id="bumper" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#e8edf1"/><stop offset="1" stop-color="#8995a1"/></linearGradient>
+  <filter id="shadow" x="-20%" y="-30%" width="140%" height="170%"><feGaussianBlur stdDeviation="8"/></filter>
+</defs>
+<ellipse cx="375" cy="303" rx="285" ry="20" fill="#000" opacity=".28" filter="url(#shadow)"/>
+<!-- dump body -->
+<path d="M278 86 L610 119 L658 252 L286 228 Z" fill="url(#bed)" stroke="#687582" stroke-width="4" stroke-linejoin="round"/>
+<path d="M294 102 L603 132 L635 218 L298 198 Z" fill="#cbd2d9" opacity=".7"/>
+<path d="M311 119 L612 147 M307 148 L621 176 M303 177 L630 205" fill="none" stroke="#87929d" stroke-width="3" opacity=".65"/>
+<path d="M610 119 L658 252 L658 267 L628 261 L602 145 Z" fill="#75818d" stroke="#5e6974" stroke-width="3"/>
+<path d="M286 228 L658 252 L658 268 L286 245 Z" fill="#596570"/>
+<!-- chassis -->
+<path d="M183 239 L644 266 L626 287 L190 267 Z" fill="#303943"/>
+<path d="M245 258 L604 281" stroke="#87929c" stroke-width="5" stroke-linecap="round"/>
+<!-- rear wheels -->
+<g>
+ <ellipse cx="470" cy="270" rx="42" ry="59" fill="#0d1116" opacity=".3"/>
+ <ellipse cx="470" cy="257" rx="35" ry="49" fill="url(#tire)" stroke="#080b0f" stroke-width="4"/>
+ <ellipse cx="470" cy="257" rx="18" ry="28" fill="#aab3bc" stroke="#5a6570" stroke-width="5"/>
+ <ellipse cx="470" cy="257" rx="7" ry="12" fill="#59636e"/>
+ <ellipse cx="570" cy="264" rx="39" ry="56" fill="#0d1116" opacity=".3"/>
+ <ellipse cx="570" cy="252" rx="33" ry="47" fill="url(#tire)" stroke="#080b0f" stroke-width="4"/>
+ <ellipse cx="570" cy="252" rx="17" ry="26" fill="#aab3bc" stroke="#5a6570" stroke-width="5"/>
+ <ellipse cx="570" cy="252" rx="7" ry="11" fill="#59636e"/>
+</g>
+<!-- cab side and roof -->
+<path d="M106 118 Q115 78 154 70 L248 76 Q270 80 283 108 L305 221 L272 249 L165 239 L111 210 Z" fill="url(#cab)" stroke="#8995a0" stroke-width="4" stroke-linejoin="round"/>
+<!-- cab side window -->
+<path d="M164 88 L238 91 Q256 94 265 114 L278 164 L170 151 Z" fill="url(#glass)" stroke="#d7dde3" stroke-width="5" stroke-linejoin="round"/>
+<path d="M218 93 L230 95 Q250 98 259 117 L272 158 L226 153 Z" fill="#a9c0cf" opacity=".3"/>
+<!-- front windshield / nose -->
+<path d="M106 118 Q111 91 137 86 L166 89 L171 153 L119 170 L93 158 Z" fill="url(#glass)" stroke="#d7dde3" stroke-width="5" stroke-linejoin="round"/>
+<path d="M113 119 Q119 98 139 96 L151 98 L151 149 L112 160 Z" fill="#a8bdca" opacity=".25"/>
+<!-- front fascia -->
+<path d="M93 157 L171 151 L178 226 L145 250 L92 226 L77 194 Z" fill="url(#cab)" stroke="#8995a0" stroke-width="4" stroke-linejoin="round"/>
+<path d="M91 175 L158 170 L159 207 L91 211 Z" fill="#394550" stroke="#7e8b97" stroke-width="3"/>
+<path d="M98 181 L151 178 M97 190 L153 187 M96 199 L154 196" stroke="#aab4be" stroke-width="4"/>
+<path d="M81 185 L95 180 L96 202 L82 207 Z" fill="#f6e5b5" stroke="#7c8792" stroke-width="2"/>
+<path d="M159 165 L175 168 L178 190 L161 195 Z" fill="#f5e8c7" stroke="#7c8792" stroke-width="2"/>
+<path d="M80 214 L151 222 L145 245 L91 232 Z" fill="url(#bumper)" stroke="#687582" stroke-width="3"/>
+<path d="M95 226 L128 231" stroke="#596570" stroke-width="5" stroke-linecap="round"/>
+<!-- side details -->
+<path d="M173 162 L278 174 L286 213 L179 205 Z" fill="#d5dce2" opacity=".72"/>
+<path d="M181 173 L270 184" stroke="#fff" stroke-width="4" opacity=".75"/>
+<path d="M181 212 L275 222" stroke="#7e8a96" stroke-width="3"/>
+<path d="M266 120 L293 127 L300 153 L275 149 Z" fill="#d9e0e6" stroke="#8a96a2" stroke-width="3"/>
+<path d="M281 155 L301 160" stroke="#5f6b77" stroke-width="5"/>
+<!-- front wheel -->
+<ellipse cx="175" cy="260" rx="43" ry="56" fill="#0d1116" opacity=".28"/>
+<ellipse cx="175" cy="246" rx="36" ry="48" fill="url(#tire)" stroke="#080b0f" stroke-width="4"/>
+<ellipse cx="175" cy="246" rx="19" ry="27" fill="#aab3bc" stroke="#5a6570" stroke-width="5"/>
+<ellipse cx="175" cy="246" rx="7" ry="11" fill="#59636e"/>
+<!-- wheel arch highlight and mirror -->
+<path d="M135 214 Q175 193 213 219" fill="none" stroke="#fff" stroke-width="5" opacity=".7"/>
+<path d="M105 122 L77 113 L68 126 L99 140" fill="#dfe5ea" stroke="#7c8995" stroke-width="3"/>
+<path d="M65 123 L54 118 L49 130 L64 137" fill="#202a34"/>
+<!-- cab steps -->
+<path d="M202 235 L260 242 L254 251 L198 245 Z" fill="#9ca8b3" stroke="#65717d" stroke-width="2"/>
+<path d="M210 249 L251 254" stroke="#e9edf0" stroke-width="3"/>
+</svg>
