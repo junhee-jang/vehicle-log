@@ -728,7 +728,7 @@
       <span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span>
     </div>
     <form id="pinForm" class="pin-card">
-      <input class="pin-hidden-input" id="pinInput" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" minlength="6" autocomplete="off" aria-label="6자리 PIN 입력" required>
+      <input class="pin-hidden-input" id="pinInput" type="password" inputmode="numeric" enterkeyhint="done" pattern="[0-9]{6}" maxlength="6" minlength="6" autocomplete="off" aria-label="6자리 PIN 입력" required>
       <div id="pinConfirmWrap" class="pin-confirm-wrap" hidden>
         <input id="pinConfirmInput" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" minlength="6" autocomplete="off" aria-label="PIN 다시 입력">
       </div>
@@ -1122,6 +1122,13 @@
   const $ = id => document.getElementById(id);
   const waypointList = [];
   const eventList = [];
+  const vehicleDataState = {
+    scheduleSave: () => {},
+    loadDate: async () => {},
+    saveEvent: async () => {},
+    deleteEvent: async () => {},
+    loadMonth: async () => {}
+  };
   let refreshExportTables = () => {};
   const originTimes = { departureTime: "", arrivalTime: "", memo: "" };
   let selectedBranch = "";
@@ -1568,6 +1575,7 @@
       }
     }
     renderWaypoints();
+    vehicleDataState.scheduleSave(true);
     $("routeActionDialog").close();
   });
 
@@ -1610,11 +1618,13 @@
       $("origin").value = "";
       originTimes.departureTime = "";
       originTimes.arrivalTime = "";
+      originTimes.memo = "";
     } else {
       waypointList.splice(routeActionIndex, 1);
     }
 
     renderWaypoints();
+    vehicleDataState.scheduleSave(true);
     $("routeActionDialog").close();
   });
 
@@ -1698,7 +1708,16 @@
     renderWaypoints();
   });
 
-  $("origin").addEventListener("input", renderWaypoints);
+  $("origin").addEventListener("input", () => {
+    renderWaypoints();
+    vehicleDataState.scheduleSave(true);
+  });
+  $("destination").addEventListener("input", () => vehicleDataState.scheduleSave());
+  $("previousKm").addEventListener("input", () => vehicleDataState.scheduleSave());
+  $("weather").addEventListener("change", () => vehicleDataState.scheduleSave());
+  $("customWeather").addEventListener("input", () => vehicleDataState.scheduleSave());
+  $("memo").addEventListener("input", () => vehicleDataState.scheduleSave());
+  $("date").addEventListener("change", () => vehicleDataState.loadDate($("date").value));
   window.addEventListener("resize", renderWaypoints);
 
   // 최종 도착지를 경유지 맨 마지막에 적용 (이벤트 중복 등록 방지)
@@ -1715,9 +1734,10 @@
     }
     waypointList.push({ name: destination, departureTime: "", arrivalTime: "", memo: "" });
     renderWaypoints();
+    vehicleDataState.scheduleSave(true);
   });
 
-  $("addEvent").addEventListener("click", () => {
+  $("addEvent").addEventListener("click", async () => {
     const type = $("eventType").value;
     const amountText = $("eventAmount").value.trim();
     const costText = $("eventCost").value.trim();
@@ -1751,7 +1771,7 @@
       $("eventCost").focus();
       return;
     }
-    eventList.push({
+    const addedEvent = {
       time: localDateTimeString(new Date()),
       type,
       shop: shopName,
@@ -1759,8 +1779,16 @@
       amount: amountText ? parseNumber(amountText) : null,
       cost: costText ? parseNumber(costText) : null,
       memo
-    });
+    };
+    eventList.push(addedEvent);
     renderEvents();
+    try {
+      await vehicleDataState.saveEvent(addedEvent);
+      refreshExportTables();
+    } catch (saveError) {
+      console.error("차량 기록 저장 실패", saveError);
+      alert("기록은 화면에 남겨 두었지만 서버 저장에 실패했어. 인터넷 연결을 확인한 뒤 다시 시도해 줘.");
+    }
     $("eventUnitPrice").value = "";
     $("eventAmount").value = type === "주유" ? "" : type === "요소수" ? "0" : "";
     $("eventCost").value = type === "주유" ? "60,000" : type === "요소수" ? "10,000" : "0";
@@ -1789,7 +1817,19 @@
       remove.type = "button";
       remove.className = "danger";
       remove.textContent = "삭제";
-      remove.addEventListener("click", () => { eventList.splice(index, 1); renderEvents(); refreshExportTables(); });
+      remove.addEventListener("click", async () => {
+        const removed = eventList.splice(index, 1)[0];
+        renderEvents();
+        try {
+          await vehicleDataState.deleteEvent(removed);
+          refreshExportTables();
+        } catch (deleteError) {
+          console.error("차량 기록 삭제 실패", deleteError);
+          eventList.splice(index, 0, removed);
+          renderEvents();
+          alert("서버에서 기록을 삭제하지 못했어. 다시 시도해 줘.");
+        }
+      });
       row.append(detail, remove);
       holder.appendChild(row);
     });
@@ -1889,7 +1929,8 @@
       pinConfirmInput.value = "";
       pinNotice.textContent = "";
       updatePinDots();
-      setTimeout(() => { if (!pinScreen.hidden && !pinForm.hidden) pinInput.focus(); }, 80);
+      // 화면 표시 직후 지연 없이 입력창에 포커스를 준다.
+      pinInput.focus({ preventScroll: true });
     }
 
     function updatePinDots() {
@@ -1918,9 +1959,11 @@
         pinForm.requestSubmit();
       }
     });
-    pinDots.addEventListener("click", () => pinInput.focus());
+    pinDots.addEventListener("click", () => pinInput.focus({ preventScroll: true }));
     pinScreen.addEventListener("click", event => {
-      if (event.target === pinScreen || event.target === pinDots || event.target.classList.contains("pin-dot")) pinInput.focus();
+      if (event.target === pinScreen || event.target === pinDots || event.target.classList.contains("pin-dot")) {
+        pinInput.focus({ preventScroll: true });
+      }
     });
     pinInput.addEventListener("blur", () => {
       if (!pinScreen.hidden && !pinForm.hidden) updatePinDots();
@@ -1938,6 +1981,10 @@
       if (homeScreen) homeScreen.hidden = false;
       if (vehicleLogPage) vehicleLogPage.hidden = true;
       window.scrollTo(0, 0);
+      initializeVehicleData(userId).catch(error => {
+        console.error("차량 데이터 초기화 실패", error);
+        if (homeMenuNotice) homeMenuNotice.textContent = "운행기록을 불러오지 못했어. 새로고침 후 다시 시도해 줘.";
+      });
       return true;
     }
 
@@ -1991,6 +2038,338 @@
         pinForm.hidden = true;
       }
     }
+
+
+    // 팀원 권한으로 제한된 하나의 팀 DB에 운행일지 데이터를 저장한다.
+    let activeTeamId = null;
+    let activeUserId = null;
+    let currentDailyLogId = null;
+    let loadedLogDate = $("date").value;
+    let isLoadingVehicleData = false;
+    let routeDirty = false;
+    let saveTimer = null;
+    let exportDailyLogs = [];
+    let exportEvents = [];
+
+    async function initializeVehicleData(userId) {
+      activeUserId = userId;
+      const { data: membership, error } = await authClient
+        .from("team_members")
+        .select("team_id")
+        .eq("user_id", userId)
+        .eq("is_active", true)
+        .maybeSingle();
+      if (error) throw error;
+      if (!membership?.team_id) throw new Error("active_team_membership_not_found");
+      activeTeamId = membership.team_id;
+      loadedLogDate = $("date").value || localDateString(new Date());
+      await loadCurrentLogForDate(loadedLogDate);
+      await loadMonthData();
+      refreshExportTables();
+    }
+
+    async function saveCurrentLogNow(date = loadedLogDate) {
+      if (!activeTeamId || !activeUserId || !date || isLoadingVehicleData) return null;
+      const previousKmText = $("previousKm").value.trim();
+      const payload = {
+        team_id: activeTeamId,
+        log_date: date,
+        status: "운행",
+        previous_km: previousKmText ? parseNumber(previousKmText) : null,
+        weather: $("weather").value === "기타" ? ($("customWeather").value.trim() || "기타") : $("weather").value,
+        origin: $("origin").value.trim() || "남청주",
+        origin_departure_time: originTimes.departureTime || null,
+        origin_memo: originTimes.memo || null,
+        destination: $("destination").value.trim() || null,
+        memo: $("memo").value.trim() || null,
+        updated_by: activeUserId
+      };
+      let existingId = currentDailyLogId;
+      if (!existingId || date !== loadedLogDate) {
+        const { data: existing, error: findError } = await authClient
+          .from("daily_logs")
+          .select("id")
+          .eq("team_id", activeTeamId)
+          .eq("log_date", date)
+          .maybeSingle();
+        if (findError) throw findError;
+        existingId = existing?.id || null;
+      }
+      let saved;
+      if (existingId) {
+        const { data, error } = await authClient
+          .from("daily_logs")
+          .update(payload)
+          .eq("id", existingId)
+          .select("id")
+          .single();
+        if (error) throw error;
+        saved = data;
+      } else {
+        const { data, error } = await authClient
+          .from("daily_logs")
+          .insert({ ...payload, created_by: activeUserId })
+          .select("id")
+          .single();
+        if (error) throw error;
+        saved = data;
+      }
+      if (date === loadedLogDate) currentDailyLogId = saved.id;
+
+      if (routeDirty && date === loadedLogDate) {
+        const { error: deleteError } = await authClient.from("route_stops").delete().eq("log_id", saved.id);
+        if (deleteError) throw deleteError;
+        if (waypointList.length) {
+          const stops = waypointList.map((point, index) => ({
+            log_id: saved.id,
+            stop_order: index + 1,
+            place_name: point.name,
+            arrival_time: point.arrivalTime || null,
+            departure_time: point.departureTime || null,
+            memo: point.memo || null
+          }));
+          const { error: insertError } = await authClient.from("route_stops").insert(stops);
+          if (insertError) throw insertError;
+        }
+        routeDirty = false;
+      }
+      return saved.id;
+    }
+
+    function scheduleCurrentLogSave(routeChanged = false) {
+      if (isLoadingVehicleData || !activeTeamId) return;
+      if (routeChanged) routeDirty = true;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(async () => {
+        saveTimer = null;
+        try {
+          await saveCurrentLogNow(loadedLogDate);
+        } catch (error) {
+          console.error("운행일지 자동 저장 실패", error);
+        }
+      }, 450);
+    }
+
+    async function persistEventRecord(item) {
+      if (!activeTeamId || !activeUserId) throw new Error("vehicle_data_not_ready");
+      const logId = await saveCurrentLogNow(loadedLogDate);
+      if (!logId) throw new Error("daily_log_not_saved");
+      if (item.type === "주유" || item.type === "요소수") {
+        const { data, error } = await authClient.from("fuel_adblue_records").insert({
+          log_id: logId,
+          recorded_at: item.time,
+          event_type: item.type,
+          unit_price: item.unitPrice ?? null,
+          quantity_l: item.amount ?? null,
+          amount_krw: item.cost ?? null,
+          memo: [item.shop, item.memo].filter(Boolean).join(" · ") || null,
+          created_by: activeUserId
+        }).select("id").single();
+        if (error) throw error;
+        item._dbId = data.id;
+        item._dbTable = "fuel_adblue_records";
+      } else {
+        const { data, error } = await authClient.from("maintenance_records").insert({
+          team_id: activeTeamId,
+          maintenance_date: item.time.slice(0, 10),
+          category: item.type,
+          description: item.shop || (item.type === "기타" ? item.memo : item.type),
+          amount_krw: item.cost ?? null,
+          memo: item.memo || null,
+          created_by: activeUserId
+        }).select("id").single();
+        if (error) throw error;
+        item._dbId = data.id;
+        item._dbTable = "maintenance_records";
+      }
+    }
+
+    async function removeEventRecord(item) {
+      if (!item?._dbId || !item?._dbTable || !authClient) return;
+      const { error } = await authClient.from(item._dbTable).delete().eq("id", item._dbId);
+      if (error) throw error;
+    }
+
+    async function loadCurrentLogForDate(date) {
+      if (!activeTeamId || !activeUserId || !date) return;
+      if (saveTimer) {
+        clearTimeout(saveTimer);
+        saveTimer = null;
+        await saveCurrentLogNow(loadedLogDate);
+      }
+      isLoadingVehicleData = true;
+      try {
+        loadedLogDate = date;
+        $("date").value = date;
+        const { data: log, error } = await authClient
+          .from("daily_logs")
+          .select("*")
+          .eq("team_id", activeTeamId)
+          .eq("log_date", date)
+          .maybeSingle();
+        if (error) throw error;
+        currentDailyLogId = log?.id || null;
+        waypointList.splice(0, waypointList.length);
+        eventList.splice(0, eventList.length);
+        routeDirty = false;
+        originTimes.departureTime = log?.origin_departure_time ? String(log.origin_departure_time).slice(0, 5) : "";
+        originTimes.arrivalTime = "";
+        originTimes.memo = log?.origin_memo || "";
+        $("previousKm").value = log?.previous_km == null ? "" : Number(log.previous_km).toLocaleString("ko-KR");
+        $("origin").value = log?.origin || "남청주";
+        $("destination").value = log?.destination || "남청주";
+        $("memo").value = log?.memo || "";
+        const weatherValue = log?.weather || "맑음";
+        const weatherOptions = Array.from($("weather").options).map(option => option.value || option.textContent);
+        if (weatherOptions.includes(weatherValue)) {
+          $("weather").value = weatherValue;
+          $("customWeather").value = "";
+        } else {
+          $("weather").value = "기타";
+          $("customWeather").value = weatherValue;
+        }
+        $("customWeather").classList.toggle("hidden", $("weather").value !== "기타");
+
+        if (log?.id) {
+          const { data: stops, error: stopsError } = await authClient
+            .from("route_stops")
+            .select("*")
+            .eq("log_id", log.id)
+            .order("stop_order", { ascending: true });
+          if (stopsError) throw stopsError;
+          (stops || []).forEach(stop => waypointList.push({
+            name: stop.place_name,
+            arrivalTime: stop.arrival_time ? String(stop.arrival_time).slice(0, 5) : "",
+            departureTime: stop.departure_time ? String(stop.departure_time).slice(0, 5) : "",
+            memo: stop.memo || "",
+            _dbId: stop.id
+          }));
+
+          const { data: fluids, error: fluidsError } = await authClient
+            .from("fuel_adblue_records")
+            .select("*")
+            .eq("log_id", log.id)
+            .order("recorded_at", { ascending: true });
+          if (fluidsError) throw fluidsError;
+          (fluids || []).forEach(record => eventList.push({
+            time: String(record.recorded_at).replace(" ", "T").slice(0, 16),
+            type: record.event_type,
+            shop: "",
+            unitPrice: record.unit_price == null ? null : Number(record.unit_price),
+            amount: record.quantity_l == null ? null : Number(record.quantity_l),
+            cost: record.amount_krw == null ? null : Number(record.amount_krw),
+            memo: record.memo || "",
+            _dbId: record.id,
+            _dbTable: "fuel_adblue_records"
+          }));
+        }
+
+        const { data: maintenance, error: maintenanceError } = await authClient
+          .from("maintenance_records")
+          .select("*")
+          .eq("team_id", activeTeamId)
+          .eq("maintenance_date", date)
+          .order("created_at", { ascending: true });
+        if (maintenanceError) throw maintenanceError;
+        (maintenance || []).forEach(record => eventList.push({
+          time: date + "T12:00",
+          type: record.category,
+          shop: record.category === "기타" ? "" : (record.description === record.category ? "" : record.description),
+          unitPrice: null,
+          amount: null,
+          cost: record.amount_krw == null ? null : Number(record.amount_krw),
+          memo: record.memo || (record.category === "기타" ? record.description : ""),
+          _dbId: record.id,
+          _dbTable: "maintenance_records"
+        }));
+        eventList.sort((a, b) => a.time.localeCompare(b.time));
+        renderWaypoints();
+        renderEvents();
+        refreshExportTables();
+      } finally {
+        isLoadingVehicleData = false;
+      }
+    }
+
+    async function loadMonthData() {
+      if (!activeTeamId) {
+        exportDailyLogs = [];
+        exportEvents = [];
+        return;
+      }
+      const year = Number(documentsYear.value);
+      const month = Number(documentsMonth.value);
+      const first = year + "-" + String(month).padStart(2, "0") + "-01";
+      const dayAfterNextMonth = localDateString(new Date(year, month, 2));
+      const { data: logs, error: logsError } = await authClient
+        .from("daily_logs")
+        .select("id,log_date,previous_km,origin,destination")
+        .eq("team_id", activeTeamId)
+        .gte("log_date", first)
+        .lt("log_date", dayAfterNextMonth);
+      if (logsError) throw logsError;
+      const ids = (logs || []).map(log => log.id);
+      let stops = [];
+      let fluids = [];
+      if (ids.length) {
+        const { data, error } = await authClient.from("route_stops")
+          .select("log_id,stop_order,place_name")
+          .in("log_id", ids)
+          .order("stop_order", { ascending: true });
+        if (error) throw error;
+        stops = data || [];
+        const { data: fluidData, error: fluidError } = await authClient.from("fuel_adblue_records")
+          .select("log_id,recorded_at,event_type,unit_price,quantity_l,amount_krw,memo")
+          .in("log_id", ids)
+          .order("recorded_at", { ascending: true });
+        if (fluidError) throw fluidError;
+        fluids = fluidData || [];
+      }
+      const { data: maintenance, error: maintenanceError } = await authClient
+        .from("maintenance_records")
+        .select("maintenance_date,category,description,amount_krw,memo")
+        .eq("team_id", activeTeamId)
+        .gte("maintenance_date", first)
+        .lt("maintenance_date", dayAfterNextMonth);
+      if (maintenanceError) throw maintenanceError;
+      exportDailyLogs = (logs || []).map(log => ({
+        ...log,
+        route: [log.origin, ...stops.filter(stop => stop.log_id === log.id)
+          .sort((a, b) => a.stop_order - b.stop_order).map(stop => stop.place_name)]
+          .filter(Boolean).join("-")
+      }));
+      exportEvents = [
+        ...fluids.map(record => ({
+          time: String(record.recorded_at).replace(" ", "T").slice(0, 16),
+          type: record.event_type,
+          unitPrice: record.unit_price == null ? null : Number(record.unit_price),
+          amount: record.quantity_l == null ? null : Number(record.quantity_l),
+          cost: record.amount_krw == null ? null : Number(record.amount_krw),
+          memo: record.memo || ""
+        })),
+        ...(maintenance || []).map(record => ({
+          time: record.maintenance_date + "T12:00",
+          type: record.category,
+          shop: record.category === "기타" ? "" : (record.description === record.category ? "" : record.description),
+          cost: record.amount_krw == null ? null : Number(record.amount_krw),
+          memo: record.memo || (record.category === "기타" ? record.description : "")
+        }))
+      ];
+    }
+
+    vehicleDataState.scheduleSave = scheduleCurrentLogSave;
+    vehicleDataState.loadDate = async date => {
+      if (!date || date === loadedLogDate) return;
+      try {
+        await loadCurrentLogForDate(date);
+      } catch (error) {
+        console.error("해당 날짜 운행일지 조회 실패", error);
+        alert("해당 날짜 기록을 불러오지 못했어. 인터넷 연결을 확인해 줘.");
+      }
+    };
+    vehicleDataState.saveEvent = persistEventRecord;
+    vehicleDataState.deleteEvent = removeEventRecord;
+    vehicleDataState.loadMonth = loadMonthData;
 
     async function requireActiveEmailSession() {
       let session = null;
@@ -2374,34 +2753,57 @@
     documentsMonth.addEventListener("change", renderWeatherCalendar);
     renderWeatherCalendar();
 
-    function renderExportTableRows() {
+    async function renderExportTableRows() {
+      try { await vehicleDataState.loadMonth(); }
+      catch (error) { console.error("월별 자료 조회 실패", error); }
       const year = Number(documentsYear.value);
       const month = Number(documentsMonth.value);
+      const monthKey = year + "-" + String(month).padStart(2, "0");
       const drivingRows = document.getElementById("drivingExportRows");
       if (drivingRows) {
         drivingRows.replaceChildren();
-        // 현재 운행기록은 서버 저장/조회 기능이 아직 연결되지 않아,
-        // 실제 운행 데이터가 없을 때는 빈 날짜 행 대신 안내 문구를 표시한다.
-        const emptyRow = document.createElement("tr");
-        const emptyCell = document.createElement("td");
-        emptyCell.colSpan = 5;
-        emptyCell.className = "documents-empty";
-        emptyCell.textContent = "조회된 내역이 없습니다";
-        emptyRow.appendChild(emptyCell);
-        drivingRows.appendChild(emptyRow);
+        const monthLogs = exportDailyLogs.filter(log => String(log.log_date).slice(0, 7) === monthKey)
+          .sort((a, b) => String(a.log_date).localeCompare(String(b.log_date)));
+        const logByDate = new Map(exportDailyLogs.map(log => [String(log.log_date), log]));
+        const addDrivingCell = (row, value) => {
+          const cell = document.createElement("td");
+          cell.textContent = value == null ? "" : String(value);
+          row.appendChild(cell);
+        };
+        if (!monthLogs.length) {
+          const emptyRow = document.createElement("tr");
+          const emptyCell = document.createElement("td");
+          emptyCell.colSpan = 5;
+          emptyCell.className = "documents-empty";
+          emptyCell.textContent = "조회된 내역이 없습니다";
+          emptyRow.appendChild(emptyCell);
+          drivingRows.appendChild(emptyRow);
+        } else {
+          monthLogs.forEach(log => {
+            const row = document.createElement("tr");
+            const date = String(log.log_date);
+            const tomorrow = localDateString(new Date(new Date(date + "T00:00:00").getTime() + 86400000));
+            const nextLog = logByDate.get(tomorrow);
+            const beforeKm = log.previous_km == null ? null : Number(log.previous_km);
+            const afterKm = nextLog?.previous_km == null ? null : Number(nextLog.previous_km);
+            const distance = beforeKm != null && afterKm != null && afterKm >= beforeKm ? afterKm - beforeKm : null;
+            addDrivingCell(row, Number(date.slice(5, 7)) + "월 " + Number(date.slice(8, 10)) + "일");
+            addDrivingCell(row, beforeKm == null ? "" : beforeKm.toLocaleString("ko-KR"));
+            addDrivingCell(row, afterKm == null ? "" : afterKm.toLocaleString("ko-KR"));
+            addDrivingCell(row, distance == null ? "" : distance.toLocaleString("ko-KR"));
+            addDrivingCell(row, log.route || "");
+            drivingRows.appendChild(row);
+          });
+        }
       }
 
       const expenseRows = document.getElementById("expenseExportRows");
       if (expenseRows) {
         expenseRows.replaceChildren();
-        const inSelectedMonth = item => {
-          if (!item.time) return false;
-          const date = new Date(item.time);
-          return date.getFullYear() === year && date.getMonth() + 1 === month;
-        };
+        const inSelectedMonth = item => String(item.time || "").slice(0, 7) === monthKey;
         const byDate = (a, b) => a.time.localeCompare(b.time);
-        const fuelEvents = eventList.filter(item => item.type === "주유" && inSelectedMonth(item)).sort(byDate);
-        const maintenanceEvents = eventList.filter(item => item.type !== "주유" && inSelectedMonth(item)).sort(byDate);
+        const fuelEvents = exportEvents.filter(item => item.type === "주유" && inSelectedMonth(item)).sort(byDate);
+        const maintenanceEvents = exportEvents.filter(item => item.type !== "주유" && inSelectedMonth(item)).sort(byDate);
         const rowCount = Math.max(fuelEvents.length, maintenanceEvents.length);
         const addCell = (row, value) => {
           const cell = document.createElement("td");
@@ -2512,6 +2914,7 @@
           setAppScreen("vehicle-log");
         } else if (menu === "documents") {
           setAppScreen("documents");
+          refreshExportTables();
         } else if (homeMenuNotice) {
           homeMenuNotice.textContent = menu === "vehicle-spec"
             ? "차량제원등록 메뉴는 준비 중이야."
