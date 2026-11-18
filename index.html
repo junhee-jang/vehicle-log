@@ -2933,7 +2933,7 @@
             const beforeKm = log.previous_km == null ? null : Number(log.previous_km);
             const afterKm = nextLog?.previous_km == null ? null : Number(nextLog.previous_km);
             const distance = beforeKm != null && afterKm != null && afterKm >= beforeKm ? afterKm - beforeKm : null;
-            addDrivingCell(row, Number(date.slice(5, 7)) + "월 " + Number(date.slice(8, 10)) + "일");
+            addDrivingCell(row, date);
             addDrivingCell(row, beforeKm == null ? "" : beforeKm.toLocaleString("ko-KR"));
             addDrivingCell(row, afterKm == null ? "" : afterKm.toLocaleString("ko-KR"));
             addDrivingCell(row, distance == null ? "" : distance.toLocaleString("ko-KR"));
@@ -2969,11 +2969,11 @@
         for (let i = 0; i < rowCount; i++) {
           const row = document.createElement("tr");
           const fuel = fuelEvents[i], maintenance = maintenanceEvents[i];
-          addCell(row, fuel ? `${month}월 ${Number(fuel.time.slice(8,10))}일` : "");
+          addCell(row, fuel ? `${month}월${Number(fuel.time.slice(8,10))}일` : "");
           addCell(row, fuel?.amount != null ? truncateFuelQuantity(fuel.amount).toFixed(2) : "");
           addCell(row, fuel?.unitPrice != null ? fuel.unitPrice.toLocaleString("ko-KR") : "");
           addCell(row, fuel?.cost != null ? fuel.cost.toLocaleString("ko-KR") : "");
-          addCell(row, maintenance ? `${month}월 ${Number(maintenance.time.slice(8,10))}일` : "");
+          addCell(row, maintenance ? `${month}월${Number(maintenance.time.slice(8,10))}일` : "");
           const label = maintenance ? (maintenance.type === "기타" ? maintenance.memo : maintenance.type === "요소수" ? "요소수 충전" : maintenance.type === "엔진오일교체" ? "엔진오일 교체" : maintenance.type === "타이어교체" ? "타이어 교체" : maintenance.type) : "";
           addCell(row, label);
           addCell(row, maintenance?.cost != null ? maintenance.cost.toLocaleString("ko-KR") : "");
