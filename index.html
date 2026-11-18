@@ -2075,7 +2075,7 @@
       if (label === "saved") {
         const date = updatedAt instanceof Date ? updatedAt : new Date(updatedAt || Date.now());
         const time = Number.isNaN(date.getTime()) ? "" : date.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false });
-        status.textContent = time ? `(${time} 최종 업데이트)` : "(저장 완료)";
+        status.textContent = time ? `(${time} 최종 업데이트됨)` : "(저장 완료)";
         status.dataset.state = "saved";
       } else {
         const labels = { empty: "(내역 없음)", saving: "(저장 중)", failed: "(저장 실패)", loading: "(불러오는 중)" };
