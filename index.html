@@ -1795,7 +1795,7 @@
       return;
     }
     const addedEvent = {
-      time: localDateTimeString(new Date()),
+      time: (() => { const now = localDateTimeString(new Date()); return isFluid ? loadedLogDate + now.slice(10) : now; })(),
       type,
       shop: shopName,
       unitPrice: unitPriceText ? parseNumber(unitPriceText) : null,
@@ -2331,7 +2331,7 @@
             .order("recorded_at", { ascending: true });
           if (fluidsError) throw fluidsError;
           (fluids || []).forEach(record => eventList.push({
-            time: String(record.recorded_at).replace(" ", "T").slice(0, 16),
+            time: loadedLogDate + "T" + String(record.recorded_at).replace(" ", "T").slice(11, 16),
             type: record.event_type,
             shop: "",
             unitPrice: record.unit_price == null ? null : Number(record.unit_price),
@@ -2420,7 +2420,7 @@
       }));
       exportEvents = [
         ...fluids.map(record => ({
-          time: String(record.recorded_at).replace(" ", "T").slice(0, 16),
+          time: ((logs || []).find(log => log.id === record.log_id)?.log_date || String(record.recorded_at).slice(0, 10)) + "T" + String(record.recorded_at).replace(" ", "T").slice(11, 16),
           type: record.event_type,
           unitPrice: record.unit_price == null ? null : Number(record.unit_price),
           amount: record.quantity_l == null ? null : Number(record.quantity_l),
