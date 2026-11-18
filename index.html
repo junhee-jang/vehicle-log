@@ -3004,12 +3004,12 @@
     const APP_HIDDEN_AT_KEY = "vehicleLogHiddenAt";
     function getResumeAppScreen() {
       const hiddenAt = Number(sessionStorage.getItem(APP_HIDDEN_AT_KEY));
+      const savedScreen = sessionStorage.getItem(APP_RESUME_SCREEN_KEY);
       sessionStorage.removeItem(APP_HIDDEN_AT_KEY);
       if (!hiddenAt || Date.now() - hiddenAt >= 10 * 60 * 1000) {
         sessionStorage.setItem(APP_RESUME_SCREEN_KEY, "home");
         return "home";
       }
-      const savedScreen = sessionStorage.getItem(APP_RESUME_SCREEN_KEY);
       return savedScreen === "vehicle-log" || savedScreen === "documents" ? savedScreen : "home";
     }
     function renderAppScreen(name) {
@@ -3023,15 +3023,16 @@
     }
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "hidden") {
-        if (!sessionStorage.getItem(APP_HIDDEN_AT_KEY)) {
-          sessionStorage.setItem(APP_HIDDEN_AT_KEY, String(Date.now()));
-        }
+        // 앱을 떠날 때마다 시각을 새로 기록해 다음 복귀까지의 시간을 정확히 계산한다.
+        sessionStorage.setItem(APP_HIDDEN_AT_KEY, String(Date.now()));
         return;
       }
       const hiddenAt = Number(sessionStorage.getItem(APP_HIDDEN_AT_KEY));
       if (!hiddenAt) return;
-      sessionStorage.removeItem(APP_HIDDEN_AT_KEY);
+      // 10분 미만이면 기록을 유지한다. 페이지가 재로드되어 인증 절차를 거쳐도
+      // unlockApp()이 마지막 화면을 복원할 수 있도록 하기 위함이다.
       if (Date.now() - hiddenAt >= 10 * 60 * 1000) {
+        sessionStorage.removeItem(APP_HIDDEN_AT_KEY);
         renderAppScreen("home");
         if (appHistoryInitialized) {
           window.history.replaceState({ vehicleLogApp: true, screen: "home" }, "", window.location.href);
@@ -3039,9 +3040,8 @@
       }
     });
     window.addEventListener("pagehide", () => {
-      if (!sessionStorage.getItem(APP_HIDDEN_AT_KEY)) {
-        sessionStorage.setItem(APP_HIDDEN_AT_KEY, String(Date.now()));
-      }
+      // pagehide는 페이지가 실제로 내려가거나 BFCache로 이동할 때도 발생한다.
+      sessionStorage.setItem(APP_HIDDEN_AT_KEY, String(Date.now()));
     });
     function setAppScreen(name) {
       if (!appHistoryInitialized) {
