@@ -2086,8 +2086,7 @@
 
     function setVehicleLogReady(ready) {
       vehicleDataReady = ready;
-      const controls = $("logForm").querySelectorAll("input, select, textarea, button");
-      controls.forEach(control => { control.disabled = !ready; });
+      // DB 초기화 실패 시에도 입력 화면 전체가 잠기지 않도록 저장 관련 버튼만 제어한다.
       $("saveLogButton").disabled = !ready;
       $("resetLogButton").disabled = !ready;
     }
