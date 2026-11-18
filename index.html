@@ -1832,7 +1832,8 @@
       title.textContent = `${index + 1}. ${item.type}`;
       const desc = document.createElement("span");
       const unitPrice = item.unitPrice !== null && item.unitPrice !== undefined ? `단가 ${item.unitPrice.toLocaleString("ko-KR")}원/L` : "";
-      const amount = item.amount !== null ? `${item.amount.toLocaleString("ko-KR")} L` : "";
+      const displayedAmount = item.type === "주유" && item.amount != null ? truncateFuelQuantity(item.amount) : item.amount;
+      const amount = displayedAmount !== null && displayedAmount !== undefined ? `${displayedAmount.toLocaleString("ko-KR", { maximumFractionDigits: 2 })} L` : "";
       const cost = item.cost !== null ? `${item.cost.toLocaleString("ko-KR")}원` : "";
       desc.textContent = [item.shop, unitPrice, amount, cost, item.memo].filter(Boolean).join(" · ");
       detail.append(title, desc);
