@@ -25,6 +25,15 @@
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
     .container { max-width: 760px; margin: 0 auto; }
+    .log-record-heading { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:0 0 12px; padding:0 2px; }
+    .log-record-title { display:flex; align-items:baseline; flex-wrap:wrap; gap:7px; min-width:0; }
+    .log-record-title h2 { margin:0; color:#e9edf2; font-size:17px; font-weight:750; letter-spacing:-.35px; }
+    .log-save-status { color:#77818e; font-size:10px; font-weight:500; white-space:nowrap; }
+    .log-record-actions { display:flex; align-items:center; gap:6px; flex:0 0 auto; }
+    .log-record-actions button { width:auto; min-height:31px; padding:5px 10px; border-radius:8px; font-size:11px; font-weight:700; }
+    .log-record-actions .log-reset-button { border:1px solid #45404a; background:#28252c; color:#c6bfc9; }
+    .log-record-actions button:disabled { opacity:.45; cursor:wait; }
+    @media(max-width:520px) { .log-record-heading { gap:6px; margin-bottom:10px; } .log-record-title { gap:5px; } .log-record-title h2 { font-size:15px; } .log-save-status { font-size:9px; } .log-record-actions { gap:4px; } .log-record-actions button { min-height:29px; padding:5px 8px; font-size:10px; } }
     header {
       display: flex; align-items: center; gap: 13px;
       padding: 22px; margin-bottom: 16px;
@@ -817,6 +826,10 @@
   </header>
 
   <div id="logForm">
+    <div class="log-record-heading">
+      <div class="log-record-title"><h2>운행기록</h2><span class="log-save-status" id="logSaveStatus" role="status" aria-live="polite">(불러오는 중)</span></div>
+      <div class="log-record-actions"><button type="button" class="primary" id="saveLogButton">저장</button><button type="button" class="log-reset-button" id="resetLogButton">초기화</button></div>
+    </div>
     <section class="card">
       <h2>📅 운행 기본정보</h2>
       <div class="basic-info-grid">
@@ -1983,6 +1996,8 @@
       if (vehicleLogPage) vehicleLogPage.hidden = true;
       window.scrollTo(0, 0);
       initializeVehicleData(userId).catch(error => {
+        setVehicleLogReady(false);
+        setLogSaveStatus("failed");
         console.error("차량 데이터 초기화 실패", error);
         if (homeMenuNotice) homeMenuNotice.textContent = "운행기록을 불러오지 못했어. 새로고침 후 다시 시도해 줘.";
       });
@@ -2047,12 +2062,39 @@
     let currentDailyLogId = null;
     let loadedLogDate = $("date").value;
     let isLoadingVehicleData = false;
+    let vehicleDataReady = false;
     let routeDirty = false;
+    let lastSavedAt = null;
     let saveTimer = null;
     let exportDailyLogs = [];
     let exportEvents = [];
 
+    function setLogSaveStatus(label, updatedAt = null) {
+      const status = $("logSaveStatus");
+      if (!status) return;
+      if (label === "saved") {
+        const date = updatedAt instanceof Date ? updatedAt : new Date(updatedAt || Date.now());
+        const time = Number.isNaN(date.getTime()) ? "" : date.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false });
+        status.textContent = time ? `(${time} 최종 업데이트)` : "(저장 완료)";
+        status.dataset.state = "saved";
+      } else {
+        const labels = { empty: "(내역 없음)", saving: "(저장 중)", failed: "(저장 실패)", loading: "(불러오는 중)" };
+        status.textContent = labels[label] || `(${label})`;
+        status.dataset.state = label;
+      }
+    }
+
+    function setVehicleLogReady(ready) {
+      vehicleDataReady = ready;
+      const controls = $("logForm").querySelectorAll("input, select, textarea, button");
+      controls.forEach(control => { control.disabled = !ready; });
+      $("saveLogButton").disabled = !ready;
+      $("resetLogButton").disabled = !ready;
+    }
+
     async function initializeVehicleData(userId) {
+      setVehicleLogReady(false);
+      setLogSaveStatus("loading");
       activeUserId = userId;
       const { data: membership, error } = await authClient
         .from("team_members")
@@ -2067,6 +2109,7 @@
       await loadCurrentLogForDate(loadedLogDate);
       await loadMonthData();
       refreshExportTables();
+      setVehicleLogReady(true);
     }
 
     async function performCurrentLogSave(date = loadedLogDate) {
@@ -2115,7 +2158,11 @@
         if (error) throw error;
         saved = data;
       }
-      if (date === loadedLogDate) currentDailyLogId = saved.id;
+      if (date === loadedLogDate) {
+        currentDailyLogId = saved.id;
+        lastSavedAt = new Date();
+        setLogSaveStatus("saved", lastSavedAt);
+      }
 
       if (routeDirty && date === loadedLogDate) {
         const { error: deleteError } = await authClient.from("route_stops").delete().eq("log_id", saved.id);
@@ -2148,15 +2195,18 @@
     }
 
     function scheduleCurrentLogSave(routeChanged = false) {
-      if (isLoadingVehicleData || !activeTeamId) return;
+      if (isLoadingVehicleData || !activeTeamId || !vehicleDataReady) return;
       if (routeChanged) routeDirty = true;
+      setLogSaveStatus("saving");
       clearTimeout(saveTimer);
       saveTimer = setTimeout(async () => {
         saveTimer = null;
         try {
-          await saveCurrentLogNow(loadedLogDate);
+          const savedId = await saveCurrentLogNow(loadedLogDate);
+          if (!savedId) setLogSaveStatus("failed");
         } catch (error) {
           console.error("운행일지 자동 저장 실패", error);
+          setLogSaveStatus("failed");
         }
       }, 450);
     }
@@ -2221,6 +2271,9 @@
           .maybeSingle();
         if (error) throw error;
         currentDailyLogId = log?.id || null;
+        lastSavedAt = log?.updated_at || log?.created_at || null;
+        if (lastSavedAt) setLogSaveStatus("saved", lastSavedAt);
+        else setLogSaveStatus("empty");
         waypointList.splice(0, waypointList.length);
         eventList.splice(0, eventList.length);
         routeDirty = false;
@@ -2295,6 +2348,7 @@
           _dbTable: "maintenance_records"
         }));
         eventList.sort((a, b) => a.time.localeCompare(b.time));
+        resetEventEntryFields();
         renderWaypoints();
         renderEvents();
         refreshExportTables();
@@ -2369,12 +2423,78 @@
       ];
     }
 
+    function resetEventEntryFields() {
+      $("eventType").value = "주유";
+      $("eventUnitPrice").value = "";
+      $("eventAmount").value = "";
+      $("eventCost").value = "60,000";
+      $("eventMemo").value = "";
+      $("eventShopCustom").value = "";
+      $("eventShop").value = "";
+      updateFuelFields(true);
+    }
+
+    async function resetCurrentLogDate() {
+      if (!vehicleDataReady || !activeTeamId || !activeUserId) return;
+      const date = loadedLogDate;
+      const displayDate = date.replace(/-/g, ".");
+      if (!confirm(`${displayDate} 운행기록만 초기화할까?\n\n운행정보와 경유지, 주유·요소수·정비내역이 모두 삭제돼. 다른 날짜 기록은 유지돼.`)) return;
+      clearTimeout(saveTimer);
+      saveTimer = null;
+      await currentLogSaveQueue;
+      try {
+        const { data: log, error: findError } = await authClient.from("daily_logs")
+          .select("id").eq("team_id", activeTeamId).eq("log_date", date).maybeSingle();
+        if (findError) throw findError;
+        if (log?.id) {
+          const { error: stopsError } = await authClient.from("route_stops").delete().eq("log_id", log.id);
+          if (stopsError) throw stopsError;
+          const { error: fluidsError } = await authClient.from("fuel_adblue_records").delete().eq("log_id", log.id);
+          if (fluidsError) throw fluidsError;
+        }
+        const { error: maintenanceError } = await authClient.from("maintenance_records")
+          .delete().eq("team_id", activeTeamId).eq("maintenance_date", date);
+        if (maintenanceError) throw maintenanceError;
+        if (log?.id) {
+          const { error: logError } = await authClient.from("daily_logs").delete().eq("id", log.id);
+          if (logError) throw logError;
+        }
+        await loadCurrentLogForDate(date);
+        await loadMonthData();
+        refreshExportTables();
+        setLogSaveStatus("empty");
+      } catch (error) {
+        console.error("해당 날짜 초기화 실패", error);
+        alert("해당 날짜를 초기화하지 못했어. 다시 시도해 줘.");
+      }
+    }
+
+    $("saveLogButton").addEventListener("click", async () => {
+      if (!vehicleDataReady) return;
+      clearTimeout(saveTimer);
+      saveTimer = null;
+      setLogSaveStatus("saving");
+      try {
+        const savedId = await saveCurrentLogNow(loadedLogDate);
+        if (!savedId) throw new Error("daily_log_not_saved");
+        await loadMonthData();
+        refreshExportTables();
+      } catch (error) {
+        console.error("운행기록 저장 실패", error);
+        setLogSaveStatus("failed");
+        alert("운행기록을 저장하지 못했어. 인터넷 연결을 확인하고 다시 저장해 줘.");
+      }
+    });
+    $("resetLogButton").addEventListener("click", resetCurrentLogDate);
+
     vehicleDataState.scheduleSave = scheduleCurrentLogSave;
     vehicleDataState.loadDate = async date => {
       if (!date || date === loadedLogDate) return;
       try {
+        setLogSaveStatus("loading");
         await loadCurrentLogForDate(date);
       } catch (error) {
+        setLogSaveStatus("failed");
         console.error("해당 날짜 운행일지 조회 실패", error);
         alert("해당 날짜 기록을 불러오지 못했어. 인터넷 연결을 확인해 줘.");
       }
