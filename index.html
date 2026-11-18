@@ -1362,6 +1362,7 @@
     }
 
     renderWaypoints();
+    vehicleDataState.scheduleSave(true);
     $("routePickerDialog").close();
   }
 
@@ -2068,7 +2069,7 @@
       refreshExportTables();
     }
 
-    async function saveCurrentLogNow(date = loadedLogDate) {
+    async function performCurrentLogSave(date = loadedLogDate) {
       if (!activeTeamId || !activeUserId || !date || isLoadingVehicleData) return null;
       const previousKmText = $("previousKm").value.trim();
       const payload = {
@@ -2136,6 +2137,16 @@
       return saved.id;
     }
 
+    let currentLogSaveQueue = Promise.resolve();
+    function saveCurrentLogNow(date = loadedLogDate) {
+      const task = currentLogSaveQueue.then(
+        () => performCurrentLogSave(date),
+        () => performCurrentLogSave(date)
+      );
+      currentLogSaveQueue = task.catch(() => null);
+      return task;
+    }
+
     function scheduleCurrentLogSave(routeChanged = false) {
       if (isLoadingVehicleData || !activeTeamId) return;
       if (routeChanged) routeDirty = true;
@@ -2197,6 +2208,7 @@
         saveTimer = null;
         await saveCurrentLogNow(loadedLogDate);
       }
+      await currentLogSaveQueue;
       isLoadingVehicleData = true;
       try {
         loadedLogDate = date;
