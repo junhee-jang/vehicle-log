@@ -2939,8 +2939,11 @@
       if (!authClient) return;
       homeLogoutButton.disabled = true;
       try {
+        // 로그아웃 시 현재 기기의 오늘 PIN 인증 기록을 먼저 초기화한다.
+        await callPinApi("reset");
         const { error } = await authClient.auth.signOut();
         if (error) throw error;
+        pinVerifiedUserId = null;
         setSignedIn(null);
       } catch (_error) {
         window.alert("로그아웃하지 못했어. 다시 시도해 줘.");
