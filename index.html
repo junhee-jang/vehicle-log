@@ -1728,7 +1728,8 @@
       const currentStopTop = Math.round(stop.getBoundingClientRect().top);
       const wrapped = previousStopTop !== null && currentStopTop > previousStopTop + 2;
       stop.classList.toggle("route-wrapped", wrapped);
-      if (dash) dash.hidden = wrapped;
+      // 줄이 바뀌어도 이전 줄 마지막 장소 뒤의 연결 하이픈은 남겨 둔다.
+      if (dash) dash.hidden = false;
       previousStopTop = currentStopTop;
     });
   }
