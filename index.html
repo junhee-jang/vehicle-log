@@ -318,8 +318,9 @@
       font-size: 13px; font-weight: 650; width: auto; min-height: 0;
     }
     .route-dash { color: #788392; align-self: flex-start; padding-top: 9px; }
-    .route-stop { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; position: relative; }
-    .route-stop.route-wrapped::before { content: "↳"; position: static; display: block; margin: 0 0 -2px 4px; color: var(--green); font-size: 16px; line-height: 16px; font-weight: 800; }
+    .route-stop { display: flex; flex: 0 0 auto; flex-direction: column; align-items: flex-start; gap: 4px; position: relative; width: max-content; max-width: 100%; }
+    .route-stop .route-chip { flex: 0 0 auto; }
+    .route-stop.route-wrapped::before { content: "↳"; position: static; display: block; flex: 0 0 auto; margin: 0 0 -2px 4px; color: var(--green); font-size: 16px; line-height: 16px; font-weight: 800; }
     .route-stops.hide-route-times .route-times { display: none; }
     .route-times { display: grid; grid-template-rows: repeat(2, 1.35em); gap: 2px; padding-left: 3px; color: var(--muted); font-size: 10px; line-height: 1.35; }
     .route-time-row { white-space: nowrap; }
@@ -1720,13 +1721,14 @@
       renderedStops.push({ stop, chip, dash });
     });
 
-    let previousChipTop = null;
-    renderedStops.forEach(({ stop, chip, dash }) => {
-      const currentChipTop = Math.round(chip.getBoundingClientRect().top);
-      const wrapped = previousChipTop !== null && currentChipTop > previousChipTop + 2;
+    let previousStopTop = null;
+    renderedStops.forEach(({ stop, dash }) => {
+      // 장소 버튼이 아니라 장소+꺾쇠가 한 묶음인 경유지 요소의 줄 위치를 비교한다.
+      const currentStopTop = Math.round(stop.getBoundingClientRect().top);
+      const wrapped = previousStopTop !== null && currentStopTop > previousStopTop + 2;
       stop.classList.toggle("route-wrapped", wrapped);
       if (dash) dash.hidden = wrapped;
-      previousChipTop = currentChipTop;
+      previousStopTop = currentStopTop;
     });
   }
 
