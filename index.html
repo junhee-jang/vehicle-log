@@ -1676,9 +1676,11 @@
       return;
     }
 
+    const renderedStops = [];
     route.forEach((item, routeIndex) => {
+      let dash = null;
       if (routeIndex > 0) {
-        const dash = document.createElement("span");
+        dash = document.createElement("span");
         dash.className = "route-dash";
         dash.textContent = "-";
         holder.appendChild(dash);
@@ -1715,13 +1717,16 @@
       }
       stop.append(chip, times);
       holder.appendChild(stop);
+      renderedStops.push({ stop, chip, dash });
     });
-    const stops = Array.from(holder.querySelectorAll(".route-stop"));
-    let previousTop = null;
-    stops.forEach(stop => {
-      const currentTop = Math.round(stop.offsetTop);
-      if (previousTop !== null && currentTop > previousTop + 2) stop.classList.add("route-wrapped");
-      previousTop = currentTop;
+
+    let previousChipTop = null;
+    renderedStops.forEach(({ stop, chip, dash }) => {
+      const currentChipTop = Math.round(chip.getBoundingClientRect().top);
+      const wrapped = previousChipTop !== null && currentChipTop > previousChipTop + 2;
+      stop.classList.toggle("route-wrapped", wrapped);
+      if (dash) dash.hidden = wrapped;
+      previousChipTop = currentChipTop;
     });
   }
 
