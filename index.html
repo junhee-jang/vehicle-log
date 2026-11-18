@@ -1184,8 +1184,17 @@
       if (pos !== null && before.length === el.value.length) el.setSelectionRange(pos, pos);
     });
   });
+  function truncateFuelQuantity(value) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) return null;
+    return Math.trunc(number * 100 + 1e-8) / 100;
+  }
   $("eventAmount").addEventListener("input", () => {
-    $("eventAmount").value = $("eventAmount").value.replace(/[^\d.]/g, "");
+    let value = $("eventAmount").value.replace(/[^\d.]/g, "");
+    if ($("eventType").value === "주유") {
+      value = value.replace(/^(\d+\.\d{2}).+$/, "$1");
+    }
+    $("eventAmount").value = value;
   });
   function setCollapseState(toggle, content, textElement, expanded) {
     toggle.setAttribute("aria-expanded", String(expanded));
@@ -1264,7 +1273,7 @@
     const unitPrice = parseNumber($("eventUnitPrice").value);
     const cost = parseNumber($("eventCost").value);
     if (unitPrice > 0 && cost > 0) {
-      $("eventAmount").value = (cost / unitPrice).toFixed(2);
+      $("eventAmount").value = truncateFuelQuantity(cost / unitPrice).toFixed(2);
     }
   }
   $("eventUnitPrice").addEventListener("input", calculateFuelAmount);
@@ -1790,7 +1799,7 @@
       type,
       shop: shopName,
       unitPrice: unitPriceText ? parseNumber(unitPriceText) : null,
-      amount: amountText ? parseNumber(amountText) : null,
+      amount: amountText ? (type === "주유" ? truncateFuelQuantity(amountText) : parseNumber(amountText)) : null,
       cost: costText ? parseNumber(costText) : null,
       memo
     };
@@ -1992,8 +2001,8 @@
       document.body.classList.remove("login-required", "pin-required");
       screen.hidden = true;
       pinScreen.hidden = true;
-      if (homeScreen) homeScreen.hidden = false;
-      if (vehicleLogPage) vehicleLogPage.hidden = true;
+      const resumeScreen = getResumeAppScreen();
+      renderAppScreen(resumeScreen);
       window.scrollTo(0, 0);
       initializeVehicleData(userId).catch(error => {
         setVehicleLogReady(false);
@@ -2220,7 +2229,7 @@
           recorded_at: item.time,
           event_type: item.type,
           unit_price: item.unitPrice ?? null,
-          quantity_l: item.amount ?? null,
+          quantity_l: item.type === "주유" && item.amount != null ? truncateFuelQuantity(item.amount) : item.amount ?? null,
           amount_krw: item.cost ?? null,
           memo: [item.shop, item.memo].filter(Boolean).join(" · ") || null,
           created_by: activeUserId
@@ -2955,7 +2964,7 @@
           const row = document.createElement("tr");
           const fuel = fuelEvents[i], maintenance = maintenanceEvents[i];
           addCell(row, fuel ? `${month}월 ${Number(fuel.time.slice(8,10))}일` : "");
-          addCell(row, fuel?.amount != null ? fuel.amount.toFixed(2) : "");
+          addCell(row, fuel?.amount != null ? truncateFuelQuantity(fuel.amount).toFixed(2) : "");
           addCell(row, fuel?.unitPrice != null ? fuel.unitPrice.toLocaleString("ko-KR") : "");
           addCell(row, fuel?.cost != null ? fuel.cost.toLocaleString("ko-KR") : "");
           addCell(row, maintenance ? `${month}월 ${Number(maintenance.time.slice(8,10))}일` : "");
@@ -2985,14 +2994,49 @@
     });
     let currentAppScreen = "home";
     let appHistoryInitialized = false;
+    const APP_RESUME_SCREEN_KEY = "vehicleLogResumeScreen";
+    const APP_HIDDEN_AT_KEY = "vehicleLogHiddenAt";
+    function getResumeAppScreen() {
+      const hiddenAt = Number(sessionStorage.getItem(APP_HIDDEN_AT_KEY));
+      sessionStorage.removeItem(APP_HIDDEN_AT_KEY);
+      if (!hiddenAt || Date.now() - hiddenAt >= 10 * 60 * 1000) {
+        sessionStorage.setItem(APP_RESUME_SCREEN_KEY, "home");
+        return "home";
+      }
+      const savedScreen = sessionStorage.getItem(APP_RESUME_SCREEN_KEY);
+      return savedScreen === "vehicle-log" || savedScreen === "documents" ? savedScreen : "home";
+    }
     function renderAppScreen(name) {
       currentAppScreen = name;
+      sessionStorage.setItem(APP_RESUME_SCREEN_KEY, name);
       if (homeScreen) homeScreen.hidden = name !== "home";
       if (vehicleLogPage) vehicleLogPage.hidden = name !== "vehicle-log";
       if (documentsPage) documentsPage.hidden = name !== "documents";
       if (name === "home" && homeMenuNotice) homeMenuNotice.textContent = "";
       window.scrollTo(0, 0);
     }
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") {
+        if (!sessionStorage.getItem(APP_HIDDEN_AT_KEY)) {
+          sessionStorage.setItem(APP_HIDDEN_AT_KEY, String(Date.now()));
+        }
+        return;
+      }
+      const hiddenAt = Number(sessionStorage.getItem(APP_HIDDEN_AT_KEY));
+      if (!hiddenAt) return;
+      sessionStorage.removeItem(APP_HIDDEN_AT_KEY);
+      if (Date.now() - hiddenAt >= 10 * 60 * 1000) {
+        renderAppScreen("home");
+        if (appHistoryInitialized) {
+          window.history.replaceState({ vehicleLogApp: true, screen: "home" }, "", window.location.href);
+        }
+      }
+    });
+    window.addEventListener("pagehide", () => {
+      if (!sessionStorage.getItem(APP_HIDDEN_AT_KEY)) {
+        sessionStorage.setItem(APP_HIDDEN_AT_KEY, String(Date.now()));
+      }
+    });
     function setAppScreen(name) {
       if (!appHistoryInitialized) {
         window.history.replaceState({ vehicleLogApp: true, screen: "home" }, "", window.location.href);
