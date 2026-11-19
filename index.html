@@ -2683,10 +2683,26 @@
         const { error: maintenanceError } = await authClient.from("maintenance_records")
           .delete().eq("team_id", activeTeamId).eq("maintenance_date", date);
         if (maintenanceError) throw maintenanceError;
-        if (log?.id) {
-          const { error: logError } = await authClient.from("daily_logs").delete().eq("id", log.id);
-          if (logError) throw logError;
-        }
+
+        // 초기화한 날짜는 운행 내용은 비우되 '미운행' 기준 행으로 남겨,
+        // 같은 달의 이후 기록이 자료받기에 있어도 해당 날짜가 누락되지 않게 한다.
+        const clearedLog = {
+          team_id: activeTeamId,
+          log_date: date,
+          status: "미운행",
+          previous_km: null,
+          weather: null,
+          origin: null,
+          origin_departure_time: null,
+          origin_memo: null,
+          destination: null,
+          memo: null,
+          updated_by: activeUserId
+        };
+        const { error: clearLogError } = await authClient.from("daily_logs")
+          .upsert({ ...clearedLog, ...(log?.id ? { id: log.id } : { created_by: activeUserId }) }, { onConflict: "team_id,log_date" });
+        if (clearLogError) throw clearLogError;
+
         await loadCurrentLogForDate(date);
         await loadMonthData();
         refreshExportTables();
