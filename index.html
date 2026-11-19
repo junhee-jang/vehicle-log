@@ -3333,13 +3333,13 @@
         return;
       }
       const cellRows = rows.map(row => [...row.querySelectorAll("td")]
-        .map(cell => cell.innerText.replace(/\\t/g, " ").replace(/\\r?\\n/g, " ").trim()));
+        .map(cell => cell.innerText.replace(/\t/g, " ").replace(/\r?\n/g, " ").trim()));
       const plainRows = cellRows.map(cells => cells.map((value, index) => {
-        if (!mergedDriving || index !== 0 || !/^\\d{4}-\\d{2}-\\d{2}$/.test(value)) return value;
-        const [, year, month, day] = value.match(/^(\\d{4})-(\\d{2})-(\\d{2})$/);
+        if (!mergedDriving || index !== 0 || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+        const [, year, month, day] = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
         return month + "월 " + day + "일";
       }));
-      const text = plainRows.map(cells => cells.join("\\t")).join("\\n");
+      const text = plainRows.map(cells => cells.join("\t")).join("\n");
       if (!text.trim()) {
         alert("복사할 자료가 없습니다.");
         return;
@@ -3352,7 +3352,7 @@
           const safe = value => String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;")
             .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
           const excelDateSerial = value => {
-            const match = value.match(/^(\\d{4})-(\\d{2})-(\\d{2})$/);
+            const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
             if (!match) return null;
             const utc = Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
             return Math.round(utc / 86400000) + 25569;
