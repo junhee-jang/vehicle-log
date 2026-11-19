@@ -737,7 +737,7 @@
       <button class="login-submit" id="emailConfirmButton" type="button">이메일 인증 완료</button>
       <p class="login-notice" id="emailConfirmNotice" role="status" aria-live="polite"></p>
     </div>
-    <p class="login-footnote">로그인 상태는 안전하게 유지돼. 로그아웃하면 다시 로그인해야 해.</p>
+    <p class="login-footnote">로그인 상태는 안전하게 유지됩니다. 로그아웃하면 다시 로그인해야 합니다.</p>
   </div>
 </div>
 <div class="pin-screen" id="pinScreen" hidden>
@@ -1814,7 +1814,7 @@
         return;
       }
       if (type === "주유" && !amountText && !unitPriceText) {
-        alert("주유 기록은 주유량 또는 주유 단가를 입력해야 저장할 수 있어.");
+        alert("주유 기록은 주유량 또는 주유 단가를 입력해야 저장할 수 있습니다.");
         $("eventAmount").focus();
         return;
       }
@@ -1832,7 +1832,7 @@
       const amount = amountText ? (type === "주유" ? truncateFuelQuantity(amountText) : parseNumber(amountText)) : null;
       const cost = costText ? parseNumber(costText) : null;
       if ((unitPriceText && !Number.isFinite(unitPrice)) || (amountText && !Number.isFinite(amount)) || (costText && !Number.isFinite(cost))) {
-        throw new Error("숫자 입력값을 확인해 줘.");
+        throw new Error("숫자 입력값을 확인해 주세요.");
       }
       addedEvent = {
         time: (() => { const now = localDateTimeString(new Date()); const selectedDate = $("date").value || localDateString(new Date()); return isFluid ? selectedDate + now.slice(10) : now; })(),
@@ -1910,7 +1910,7 @@
           console.error("차량 기록 삭제 실패", deleteError);
           eventList.splice(index, 0, removed);
           renderEvents();
-          alert("서버에서 기록을 삭제하지 못했어. 다시 시도해 줘.");
+          alert("서버에서 기록을 삭제하지 못했습니다. 다시 시도해 주세요.");
         }
       });
       row.append(detail, remove);
@@ -2085,7 +2085,7 @@
           setupFirstPin = pinInput.value;
           pinInput.value = "";
           pinTitle.textContent = "핀 번호 다시 입력";
-          pinNotice.textContent = "같은 6자리를 한 번 더 입력해 줘.";
+          pinNotice.textContent = "같은 6자리를 한 번 더 입력해 주세요.";
           updatePinDots();
           pinInput.focus();
         } else {
@@ -2113,7 +2113,7 @@
     function unlockApp(userId) {
       if (!userId || pinVerifiedUserId !== userId) {
         showPinGate("verify");
-        pinNotice.textContent = "PIN 인증을 완료해야 이용할 수 있어.";
+        pinNotice.textContent = "PIN 인증을 완료해야 이용할 수 있습니다.";
         return false;
       }
       document.body.classList.remove("login-required", "pin-required");
@@ -2132,7 +2132,7 @@
         setVehicleLogReady(false);
         setLogSaveStatus("failed");
         console.error("차량 데이터 초기화 실패", error);
-        if (homeMenuNotice) homeMenuNotice.textContent = "운행기록을 불러오지 못했어. 새로고침 후 다시 시도해 줘.";
+        if (homeMenuNotice) homeMenuNotice.textContent = "운행기록을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.";
       });
       return true;
     }
@@ -2184,7 +2184,7 @@
         document.body.classList.add("pin-required");
         pinForm.hidden = true;
         pinTitle.textContent = "인증 확인 실패";
-        pinDescription.textContent = "PIN 인증 서버에 연결하지 못했어. 인터넷을 확인하고 새로고침해 줘.";
+        pinDescription.textContent = "PIN 인증 서버에 연결하지 못했습니다. 인터넷 연결을 확인하고 새로고침해 주세요.";
         pinForm.hidden = true;
       }
     }
@@ -2666,23 +2666,53 @@
       if (!vehicleDataReady || !activeTeamId || !activeUserId) return;
       const date = loadedLogDate;
       const displayDate = date.replace(/-/g, ".");
-      if (!confirm(`${displayDate} 운행기록만 초기화할까?\n\n해당 날짜의 운행정보와 경유지만 초기화돼. 주유·요소수 기록과 정비기록은 그대로 유지돼.\n다른 날짜의 기록도 변경되지 않아.`)) return;
       clearTimeout(saveTimer);
       saveTimer = null;
       await currentLogSaveQueue;
       let resetStage = "기록 조회";
       try {
         const { data: log, error: findError } = await authClient.from("daily_logs")
-          .select("id").eq("team_id", activeTeamId).eq("log_date", date).maybeSingle();
+          .select("id,status,previous_km,weather,origin,origin_departure_time,origin_memo,destination,memo")
+          .eq("team_id", activeTeamId).eq("log_date", date).maybeSingle();
         if (findError) throw findError;
+
+        let hasRouteStops = false;
+        let hasFluidRecords = false;
         if (log?.id) {
+          resetStage = "운행 및 주유 기록 확인";
+          const [{ data: stops, error: stopsFindError }, { data: fluids, error: fluidsFindError }] = await Promise.all([
+            authClient.from("route_stops").select("id").eq("log_id", log.id).limit(1),
+            authClient.from("fuel_adblue_records").select("id").eq("log_id", log.id).limit(1)
+          ]);
+          if (stopsFindError) throw stopsFindError;
+          if (fluidsFindError) throw fluidsFindError;
+          hasRouteStops = Boolean(stops?.length);
+          hasFluidRecords = Boolean(fluids?.length);
+        }
+        resetStage = "정비 기록 확인";
+        const { data: maintenance, error: maintenanceFindError } = await authClient.from("maintenance_records")
+          .select("id").eq("team_id", activeTeamId).eq("maintenance_date", date).limit(1);
+        if (maintenanceFindError) throw maintenanceFindError;
+
+        const hasDrivingDetails = Boolean(log && (
+          log.previous_km != null || log.weather || log.origin_departure_time || log.origin_memo ||
+          log.destination || log.memo || hasRouteStops || (log.status && log.status !== "미운행")
+        ));
+        const hasAnyResetTarget = hasDrivingDetails || hasFluidRecords || Boolean(maintenance?.length);
+        if (!hasAnyResetTarget) {
+          alert("초기화 대상 자료가 없습니다.");
+          return;
+        }
+
+        if (!confirm(`${displayDate} 운행기록을 초기화하시겠습니까?\n\n해당 날짜의 운행정보와 경유지만 초기화됩니다. 주유·요소수 기록과 정비기록은 그대로 유지됩니다.\n다른 날짜의 기록은 변경되지 않습니다.`)) return;
+
+        if (log?.id && hasRouteStops) {
           resetStage = "경유지 초기화";
           const { error: stopsError } = await authClient.from("route_stops").delete().eq("log_id", log.id);
           if (stopsError) throw stopsError;
         }
 
-        // 주유·요소수 및 정비기록은 보존하고 운행정보와 경유지만 초기화한다.
-        // 기존 행이 없더라도 월간 자료에 미운행 날짜가 표시되도록 행을 만든다.
+        // 주유·요소수 및 정비기록은 보존하고 운행정보와 경유지만 초기화합니다.
         const clearedLog = {
           status: "미운행",
           previous_km: null,
@@ -2713,7 +2743,7 @@
       } catch (error) {
         console.error("해당 날짜 초기화 실패", resetStage, error);
         const detail = error?.message || error?.details || String(error);
-        alert(`초기화 중 오류가 발생했어.\n단계: ${resetStage}\n내용: ${detail}`);
+        alert(`초기화 중 오류가 발생했습니다.\n단계: ${resetStage}\n내용: ${detail}`);
       }
     }
 
@@ -2730,7 +2760,7 @@
       } catch (error) {
         console.error("운행기록 저장 실패", error);
         setLogSaveStatus("failed");
-        alert("운행기록을 저장하지 못했어. 인터넷 연결을 확인하고 다시 저장해 줘.");
+        alert("운행기록을 저장하지 못했습니다. 인터넷 연결을 확인하고 다시 저장해 주세요.");
       }
     });
     $("resetLogButton").addEventListener("click", resetCurrentLogDate);
@@ -2744,7 +2774,7 @@
       } catch (error) {
         setLogSaveStatus("failed");
         console.error("해당 날짜 운행일지 조회 실패", error);
-        alert("해당 날짜 기록을 불러오지 못했어. 인터넷 연결을 확인해 줘.");
+        alert("해당 날짜 기록을 불러오지 못했습니다. 인터넷 연결을 확인해 주세요.");
       }
     };
     vehicleDataState.saveEvent = persistEventRecord;
@@ -2796,28 +2826,28 @@
     pinForm.addEventListener("submit", async event => {
       event.preventDefault();
       const pin = pinInput.value;
-      if (!/^[0-9]{6}$/.test(pin)) { pinNotice.textContent = "숫자 6자리를 입력해 줘."; return; }
+      if (!/^[0-9]{6}$/.test(pin)) { pinNotice.textContent = "숫자 6자리를 입력해 주세요."; return; }
       pinSubmit.disabled = true;
       pinSubmit.textContent = "확인 중...";
       pinNotice.textContent = "";
       try {
         if (pinMode === "setup") {
           if (!setupFirstPin) {
-            pinNotice.textContent = "PIN 6자리를 입력해 줘.";
+            pinNotice.textContent = "PIN 6자리를 입력해 주세요.";
             return;
           }
           if (pin !== setupFirstPin) {
             setupFirstPin = "";
             pinInput.value = "";
             pinTitle.textContent = "핀 번호 등록";
-            pinNotice.textContent = "두 PIN이 일치하지 않아. 처음부터 다시 입력해 줘.";
+            pinNotice.textContent = "두 PIN이 일치하지 않습니다. 처음부터 다시 입력해 주세요.";
             updatePinDots();
             pinInput.focus();
             return;
           }
           await callPinApi("setup", { pin, confirm_pin: pin });
           showPinGate("verify");
-          pinNotice.textContent = "PIN 등록 완료! 등록한 6자리를 입력하면 자동으로 인증돼.";
+          pinNotice.textContent = "PIN 등록이 완료되었습니다. 등록한 6자리를 입력하면 자동으로 인증됩니다.";
           pinInput.focus();
           return;
         } else {
@@ -2833,11 +2863,11 @@
           pinNotice.textContent = "";
           return;
         }
-        if (code === "pin_mismatch") pinNotice.textContent = "두 PIN이 서로 달라. 다시 확인해 줘.";
+        if (code === "pin_mismatch") pinNotice.textContent = "두 PIN이 서로 다릅니다. 다시 확인해 주세요.";
         else if (code === "wrong_pin") pinNotice.textContent = "PIN이 맞지 않아. 남은 횟수: " + (error.details.attempts_remaining ?? 0) + "회";
-        else if (code === "locked") pinNotice.textContent = "5회 실패로 15분간 잠겼어. 잠시 후 다시 시도해 줘.";
-        else if (code === "already_setup") { pinNotice.textContent = "PIN 등록 상태를 다시 확인할게."; await setSignedIn((await authClient.auth.getSession()).data.session); }
-        else pinNotice.textContent = "PIN 처리에 실패했어. 잠시 후 다시 시도해 줘.";
+        else if (code === "locked") pinNotice.textContent = "5회 실패로 15분간 잠겼습니다. 잠시 후 다시 시도해 주세요.";
+        else if (code === "already_setup") { pinNotice.textContent = "PIN 등록 상태를 다시 확인하겠습니다."; await setSignedIn((await authClient.auth.getSession()).data.session); }
+        else pinNotice.textContent = "PIN 처리에 실패했습니다. 잠시 후 다시 시도해 주세요.";
       } finally {
         pinSubmit.disabled = false;
         pinSubmit.textContent = pinMode === "verify" ? "자동 인증 대기" : (setupFirstPin ? "등록 확인" : "다음");
@@ -2847,16 +2877,16 @@
     });
 
     pinReregister.addEventListener("click", () => {
-      pinNotice.textContent = "PIN 재등록은 이메일 재인증 절차를 거쳐야 해. 복구 기능을 연결할 때까지 기존 PIN을 유지해 줘.";
+      pinNotice.textContent = "PIN 재등록은 이메일 재인증 절차를 거쳐야 합니다. 복구 기능을 연결할 때까지 기존 PIN을 유지해 주세요.";
     });
 
     function friendlyAuthError(error) {
       const message = String(error?.message || "").toLowerCase();
-      if (message.includes("invalid login credentials")) return "이메일 또는 비밀번호를 확인해 줘.";
-      if (message.includes("email not confirmed")) return "이메일 인증이 아직 완료되지 않았어. 인증 메일을 확인해 줘.";
-      if (message.includes("too many requests")) return "로그인 시도가 많아. 잠시 후 다시 시도해 줘.";
-      if (message.includes("fetch") || message.includes("network")) return "서버에 연결하지 못했어. 인터넷 연결을 확인해 줘.";
-      return "로그인하지 못했어. 입력 내용을 확인하고 다시 시도해 줘.";
+      if (message.includes("invalid login credentials")) return "이메일 또는 비밀번호를 확인해 주세요.";
+      if (message.includes("email not confirmed")) return "이메일 인증이 아직 완료되지 않았습니다. 인증 메일을 확인해 주세요.";
+      if (message.includes("too many requests")) return "로그인 시도가 많습니다. 잠시 후 다시 시도해 주세요.";
+      if (message.includes("fetch") || message.includes("network")) return "서버에 연결하지 못했습니다. 인터넷 연결을 확인해 주세요.";
+      return "로그인하지 못했습니다. 입력 내용을 확인하고 다시 시도해 주세요.";
     }
 
     function showLoginError(message) {
@@ -2866,7 +2896,7 @@
 
     async function initializeAuth() {
       if (!window.supabase?.createClient) {
-        showLoginError("로그인 모듈을 불러오지 못했어. 페이지를 새로고침해 줘.");
+        showLoginError("로그인 모듈을 불러오지 못했습니다. 페이지를 새로고침해 주세요.");
         return;
       }
       authClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
@@ -2914,7 +2944,7 @@
             document.getElementById("emailConfirmPanel").classList.add("hidden");
             setSignedIn(verified.session);
           } catch (verifyError) {
-            confirmNotice.textContent = "인증 링크가 만료됐거나 이미 사용됐어. 새 인증 메일을 요청해 줘.";
+            confirmNotice.textContent = "인증 링크가 만료되었거나 이미 사용되었습니다. 새 인증 메일을 요청해 주세요.";
             confirmButton.disabled = false;
             confirmButton.textContent = "다시 인증 시도";
           }
@@ -2925,7 +2955,7 @@
       const { data, error } = await authClient.auth.getSession();
       if (error) {
         setSignedIn(null);
-        showLoginError("로그인 상태를 확인하지 못했어. 다시 로그인해 줘.");
+        showLoginError("로그인 상태를 확인하지 못했습니다. 다시 로그인해 주세요.");
         return;
       }
       setSignedIn(data.session);
@@ -2954,7 +2984,7 @@
       const signingUp = authMode === "signup";
       loginHeading.textContent = signingUp ? "회원가입" : "로그인";
       loginDescription.textContent = signingUp
-        ? "사용자명과 계정 정보를 입력한 뒤 이메일 인증을 진행해 줘."
+        ? "사용자명과 계정 정보를 입력한 뒤 이메일 인증을 진행해 주세요."
         : "업무 시스템 계정으로 로그인해 주세요.";
       loginButton.textContent = signingUp ? "회원가입" : "로그인";
       loginModeToggle.textContent = signingUp ? "이미 계정이 있나요? 로그인" : "처음 이용하시나요? 회원가입";
@@ -2969,12 +2999,12 @@
 
     resendConfirmationButton.addEventListener("click", async () => {
       if (!authClient) {
-        showLoginError("로그인 서버를 준비 중이야. 잠시 후 다시 시도해 줘.");
+        showLoginError("로그인 서버를 준비 중입니다. 잠시 후 다시 시도해 주세요.");
         return;
       }
       const email = document.getElementById("loginEmail").value.trim();
       if (!email) {
-        showLoginError("인증메일을 받을 이메일 주소를 먼저 입력해 줘.");
+        showLoginError("인증메일을 받을 이메일 주소를 먼저 입력해 주세요.");
         document.getElementById("loginEmail").focus();
         return;
       }
@@ -2991,7 +3021,7 @@
         });
         if (error) throw error;
         notice.style.color = "#a8d8bd";
-        notice.textContent = "인증메일 재발송을 요청했어. 받은 편지함에서 가장 최근 메일을 열고, 인증 링크는 크롬에서 한 번만 눌러 줘.";
+        notice.textContent = "인증메일 재발송을 요청했습니다. 받은 편지함에서 가장 최근 메일을 열고, 인증 링크는 크롬에서 한 번만 눌러 주세요.";
       } catch (error) {
         showLoginError(friendlyAuthError(error));
       } finally {
@@ -3003,7 +3033,7 @@
     form.addEventListener("submit", async event => {
       event.preventDefault();
       if (!authClient) {
-        showLoginError("로그인 서버를 준비 중이야. 잠시 후 다시 시도해 줘.");
+        showLoginError("로그인 서버를 준비 중입니다. 잠시 후 다시 시도해 주세요.");
         return;
       }
       const email = document.getElementById("loginEmail").value.trim();
@@ -3011,12 +3041,12 @@
       const displayName = signupDisplayName.value.trim();
       if (!email || !password) return;
       if (authMode === "signup" && !displayName) {
-        showLoginError("앱에 표시할 사용자명을 입력해 줘.");
+        showLoginError("앱에 표시할 사용자명을 입력해 주세요.");
         signupDisplayName.focus();
         return;
       }
       if (authMode === "signup" && password !== signupPasswordConfirm.value) {
-        showLoginError("비밀번호가 서로 달라. 다시 확인해 줘.");
+        showLoginError("비밀번호가 서로 다릅니다. 다시 확인해 주세요.");
         return;
       }
       loginButton.disabled = true;
@@ -3038,7 +3068,7 @@
             await authClient.auth.signOut({ scope: "local" });
           }
           notice.style.color = "#a8d8bd";
-          notice.textContent = "가입 신청이 완료됐어. 받은 편지함에서 인증 메일을 열고 이메일 인증을 마친 뒤, 이 화면에서 로그인해 줘. 인증 전에는 PIN 등록과 앱 이용이 불가능해.";
+          notice.textContent = "가입 신청이 완료되었습니다. 받은 편지함에서 인증 메일을 열고 이메일 인증을 마친 뒤, 이 화면에서 로그인해 주세요. 인증 전에는 PIN 등록과 앱 이용이 불가능합니다.";
           form.reset();
         } else {
           const { data, error } = await authClient.auth.signInWithPassword({ email, password });
@@ -3339,8 +3369,8 @@
           refreshExportTables();
         } else if (homeMenuNotice) {
           homeMenuNotice.textContent = menu === "vehicle-spec"
-            ? "차량제원등록 메뉴는 준비 중이야."
-            : "기타 메뉴는 준비 중이야.";
+            ? "차량제원등록 메뉴는 준비 중입니다."
+            : "기타 메뉴는 준비 중입니다.";
         }
       });
     });
@@ -3356,7 +3386,7 @@
         pinVerifiedUserId = null;
         setSignedIn(null);
       } catch (_error) {
-        window.alert("로그아웃하지 못했어. 다시 시도해 줘.");
+        window.alert("로그아웃하지 못했습니다. 다시 시도해 주세요.");
       } finally {
         homeLogoutButton.disabled = false;
       }
@@ -3364,7 +3394,7 @@
 
     initializeAuth().catch(() => {
       setSignedIn(null);
-      showLoginError("로그인 서버에 연결하지 못했어. 인터넷 연결을 확인해 줘.");
+      showLoginError("로그인 서버에 연결하지 못했습니다. 인터넷 연결을 확인해 주세요.");
     });
   })();
 </script>
