@@ -1966,8 +1966,21 @@
       pinConfirmInput.value = "";
       pinNotice.textContent = "";
       updatePinDots();
-      // 화면 표시 직후 지연 없이 입력창에 포커스를 준다.
-      pinInput.focus({ preventScroll: true });
+      // PIN 화면 표시 직후 포커스하고, 화면 전환/초기 렌더링이 끝난 뒤에도 재시도한다.
+      // 모바일 브라우저 정책에 따라 자동 키패드 표시는 제한될 수 있지만,
+      // 로딩 타이밍 때문에 포커스가 누락되는 경우를 줄인다.
+      const focusPinInput = () => {
+        if (pinScreen.hidden || pinForm.hidden) return;
+        try {
+          pinInput.focus({ preventScroll: true });
+        } catch (_) {
+          pinInput.focus();
+        }
+      };
+      focusPinInput();
+      requestAnimationFrame(focusPinInput);
+      setTimeout(focusPinInput, 300);
+      setTimeout(focusPinInput, 800);
     }
 
     function updatePinDots() {
