@@ -3339,7 +3339,9 @@
         return;
       }
       try {
-        // 운행기록 양식의 운행구간은 E~J 병합 셀이므로 HTML 표에 colspan=6을 지정합니다.
+        // 운행기록은 A~D 4개 셀 + E~J 병합 셀 구조로 복사합니다.
+        // text/plain을 함께 넣으면 Excel이 탭 구분 텍스트로 붙여넣어 병합을 풀 수 있어
+        // 운행기록은 HTML 형식만 클립보드에 기록해 병합 구조를 우선 사용합니다.
         if (tbodyId === "drivingExportRows" && navigator.clipboard?.write && window.ClipboardItem) {
           const escapeHtml = value => String(value)
             .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
@@ -3349,10 +3351,9 @@
             const route = '<td colspan="6">' + escapeHtml(cells[4] || "") + "</td>";
             return "<tr>" + firstFour + route + "</tr>";
           }).join("");
-          const html = '<html><head><meta charset="utf-8"></head><body><table>' + htmlRows + "</table></body></html>";
+          const html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"><meta name="ProgId" content="Excel.Sheet"></head><body><!--StartFragment--><table border="0" cellpadding="0" cellspacing="0" style="border-collapse:collapse">' + htmlRows + "</table><!--EndFragment--></body></html>";
           await navigator.clipboard.write([new ClipboardItem({
-            "text/html": new Blob([html], { type: "text/html" }),
-            "text/plain": new Blob([text], { type: "text/plain" })
+            "text/html": new Blob([html], { type: "text/html" })
           })]);
         } else if (navigator.clipboard?.writeText) {
           await navigator.clipboard.writeText(text);
