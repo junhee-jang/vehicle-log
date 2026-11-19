@@ -1941,9 +1941,8 @@
     let gateCheck = 0;
     let pinVerifiedUserId = null;
 
-    // PIN 화면이 실제로 표시되면 입력창에 포커스를 주고,
-    // 지원 브라우저에서는 VirtualKeyboard API로 시스템 키보드 표시도 요청한다.
-    // API 미지원 또는 호출 실패 시 기존 focus() 방식으로 자연스럽게 대체한다.
+    // PIN 화면이 표시된 직후와 앱이 다시 활성화될 때 입력창 포커스를 재시도한다.
+    // Android는 화면 복원 직후 첫 focus()를 무시하는 경우가 있어 짧은 간격으로 재시도한다.
     function focusPinInputWhenVisible() {
       if (pinScreen.hidden || pinForm.hidden) return;
       requestAnimationFrame(() => {
@@ -1954,24 +1953,40 @@
           pinInput.focus();
         }
 
-        // Chrome Android 등 VirtualKeyboard API 지원 환경에서
-        // PIN 입력창에 연결된 실제 시스템 키보드를 표시하도록 요청한다.
+        // 실제 입력창이 포커스를 얻은 경우에만 시스템 키보드 표시를 요청한다.
         try {
           const virtualKeyboard = navigator.virtualKeyboard;
-          if (virtualKeyboard && typeof virtualKeyboard.show === "function") {
+          if (document.activeElement === pinInput &&
+              virtualKeyboard && typeof virtualKeyboard.show === "function") {
             virtualKeyboard.show();
           }
         } catch (error) {
-          console.debug("VirtualKeyboard API 표시 요청을 사용할 수 없어 기존 키보드 동작으로 전환했어.", error);
+          console.debug("시스템 키보드 자동 표시 요청이 제한되었어.", error);
         }
       });
     }
-    const pinScreenVisibilityObserver = new MutationObserver(() => {
+
+    function retryPinInputFocus() {
+      if (pinScreen.hidden || pinForm.hidden) return;
       focusPinInputWhenVisible();
+      // 앱/브라우저 복원 과정에서 레이아웃과 입력창 준비가 늦는 경우를 보완한다.
+      window.setTimeout(focusPinInputWhenVisible, 180);
+      window.setTimeout(focusPinInputWhenVisible, 420);
+    }
+
+    const pinScreenVisibilityObserver = new MutationObserver(() => {
+      retryPinInputFocus();
     });
     pinScreenVisibilityObserver.observe(pinScreen, {
       attributes: true,
       attributeFilter: ["hidden"]
+    });
+
+    // 기존 로그인 세션으로 앱이 다시 열리거나 백그라운드에서 복귀할 때도 재시도한다.
+    window.addEventListener("pageshow", retryPinInputFocus);
+    window.addEventListener("focus", retryPinInputFocus);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") retryPinInputFocus();
     });
 
     // 브라우저별 고유 ID: 모바일/PC 및 브라우저마다 독립 PIN 인증을 유지한다.
