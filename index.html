@@ -1930,8 +1930,9 @@
     let gateCheck = 0;
     let pinVerifiedUserId = null;
 
-    // PIN 화면이 실제로 표시되는 순간을 감지해 입력창에 포커스를 준다.
-    // 세션 확인이 스플래시 종료보다 늦게 끝나는 경우에도 화면 표시 시점을 놓치지 않는다.
+    // PIN 화면이 실제로 표시되면 입력창에 포커스를 주고,
+    // 지원 브라우저에서는 VirtualKeyboard API로 시스템 키보드 표시도 요청한다.
+    // API 미지원 또는 호출 실패 시 기존 focus() 방식으로 자연스럽게 대체한다.
     function focusPinInputWhenVisible() {
       if (pinScreen.hidden || pinForm.hidden) return;
       requestAnimationFrame(() => {
@@ -1940,6 +1941,17 @@
           pinInput.focus({ preventScroll: true });
         } catch (_) {
           pinInput.focus();
+        }
+
+        // Chrome Android 등 VirtualKeyboard API 지원 환경에서
+        // PIN 입력창에 연결된 실제 시스템 키보드를 표시하도록 요청한다.
+        try {
+          const virtualKeyboard = navigator.virtualKeyboard;
+          if (virtualKeyboard && typeof virtualKeyboard.show === "function") {
+            virtualKeyboard.show();
+          }
+        } catch (error) {
+          console.debug("VirtualKeyboard API 표시 요청을 사용할 수 없어 기존 키보드 동작으로 전환했어.", error);
         }
       });
     }
