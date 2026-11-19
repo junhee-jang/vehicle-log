@@ -151,7 +151,7 @@
     .documents-tab { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; min-width:0; min-height:68px; padding:9px 5px; border:1px solid transparent; border-radius:10px; background:transparent; color:#aab5c2; font-size:12px; font-weight:700; white-space:nowrap; }
     .documents-tab-icon { display:flex; align-items:center; justify-content:center; width:34px; height:34px; flex:0 0 34px; line-height:1; }\n    .documents-tab-icon svg { display:block; width:100%; height:100%; overflow:visible; }
     /* 자료받기 > 운행기록 탭 그림만 확대 */
-    [data-doc-tab="driving"] .documents-tab-icon { width:46px; height:46px; flex-basis:46px; }
+    [data-doc-tab="driving"] .documents-tab-icon { width:50px; height:50px; flex-basis:50px; }
     .documents-tab.active { border-color:#4a8d79; background:#243b36; color:#baf2dc; box-shadow:inset 0 1px 0 #ffffff0b; }
     .documents-panel[hidden] { display:none !important; }
     @media(max-width:480px) { .documents-tabs { gap:5px; padding:4px; } .documents-tab { min-height:62px; font-size:11px; } .documents-tab-icon { font-size:18px; } }
@@ -1002,7 +1002,12 @@
           <circle cx="25" cy="23" r="12" fill="#ffc94d"/>
           <g stroke="#ffc94d" stroke-width="3.5" stroke-linecap="round"><path d="M25 4v5M25 37v5M6 23h5M39 23h5M11.6 9.6l3.6 3.6M35 33l3.6 3.6M38.4 9.6 35 13.2M15.2 33l-3.6 3.6"/></g>
           <path d="M17 45c0-6 4.8-10.5 10.5-10.5 1.7-7 7-11.5 13.5-11.5 7.7 0 13 5.7 13 13 4.3 1 7 4.2 7 8.5 0 4.8-4 8.5-9 8.5H28c-6.5 0-11-3.2-11-8z" fill="#e8f1fb" stroke="#a9bfd3" stroke-width="2"/>
-          <path d="m28 51-3 6m15-6-3 6m15-6-3 6" stroke="#77b9e8" stroke-width="3" stroke-linecap="round"/>
+          <path d="m25 51-3 5m15-5-3 5m15-5-3 5" stroke="#77b9e8" stroke-width="3" stroke-linecap="round"/>
+          <g stroke="#68b5ed" stroke-width="2.4" stroke-linecap="round">
+            <path d="M22 58v5m-2.5-2.5h5m-4.2-1.7 3.4 3.4m0-3.4-3.4 3.4"/>
+            <path d="M40 55v6m-3-3h6m-5.1-2.1 4.2 4.2m0-4.2-4.2 4.2"/>
+            <path d="M55 57v5m-2.5-2.5h5m-4.2-1.7 3.4 3.4m0-3.4-3.4 3.4"/>
+          </g>
         </svg></span><span>날씨 조회</span>
       </button>
       <button type="button" class="documents-tab" data-doc-tab="driving" aria-pressed="false">
@@ -1030,12 +1035,18 @@
       </button>
       <button type="button" class="documents-tab" data-doc-tab="expenses" aria-pressed="false">
         <span class="documents-tab-icon" aria-hidden="true"><svg viewBox="0 0 64 64">
-          <path d="M10 56V12a5 5 0 0 1 5-5h22a5 5 0 0 1 5 5v44z" fill="#42d8b1" stroke="#168c78" stroke-width="2.5"/>
-          <path d="M18 14h16v11H18z" fill="#173b3b"/>
-          <path d="M26 29c-4 6-7 9-7 13a7 7 0 0 0 14 0c0-4-3-7-7-13z" fill="#176c60"/>
-          <path d="M42 17h6l7 7v19a4 4 0 0 1-8 0V29h-5" fill="none" stroke="#e9f0f6" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="m43 50 5 5 10-12" fill="none" stroke="#9fe5cb" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <defs>
+            <linearGradient id="fuelPumpRed" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ff7777"/><stop offset="1" stop-color="#c92338"/></linearGradient>
+            <linearGradient id="fuelPumpGlass" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#26384a"/><stop offset="1" stop-color="#111c29"/></linearGradient>
+          </defs>
+          <path d="M11 56V12a5 5 0 0 1 5-5h21a5 5 0 0 1 5 5v44z" fill="url(#fuelPumpRed)" stroke="#a91f32" stroke-width="2.5" stroke-linejoin="round"/>
+          <path d="M17 13h19v17H17z" rx="2" fill="url(#fuelPumpGlass)" stroke="#ffb0aa" stroke-width="1.5"/>
+          <path d="M21 18h11m-11 5h7" stroke="#ffdedb" stroke-width="2" stroke-linecap="round"/>
+          <path d="M26.5 34c-4 6-7 9-7 13a7 7 0 0 0 14 0c0-4-3-7-7-13z" fill="#ffdbd4" stroke="#b9283a" stroke-width="1.2"/>
+          <path d="M42 17h5l7 7v18a4 4 0 0 1-8 0V29h-4" fill="none" stroke="#dce5ef" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M47 17v-4" stroke="#dce5ef" stroke-width="3" stroke-linecap="round"/>
           <path d="M10 56h34" stroke="#a9b7c6" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M14 10h23" stroke="#ffb0aa" stroke-width="1.5" stroke-linecap="round" opacity=".8"/>
         </svg></span><span>주유/정비내역</span>
       </button>
     </nav>
