@@ -3355,12 +3355,12 @@
             const lastRow = rowIndex === cellRows.length - 1;
             const bottomWidth = lastRow && cellRows.length === 31 ? "1.5pt" : "0.5pt";
             const border = (side, width) =>
-              "border-" + side + ":solid windowtext " + width + ";" +
-              "mso-border-" + side + "-alt:solid windowtext " + width + ";";
+              "border-" + side + ":" + width + " solid #000000;" +
+              "mso-border-" + side + "-alt:" + width + " solid #000000;";
             const common = "font-family:'맑은 고딕','Malgun Gothic',sans-serif;font-size:11pt;font-weight:normal;color:#000000;vertical-align:middle;white-space:nowrap;padding:0cm;";
             const sideBorders = border("top", "0.5pt") + border("bottom", bottomWidth);
             const cellStyle = (align, leftWidth, rightWidth) =>
-              common + "text-align:" + align + ";" + sideBorders +
+              common + "border:0.5pt solid #000000;text-align:" + align + ";" + sideBorders +
               border("left", leftWidth) + border("right", rightWidth);
             const dateStyle = cellStyle("center", "1.5pt", "0.5pt");
             const dateCell = "<td align='center' valign='middle' style='" + dateStyle + "'>" +
