@@ -3357,14 +3357,14 @@
                 ? "border-left:1.5pt solid windowtext;mso-border-left-alt:solid windowtext 1.5pt;"
                 : "";
               const style = base + "text-align:" + align + ";" + left + bottom;
-              return "<td align=\\"" + align + "\\" valign=\\"middle\\" style=\\"" + style + "\\">" + safe(value) + "</td>";
+              return "<td align='" + align + "' valign='middle' style='" + style + "'>" + safe(value) + "</td>";
             }).join("");
             const route = safe(cells[4] || "");
             const routeStyle = base + "text-align:center;border-right:1.5pt solid windowtext;mso-border-right-alt:solid windowtext 1.5pt;" + bottom;
-            const routeCell = "<td colspan=\\"6\\" align=\\"center\\" valign=\\"middle\\" style=\\"" + routeStyle + "\\">" + route + "</td>";
+            const routeCell = "<td colspan='6' align='center' valign='middle' style='" + routeStyle + "'>" + route + "</td>";
             return "<tr>" + normalCells + routeCell + "</tr>";
           }).join("");
-          const html = "<html xmlns:o=\\"urn:schemas-microsoft-com:office:office\\" xmlns:x=\\"urn:schemas-microsoft-com:office:excel\\" xmlns=\\"http://www.w3.org/TR/REC-html40\\"><head><meta http-equiv=\\"Content-Type\\" content=\\"text/html; charset=utf-8\\"><meta name=\\"ProgId\\" content=\\"Excel.Sheet\\"><meta name=\\"Generator\\" content=\\"Microsoft Excel 16\\"><style><!--table{border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;}td{font-family:'맑은 고딕','Malgun Gothic',sans-serif;font-size:11pt;mso-font-charset:129;}--></style></head><body><table border=\\"0\\" cellpadding=\\"0\\" cellspacing=\\"0\\"><!--StartFragment-->" + htmlRows + "<!--EndFragment--></table></body></html>";
+          const html = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:x='urn:schemas-microsoft-com:office:excel' xmlns='http://www.w3.org/TR/REC-html40'><head><meta http-equiv='Content-Type' content='text/html; charset=utf-8'><meta name='ProgId' content='Excel.Sheet'><meta name='Generator' content='Microsoft Excel 16'><style><!--table{border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;}td{font-family:'맑은 고딕','Malgun Gothic',sans-serif;font-size:11pt;mso-font-charset:129;}--></style></head><body><table border='0' cellpadding='0' cellspacing='0'><!--StartFragment-->" + htmlRows + "<!--EndFragment--></table></body></html>";
           const item = new ClipboardItem({
             "text/html": new Blob([html], { type: "text/html" }),
             "text/plain": new Blob([text], { type: "text/plain" })
