@@ -2666,7 +2666,7 @@
       if (!vehicleDataReady || !activeTeamId || !activeUserId) return;
       const date = loadedLogDate;
       const displayDate = date.replace(/-/g, ".");
-      if (!confirm(`${displayDate} 운행기록만 초기화할까?\n\n운행정보와 경유지, 주유·요소수·정비내역이 모두 삭제돼. 다른 날짜 기록은 유지돼.`)) return;
+      if (!confirm(`${displayDate} 운행기록만 초기화할까?\n\n해당 날짜의 운행정보와 경유지만 초기화돼. 주유·요소수 기록과 정비기록은 그대로 유지돼.\n다른 날짜의 기록도 변경되지 않아.`)) return;
       clearTimeout(saveTimer);
       saveTimer = null;
       await currentLogSaveQueue;
@@ -2676,19 +2676,13 @@
           .select("id").eq("team_id", activeTeamId).eq("log_date", date).maybeSingle();
         if (findError) throw findError;
         if (log?.id) {
-          resetStage = "경유지 삭제";
+          resetStage = "경유지 초기화";
           const { error: stopsError } = await authClient.from("route_stops").delete().eq("log_id", log.id);
           if (stopsError) throw stopsError;
-          resetStage = "주유·요소수 삭제";
-          const { error: fluidsError } = await authClient.from("fuel_adblue_records").delete().eq("log_id", log.id);
-          if (fluidsError) throw fluidsError;
         }
-        resetStage = "정비내역 삭제";
-        const { error: maintenanceError } = await authClient.from("maintenance_records")
-          .delete().eq("team_id", activeTeamId).eq("maintenance_date", date);
-        if (maintenanceError) throw maintenanceError;
 
-        // 기존 날짜 행은 삭제하지 않고 미운행으로 갱신해 월간 자료에 날짜를 남긴다.
+        // 주유·요소수 및 정비기록은 보존하고 운행정보와 경유지만 초기화한다.
+        // 기존 행이 없더라도 월간 자료에 미운행 날짜가 표시되도록 행을 만든다.
         const clearedLog = {
           status: "미운행",
           previous_km: null,
