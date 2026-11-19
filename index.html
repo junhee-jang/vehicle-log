@@ -3281,8 +3281,8 @@
         return;
       }
       const text = rows.map(row => [...row.querySelectorAll("td")]
-        .map(cell => cell.innerText.replace(/\\t/g, " ").replace(/\\r?\\n/g, " ").trim())
-        .join("\\t")).join("\\n");
+        .map(cell => cell.innerText.replace(/\t/g, " ").replace(/\r?\n/g, " ").trim())
+        .join("\t")).join("\n");
       if (!text.trim()) {
         alert("복사할 자료가 없습니다.");
         return;
