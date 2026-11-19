@@ -1020,8 +1020,8 @@
           <thead><tr><th>운행일자</th><th>운행전</th><th>운행후</th><th>운행거리(Km)</th><th>운행구간</th></tr></thead>
           <tbody id="drivingExportRows"></tbody>
         </table></div>
-        <div class="documents-actions"><button class="primary" type="button" disabled>표 복사</button></div>
-        <p class="documents-copy-hint">표의 열과 행을 유지한 상태로 복사해 엑셀 셀에 붙여넣는 형태로 구성할 예정입니다.</p>
+        <div class="documents-actions"><button class="primary" type="button" id="copyDrivingTable">표 복사</button></div>
+        <p class="documents-copy-hint">운행기록 데이터만 복사됩니다. 엑셀에서 붙여넣을 셀을 선택한 뒤 붙여넣으세요.</p>
       </section>
     </section>
 
@@ -1039,8 +1039,8 @@
             <tbody id="expenseExportRows"></tbody>
           </table>
         </div>
-        <div class="documents-actions"><button class="primary" type="button" disabled>표 복사</button></div>
-        <p class="documents-copy-hint">엑셀의 차량 소모비용 입력란에 그대로 붙여넣을 수 있도록 구성할 예정입니다.</p>
+        <div class="documents-actions"><button class="primary" type="button" id="copyExpenseTable">표 복사</button></div>
+        <p class="documents-copy-hint">주유·정비 데이터만 복사됩니다. 표의 7개 열 배치를 그대로 유지합니다.</p>
       </section>
     </section>
 </section>
@@ -3271,6 +3271,53 @@
         }
       }
     }
+    // 화면에 표시된 자료 표의 데이터 셀만 탭/줄바꿈 형식으로 복사합니다.
+    async function copyExportTable(tbodyId, button) {
+      const tbody = document.getElementById(tbodyId);
+      const rows = [...(tbody?.querySelectorAll("tr") || [])]
+        .filter(row => !row.querySelector(".documents-empty"));
+      if (!rows.length) {
+        alert("복사할 자료가 없습니다.");
+        return;
+      }
+      const text = rows.map(row => [...row.querySelectorAll("td")]
+        .map(cell => cell.innerText.replace(/\\t/g, " ").replace(/\\r?\\n/g, " ").trim())
+        .join("\\t")).join("\\n");
+      if (!text.trim()) {
+        alert("복사할 자료가 없습니다.");
+        return;
+      }
+      try {
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          const temporary = document.createElement("textarea");
+          temporary.value = text;
+          temporary.style.position = "fixed";
+          temporary.style.opacity = "0";
+          document.body.appendChild(temporary);
+          temporary.select();
+          const copied = document.execCommand("copy");
+          temporary.remove();
+          if (!copied) throw new Error("클립보드 복사를 지원하지 않습니다.");
+        }
+        const originalText = button.textContent;
+        button.textContent = "복사 완료";
+        button.disabled = true;
+        window.setTimeout(() => {
+          button.textContent = originalText;
+          button.disabled = false;
+        }, 1300);
+      } catch (error) {
+        console.error("자료 복사 실패", error);
+        alert("복사하지 못했습니다. 브라우저의 클립보드 권한을 확인해 주세요.");
+      }
+    }
+    document.getElementById("copyDrivingTable")?.addEventListener("click", event =>
+      copyExportTable("drivingExportRows", event.currentTarget));
+    document.getElementById("copyExpenseTable")?.addEventListener("click", event =>
+      copyExportTable("expenseExportRows", event.currentTarget));
+
     refreshExportTables = renderExportTableRows;
     documentsYear.addEventListener("change", renderExportTableRows);
     documentsMonth.addEventListener("change", renderExportTableRows);
