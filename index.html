@@ -3142,12 +3142,18 @@
             const row = document.createElement("tr");
             const date = String(log.log_date);
             const isNoDrive = log.status === "미운행";
-            // 미운행일은 계기판 수치를 갖지 않으며, 다음 실제 운행일의 시작 수치를 직전 운행일의 종료 수치로 연결한다.
-            const nextDriveLog = isNoDrive ? null : (monthLogs.slice(index + 1)
-              .find(item => item.status !== "미운행" && item.previous_km != null) || exportNextDrivingLog);
-            const beforeKm = isNoDrive || log.previous_km == null ? null : Number(log.previous_km);
-            const afterKm = nextDriveLog?.previous_km == null ? null : Number(nextDriveLog.previous_km);
-            const distance = beforeKm != null && afterKm != null && afterKm >= beforeKm ? afterKm - beforeKm : null;
+            // 다음 실제 운행일의 운행전 수치가 직전 운행일의 운행후 수치다.
+            // 미운행일은 그 수치를 운행전·운행후에 동일하게 넣어 0km로 표시한다.
+            const nextDriveLog = monthLogs.slice(index + 1)
+              .find(item => item.status !== "미운행" && item.previous_km != null) || exportNextDrivingLog;
+            const beforeKm = isNoDrive
+              ? (nextDriveLog?.previous_km == null ? null : Number(nextDriveLog.previous_km))
+              : (log.previous_km == null ? null : Number(log.previous_km));
+            const afterKm = isNoDrive
+              ? beforeKm
+              : (nextDriveLog?.previous_km == null ? null : Number(nextDriveLog.previous_km));
+            const distance = isNoDrive ? 0
+              : (beforeKm != null && afterKm != null && afterKm >= beforeKm ? afterKm - beforeKm : null);
             addDrivingCell(row, date);
             addDrivingCell(row, beforeKm == null ? "" : beforeKm.toLocaleString("ko-KR"));
             addDrivingCell(row, afterKm == null ? "" : afterKm.toLocaleString("ko-KR"));
