@@ -2328,9 +2328,38 @@
 
     async function persistEventRecord(item) {
       if (!activeTeamId || !activeUserId) throw new Error("vehicle_data_not_ready");
-      const logId = await saveCurrentLogNow(loadedLogDate);
-      if (!logId) throw new Error("daily_log_not_saved");
+
+      // 주유·요소수는 DB 구조상 daily_logs의 log_id가 필요하다.
+      // 기존 운행일지가 있으면 연결만 하고, 없으면 기본 미운행 행만 만들어 연결한다.
+      // 입력 중인 운행정보를 이 과정에서 저장하거나 덮어쓰지 않는다.
       if (item.type === "주유" || item.type === "요소수") {
+        let logId = null;
+        const { data: existingLog, error: findLogError } = await authClient
+          .from("daily_logs")
+          .select("id")
+          .eq("team_id", activeTeamId)
+          .eq("log_date", loadedLogDate)
+          .maybeSingle();
+        if (findLogError) throw findLogError;
+
+        logId = existingLog?.id || null;
+        if (!logId) {
+          const { data: anchorLog, error: createLogError } = await authClient
+            .from("daily_logs")
+            .insert({
+              team_id: activeTeamId,
+              log_date: loadedLogDate,
+              status: "미운행",
+              origin: "남청주",
+              created_by: activeUserId
+            })
+            .select("id")
+            .single();
+          if (createLogError) throw createLogError;
+          logId = anchorLog.id;
+        }
+
+        if (loadedLogDate === $("date").value) currentDailyLogId = logId;
         const { data, error } = await authClient.from("fuel_adblue_records").insert({
           log_id: logId,
           recorded_at: item.time,
@@ -2345,6 +2374,7 @@
         item._dbId = data.id;
         item._dbTable = "fuel_adblue_records";
       } else {
+        // 정비 기록은 daily_logs와 무관하게 독립 테이블에 바로 저장한다.
         const { data, error } = await authClient.from("maintenance_records").insert({
           team_id: activeTeamId,
           maintenance_date: item.time.slice(0, 10),
