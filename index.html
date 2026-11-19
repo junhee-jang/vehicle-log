@@ -3333,8 +3333,13 @@
         return;
       }
       const cellRows = rows.map(row => [...row.querySelectorAll("td")]
-        .map(cell => cell.innerText.replace(/\t/g, " ").replace(/\r?\n/g, " ").trim()));
-      const text = cellRows.map(cells => cells.join("\t")).join("\n");
+        .map(cell => cell.innerText.replace(/\\t/g, " ").replace(/\\r?\\n/g, " ").trim()));
+      const plainRows = cellRows.map(cells => cells.map((value, index) => {
+        if (!mergedDriving || index !== 0 || !/^\\d{4}-\\d{2}-\\d{2}$/.test(value)) return value;
+        const [, year, month, day] = value.match(/^(\\d{4})-(\\d{2})-(\\d{2})$/);
+        return month + "월 " + day + "일";
+      }));
+      const text = plainRows.map(cells => cells.join("\\t")).join("\\n");
       if (!text.trim()) {
         alert("복사할 자료가 없습니다.");
         return;
@@ -3344,27 +3349,43 @@
           if (!navigator.clipboard?.write || typeof ClipboardItem === "undefined") {
             throw new Error("HTML 클립보드 복사를 지원하지 않는 브라우저입니다.");
           }
-          const safe = value => value.replace(/&/g, "&amp;").replace(/</g, "&lt;")
+          const safe = value => String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;")
             .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+          const excelDateSerial = value => {
+            const match = value.match(/^(\\d{4})-(\\d{2})-(\\d{2})$/);
+            if (!match) return null;
+            const utc = Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+            return Math.round(utc / 86400000) + 25569;
+          };
           const htmlRows = cellRows.map((cells, rowIndex) => {
-            const bottom = rowIndex === 30
-              ? "border-bottom:1.5pt solid windowtext;mso-border-bottom-alt:solid windowtext 1.5pt;"
-              : "";
-            const base = "font-family:'맑은 고딕','Malgun Gothic',sans-serif;font-size:11pt;font-weight:normal;vertical-align:middle;white-space:nowrap;padding:2px 4px;border:0.5pt solid windowtext;mso-border-alt:solid windowtext 0.5pt;";
-            const normalCells = cells.slice(0, 4).map((value, index) => {
+            const lastRow = rowIndex === cellRows.length - 1;
+            const bottomWidth = lastRow && cellRows.length === 31 ? "1.5pt" : "0.5pt";
+            const border = (side, width) =>
+              "border-" + side + ":solid windowtext " + width + ";" +
+              "mso-border-" + side + "-alt:solid windowtext " + width + ";";
+            const common = "font-family:'맑은 고딕','Malgun Gothic',sans-serif;font-size:11pt;font-weight:normal;color:#000000;vertical-align:middle;white-space:nowrap;padding:0cm;";
+            const sideBorders = border("top", "0.5pt") + border("bottom", bottomWidth);
+            const cellStyle = (align, leftWidth, rightWidth) =>
+              common + "text-align:" + align + ";" + sideBorders +
+              border("left", leftWidth) + border("right", rightWidth);
+            const dateSerial = excelDateSerial(cells[0] || "");
+            const dateStyle = cellStyle("center", "1.5pt", "0.5pt") +
+              "mso-number-format:'mm\"월\" dd\"일\"';";
+            const dateCell = dateSerial == null
+              ? "<td align='center' valign='middle' style='" + dateStyle + "'>" + safe(cells[0] || "") + "</td>"
+              : "<td x:num='" + dateSerial + "' align='center' valign='middle' style='" + dateStyle + "'>" + dateSerial + "</td>";
+            const normalCells = cells.slice(1, 4).map((value, offset) => {
+              const index = offset + 1;
               const align = index === 2 ? "right" : "center";
-              const left = index === 0
-                ? "border-left:1.5pt solid windowtext;mso-border-left-alt:solid windowtext 1.5pt;"
-                : "";
-              const style = base + "text-align:" + align + ";" + left + bottom;
+              const style = cellStyle(align, "0.5pt", "0.5pt");
               return "<td align='" + align + "' valign='middle' style='" + style + "'>" + safe(value) + "</td>";
             }).join("");
             const route = safe(cells[4] || "");
-            const routeStyle = base + "text-align:center;border-right:1.5pt solid windowtext;mso-border-right-alt:solid windowtext 1.5pt;" + bottom;
+            const routeStyle = cellStyle("center", "0.5pt", "1.5pt");
             const routeCell = "<td colspan='6' align='center' valign='middle' style='" + routeStyle + "'>" + route + "</td>";
-            return "<tr>" + normalCells + routeCell + "</tr>";
+            return "<tr>" + dateCell + normalCells + routeCell + "</tr>";
           }).join("");
-          const html = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:x='urn:schemas-microsoft-com:office:excel' xmlns='http://www.w3.org/TR/REC-html40'><head><meta http-equiv='Content-Type' content='text/html; charset=utf-8'><meta name='ProgId' content='Excel.Sheet'><meta name='Generator' content='Microsoft Excel 16'><style><!--table{border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;}td{font-family:'맑은 고딕','Malgun Gothic',sans-serif;font-size:11pt;mso-font-charset:129;}--></style></head><body><table border='0' cellpadding='0' cellspacing='0'><!--StartFragment-->" + htmlRows + "<!--EndFragment--></table></body></html>";
+          const html = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:x='urn:schemas-microsoft-com:office:excel' xmlns='http://www.w3.org/TR/REC-html40'><head><meta http-equiv='Content-Type' content='text/html; charset=utf-8'><meta name='ProgId' content='Excel.Sheet'><meta name='Generator' content='Microsoft Excel 16'><style><!--table{border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;}td{mso-font-charset:129;}--></style></head><body><table border='0' cellpadding='0' cellspacing='0'><!--StartFragment-->" + htmlRows + "<!--EndFragment--></table></body></html>";
           const item = new ClipboardItem({
             "text/html": new Blob([html], { type: "text/html" }),
             "text/plain": new Blob([text], { type: "text/plain" })
