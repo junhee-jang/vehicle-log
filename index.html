@@ -2610,6 +2610,30 @@
         destination: null,
         route: "미운행"
       }));
+      // 첫 기록일부터 마지막 기록일까지 입력이 비어 있는 날짜(주말 포함)를 미운행으로 채운다.
+      const activityDates = [
+        ...exportDailyLogs.map(log => String(log.log_date)),
+        ...exportEvents.map(item => String(item.time || "").slice(0, 10))
+      ].filter(date => /^\\d{4}-\\d{2}-\\d{2}$/.test(date)).sort();
+      if (activityDates.length) {
+        const existingDates = new Set(exportDailyLogs.map(log => String(log.log_date)));
+        const start = new Date(activityDates[0] + "T00:00:00");
+        const end = new Date(activityDates[activityDates.length - 1] + "T00:00:00");
+        for (const cursor = new Date(start); cursor <= end; cursor.setDate(cursor.getDate() + 1)) {
+          const date = localDateString(cursor);
+          if (existingDates.has(date)) continue;
+          exportDailyLogs.push({
+            id: null,
+            log_date: date,
+            status: "미운행",
+            previous_km: null,
+            origin: null,
+            destination: null,
+            route: "미운행"
+          });
+          existingDates.add(date);
+        }
+      }
     }
 
     function resetEventEntryFields() {
@@ -3085,7 +3109,6 @@
         drivingRows.replaceChildren();
         const monthLogs = exportDailyLogs.filter(log => String(log.log_date).slice(0, 7) === monthKey)
           .sort((a, b) => String(a.log_date).localeCompare(String(b.log_date)));
-        const logByDate = new Map(exportDailyLogs.map(log => [String(log.log_date), log]));
         const addDrivingCell = (row, value) => {
           const cell = document.createElement("td");
           cell.textContent = value == null ? "" : String(value);
@@ -3100,19 +3123,21 @@
           emptyRow.appendChild(emptyCell);
           drivingRows.appendChild(emptyRow);
         } else {
-          monthLogs.forEach(log => {
+          monthLogs.forEach((log, index) => {
             const row = document.createElement("tr");
             const date = String(log.log_date);
-            const tomorrow = localDateString(new Date(new Date(date + "T00:00:00").getTime() + 86400000));
-            const nextLog = logByDate.get(tomorrow);
-            const beforeKm = log.previous_km == null ? null : Number(log.previous_km);
-            const afterKm = nextLog?.previous_km == null ? null : Number(nextLog.previous_km);
+            const isNoDrive = log.status === "미운행";
+            // 미운행일은 계기판 수치를 갖지 않으며, 다음 실제 운행일의 시작 수치를 직전 운행일의 종료 수치로 연결한다.
+            const nextDriveLog = isNoDrive ? null : monthLogs.slice(index + 1)
+              .find(item => item.status !== "미운행" && item.previous_km != null);
+            const beforeKm = isNoDrive || log.previous_km == null ? null : Number(log.previous_km);
+            const afterKm = nextDriveLog?.previous_km == null ? null : Number(nextDriveLog.previous_km);
             const distance = beforeKm != null && afterKm != null && afterKm >= beforeKm ? afterKm - beforeKm : null;
             addDrivingCell(row, date);
             addDrivingCell(row, beforeKm == null ? "" : beforeKm.toLocaleString("ko-KR"));
             addDrivingCell(row, afterKm == null ? "" : afterKm.toLocaleString("ko-KR"));
             addDrivingCell(row, distance == null ? "" : distance.toLocaleString("ko-KR"));
-            addDrivingCell(row, log.route || "");
+            addDrivingCell(row, isNoDrive ? "미운행" : (log.route || ""));
             drivingRows.appendChild(row);
           });
         }
