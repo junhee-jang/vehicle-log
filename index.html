@@ -1786,69 +1786,83 @@
     addButton.disabled = true;
     const originalButtonText = addButton.textContent;
     addButton.textContent = "저장 중...";
+    let stage = "입력값 확인";
+    let addedEvent = null;
     try {
-    const type = $("eventType").value;
-    const amountText = $("eventAmount").value.trim();
-    const costText = $("eventCost").value.trim();
-    const unitPriceText = type === "주유" ? $("eventUnitPrice").value.trim() : "";
-    const memo = $("eventMemo").value.trim();
-    const isFluid = type === "주유" || type === "요소수";
-    const needsShop = type === "엔진오일교체" || type === "타이어교체" || type === "기타";
-    const selectedShop = needsShop ? $("eventShop").value : "";
-    const shopName = selectedShop === "기타(직접입력)" ? $("eventShopCustom").value.trim() : selectedShop;
-    if (type === "기타" && !memo) {
-      alert("기타 정비 내역을 직접 입력해 주세요.");
-      $("eventMemo").focus();
-      return;
-    }
-    if (needsShop && !selectedShop) {
-      alert("정비소를 선택해 주세요.");
-      $("eventShop").focus();
-      return;
-    }
-    if (selectedShop === "기타(직접입력)" && !shopName) {
-      alert("정비소명을 직접 입력해 주세요.");
-      $("eventShopCustom").focus();
-      return;
-    }
-    if (isFluid && !amountText && !costText && !memo) {
-      alert("주유량(요소수량), 금액 또는 메모 중 하나는 입력해 주세요.");
-      return;
-    }
-    if (!isFluid && !costText) {
-      alert("정비 금액을 입력해 주세요.");
-      $("eventCost").focus();
-      return;
-    }
-    const addedEvent = {
-      time: (() => { const now = localDateTimeString(new Date()); return isFluid ? loadedLogDate + now.slice(10) : now; })(),
-      type,
-      shop: shopName,
-      unitPrice: unitPriceText ? parseNumber(unitPriceText) : null,
-      amount: amountText ? (type === "주유" ? truncateFuelQuantity(amountText) : parseNumber(amountText)) : null,
-      cost: costText ? parseNumber(costText) : null,
-      memo
-    };
-    eventList.push(addedEvent);
-    renderEvents();
-    try {
+      const type = $("eventType").value;
+      const amountText = $("eventAmount").value.trim();
+      const costText = $("eventCost").value.trim();
+      const unitPriceText = type === "주유" ? $("eventUnitPrice").value.trim() : "";
+      const memo = $("eventMemo").value.trim();
+      const isFluid = type === "주유" || type === "요소수";
+      const needsShop = type === "엔진오일교체" || type === "타이어교체" || type === "기타";
+      const selectedShop = needsShop ? $("eventShop").value : "";
+      const shopName = selectedShop === "기타(직접입력)" ? $("eventShopCustom").value.trim() : selectedShop;
+      if (type === "기타" && !memo) {
+        alert("기타 정비 내역을 직접 입력해 주세요.");
+        $("eventMemo").focus();
+        return;
+      }
+      if (needsShop && !selectedShop) {
+        alert("정비소를 선택해 주세요.");
+        $("eventShop").focus();
+        return;
+      }
+      if (selectedShop === "기타(직접입력)" && !shopName) {
+        alert("정비소명을 직접 입력해 주세요.");
+        $("eventShopCustom").focus();
+        return;
+      }
+      if (isFluid && !amountText && !costText && !memo && !unitPriceText) {
+        alert("주유량(요소수량), 단가, 금액 또는 메모 중 하나는 입력해 주세요.");
+        return;
+      }
+      if (!isFluid && !costText) {
+        alert("정비 금액을 입력해 주세요.");
+        $("eventCost").focus();
+        return;
+      }
+      stage = "기록 데이터 구성";
+      const unitPrice = unitPriceText ? parseNumber(unitPriceText) : null;
+      const amount = amountText ? (type === "주유" ? truncateFuelQuantity(amountText) : parseNumber(amountText)) : null;
+      const cost = costText ? parseNumber(costText) : null;
+      if ((unitPriceText && !Number.isFinite(unitPrice)) || (amountText && !Number.isFinite(amount)) || (costText && !Number.isFinite(cost))) {
+        throw new Error("숫자 입력값을 확인해 줘.");
+      }
+      addedEvent = {
+        time: (() => { const now = localDateTimeString(new Date()); return isFluid ? loadedLogDate + now.slice(10) : now; })(),
+        type,
+        shop: shopName,
+        unitPrice,
+        amount,
+        cost,
+        memo
+      };
+      stage = "화면 목록 반영";
+      eventList.push(addedEvent);
+      renderEvents();
+
+      stage = "서버 저장";
       await vehicleDataState.saveEvent(addedEvent);
+      stage = "화면 갱신";
       refreshExportTables();
-    } catch (saveError) {
-      console.error("차량 기록 저장 실패", saveError);
-      alert("기록은 화면에 남겨 두었지만 서버 저장에 실패했어. 인터넷 연결을 확인한 뒤 다시 시도해 줘.");
-    }
-    $("eventUnitPrice").value = "";
-    $("eventAmount").value = type === "주유" ? "" : type === "요소수" ? "0" : "";
-    $("eventCost").value = type === "주유" ? "60,000" : type === "요소수" ? "10,000" : "0";
-    $("eventMemo").value = "";
-    $("eventShopCustom").value = "";
-    $("eventShop").value = "";
-    updateFuelFields();
-    refreshExportTables();
+
+      $("eventUnitPrice").value = "";
+      $("eventAmount").value = type === "주유" ? "" : type === "요소수" ? "0" : "";
+      $("eventCost").value = type === "주유" ? "60,000" : type === "요소수" ? "10,000" : "0";
+      $("eventMemo").value = "";
+      $("eventShopCustom").value = "";
+      $("eventShop").value = "";
+      updateFuelFields();
+      refreshExportTables();
     } catch (addError) {
-      console.error("주유·정비 기록 추가 처리 실패", addError);
-      alert("기록 추가 중 문제가 발생했어. 입력값과 인터넷 연결을 확인해 줘.");
+      console.error("주유·정비 기록 추가 처리 실패", { stage, error: addError });
+      if (addedEvent && !addedEvent._dbId) {
+        const index = eventList.indexOf(addedEvent);
+        if (index >= 0) eventList.splice(index, 1);
+        try { renderEvents(); } catch (_) {}
+      }
+      alert(`기록 추가 실패 · ${stage}\n${addError?.message || addError}`);
     } finally {
       addButton.disabled = false;
       addButton.textContent = originalButtonText;
@@ -2344,19 +2358,31 @@
 
         logId = existingLog?.id || null;
         if (!logId) {
+          // 동시에 두 기기에서 같은 날짜에 주유 기록을 추가해도 기본 운행일지가 중복 생성되지 않게 처리한다.
           const { data: anchorLog, error: createLogError } = await authClient
             .from("daily_logs")
-            .insert({
+            .upsert({
               team_id: activeTeamId,
               log_date: loadedLogDate,
               status: "미운행",
               origin: "남청주",
               created_by: activeUserId
-            })
+            }, { onConflict: "team_id,log_date", ignoreDuplicates: true })
             .select("id")
-            .single();
+            .maybeSingle();
           if (createLogError) throw createLogError;
-          logId = anchorLog.id;
+          logId = anchorLog?.id || null;
+          // 충돌로 인해 insert가 건너뛰어진 경우 기존 행의 ID를 다시 읽는다.
+          if (!logId) {
+            const { data: retryLog, error: retryLogError } = await authClient
+              .from("daily_logs")
+              .select("id")
+              .eq("team_id", activeTeamId)
+              .eq("log_date", loadedLogDate)
+              .single();
+            if (retryLogError) throw retryLogError;
+            logId = retryLog.id;
+          }
         }
 
         if (loadedLogDate === $("date").value) currentDailyLogId = logId;
