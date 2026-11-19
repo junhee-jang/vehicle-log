@@ -1781,6 +1781,12 @@
   });
 
   $("addEvent").addEventListener("click", async () => {
+    const addButton = $("addEvent");
+    if (addButton.disabled) return;
+    addButton.disabled = true;
+    const originalButtonText = addButton.textContent;
+    addButton.textContent = "저장 중...";
+    try {
     const type = $("eventType").value;
     const amountText = $("eventAmount").value.trim();
     const costText = $("eventCost").value.trim();
@@ -1840,6 +1846,13 @@
     $("eventShop").value = "";
     updateFuelFields();
     refreshExportTables();
+    } catch (addError) {
+      console.error("주유·정비 기록 추가 처리 실패", addError);
+      alert("기록 추가 중 문제가 발생했어. 입력값과 인터넷 연결을 확인해 줘.");
+    } finally {
+      addButton.disabled = false;
+      addButton.textContent = originalButtonText;
+    }
   });
   function renderEvents() {
     const holder = $("eventList");
@@ -1851,10 +1864,17 @@
       const title = document.createElement("strong");
       title.textContent = `${index + 1}. ${item.type}`;
       const desc = document.createElement("span");
-      const unitPrice = item.unitPrice !== null && item.unitPrice !== undefined ? `단가 ${item.unitPrice.toLocaleString("ko-KR")}원/L` : "";
-      const displayedAmount = item.type === "주유" && item.amount != null ? truncateFuelQuantity(item.amount) : item.amount;
-      const amount = displayedAmount !== null && displayedAmount !== undefined ? `${displayedAmount.toLocaleString("ko-KR", { maximumFractionDigits: 2 })} L` : "";
-      const cost = item.cost !== null ? `${item.cost.toLocaleString("ko-KR")}원` : "";
+      // 과거 저장 데이터에 값이 비어 있거나 숫자 문자열로 남아 있어도 목록 렌더링이 중단되지 않도록 안전하게 변환한다.
+      const unitPriceValue = item.unitPrice == null || item.unitPrice === "" ? null : Number(item.unitPrice);
+      const amountValue = item.amount == null || item.amount === "" ? null : Number(item.amount);
+      const costValue = item.cost == null || item.cost === "" ? null : Number(item.cost);
+      const unitPrice = Number.isFinite(unitPriceValue) ? `단가 ${unitPriceValue.toLocaleString("ko-KR")}원/L` : "";
+      const displayedAmount = Number.isFinite(amountValue)
+        ? (item.type === "주유" ? truncateFuelQuantity(amountValue) : amountValue)
+        : null;
+      const amount = displayedAmount != null && Number.isFinite(displayedAmount)
+        ? `${displayedAmount.toLocaleString("ko-KR", { maximumFractionDigits: 2 })} L` : "";
+      const cost = Number.isFinite(costValue) ? `${costValue.toLocaleString("ko-KR")}원` : "";
       desc.textContent = [item.shop, unitPrice, amount, cost, item.memo].filter(Boolean).join(" · ");
       detail.append(title, desc);
       const remove = document.createElement("button");
@@ -2169,8 +2189,10 @@
       if (!status) return;
       if (label === "saved") {
         const date = updatedAt instanceof Date ? updatedAt : new Date(updatedAt || Date.now());
-        const time = Number.isNaN(date.getTime()) ? "" : date.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false });
-        status.textContent = time ? `(${time} 최종 업데이트됨)` : "(저장 완료)";
+        const dateTime = Number.isNaN(date.getTime()) ? "" : date.toLocaleString("ko-KR", {
+          month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false
+        });
+        status.textContent = dateTime ? `(${dateTime} 최종 업데이트됨)` : "(저장 완료)";
         status.dataset.state = "saved";
       } else {
         const labels = { empty: "(내역 없음)", saving: "(저장 중)", failed: "(저장 실패)", loading: "(불러오는 중)" };
