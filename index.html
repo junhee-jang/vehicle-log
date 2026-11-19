@@ -1881,7 +1881,24 @@
     const finishSplash = () => {
       splash.classList.add("is-leaving");
       document.body.classList.remove("splash-active");
-      window.setTimeout(() => splash.remove(), 520);
+      window.setTimeout(() => {
+        splash.remove();
+
+        // 스플래시가 완전히 사라진 뒤 PIN 화면이 표시 중이면 입력창 포커스를 다시 시도한다.
+        // 인증 화면 전환이 스플래시 종료보다 늦는 경우를 고려해 짧게 여러 번 확인한다.
+        const focusPinAfterSplash = () => {
+          const pinScreen = document.getElementById("pinScreen");
+          const pinForm = document.getElementById("pinForm");
+          const pinInput = document.getElementById("pinInput");
+          if (!pinScreen || !pinForm || !pinInput || pinScreen.hidden || pinForm.hidden) return;
+          try {
+            pinInput.focus({ preventScroll: true });
+          } catch (_) {
+            pinInput.focus();
+          }
+        };
+        [120, 420, 800].forEach(delay => window.setTimeout(focusPinAfterSplash, delay));
+      }, 520);
     };
     window.setTimeout(finishSplash, 1650);
   })();
