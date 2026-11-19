@@ -995,9 +995,34 @@
     </header>
 
     <nav class="documents-tabs" aria-label="자료 종류">
-      <button type="button" class="documents-tab active" data-doc-tab="weather" aria-pressed="true"><span class="documents-tab-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><circle cx="24" cy="20" r="8" fill="#ffc94d"/><g stroke="#ffc94d" stroke-width="3.5" stroke-linecap="round"><path d="M24 4v5M24 31v5M8 20h5m22 0h5M12.7 8.7l3.5 3.5m15.6 15.6 3.5 3.5m0-22.6-3.5 3.5m-15.6 15.6-3.5 3.5"/></g><path d="M12 34c0-4.5 3.6-8 8-8 1.2-5 5.2-8 10-8 5.6 0 9.5 4.1 9.5 9.3 3.1.7 5.5 3.2 5.5 6.4 0 3.6-3 6.3-6.8 6.3H20c-4.6 0-8-2.8-8-7.0z" fill="#e8f1fb" stroke="#a9bfd3" stroke-width="1.5"/></svg></span><span>날씨 조회</span></button>
-      <button type="button" class="documents-tab" data-doc-tab="driving" aria-pressed="false"><span class="documents-tab-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><rect x="10" y="5" width="26" height="37" rx="4" fill="#e8eef5" stroke="#aebdce" stroke-width="1.5"/><path d="M16 16h14M16 22h14M16 28h9" stroke="#8298ae" stroke-width="2.5" stroke-linecap="round"/><circle cx="35" cy="34" r="10" fill="#42d8b1" stroke="#173b37" stroke-width="1.5"/><path d="M35 28v6l4 2" fill="none" stroke="#123b35" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>운행기록</span></button>
-      <button type="button" class="documents-tab" data-doc-tab="expenses" aria-pressed="false"><span class="documents-tab-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M9 42V9a4 4 0 0 1 4-4h16a4 4 0 0 1 4 4v33z" fill="#42d8b1" stroke="#168c78" stroke-width="1.5"/><path d="M15 11h12v8H15z" fill="#173b3b"/><path d="M21 24c-2.8 4-5 6.5-5 9a5 5 0 0 0 10 0c0-2.5-2.2-5-5-9z" fill="#176c60"/><path d="M33 12h4l4 5v13a3 3 0 0 1-6 0V20h-2" fill="none" stroke="#e9f0f6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 42h26" stroke="#a9b7c6" stroke-width="2" stroke-linecap="round"/></svg></span><span>주유/정비내역</span></button>
+      <button type="button" class="documents-tab active" data-doc-tab="weather" aria-pressed="true">
+        <span class="documents-tab-icon" aria-hidden="true"><svg viewBox="0 0 64 64">
+          <circle cx="25" cy="23" r="12" fill="#ffc94d"/>
+          <g stroke="#ffc94d" stroke-width="3.5" stroke-linecap="round"><path d="M25 4v5M25 37v5M6 23h5M39 23h5M11.6 9.6l3.6 3.6M35 33l3.6 3.6M38.4 9.6 35 13.2M15.2 33l-3.6 3.6"/></g>
+          <path d="M17 45c0-6 4.8-10.5 10.5-10.5 1.7-7 7-11.5 13.5-11.5 7.7 0 13 5.7 13 13 4.3 1 7 4.2 7 8.5 0 4.8-4 8.5-9 8.5H28c-6.5 0-11-3.2-11-8z" fill="#e8f1fb" stroke="#a9bfd3" stroke-width="2"/>
+          <path d="m28 51-3 6m15-6-3 6m15-6-3 6" stroke="#77b9e8" stroke-width="3" stroke-linecap="round"/>
+        </svg></span><span>날씨 조회</span>
+      </button>
+      <button type="button" class="documents-tab" data-doc-tab="driving" aria-pressed="false">
+        <span class="documents-tab-icon" aria-hidden="true"><svg viewBox="0 0 64 64">
+          <path d="M12 7h29l12 12v38H12z" fill="#e8eef5" stroke="#aebdce" stroke-width="2.5" stroke-linejoin="round"/>
+          <path d="M41 7v13h12" fill="#cbd7e4" stroke="#aebdce" stroke-width="2"/>
+          <path d="M21 28h22M21 35h15" stroke="#8298ae" stroke-width="3" stroke-linecap="round"/>
+          <path d="M21 46c5-7 9-10 15-10" fill="none" stroke="#27c99d" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="3 4"/>
+          <circle cx="42" cy="45" r="10" fill="#42d8b1" stroke="#173b37" stroke-width="2"/>
+          <path d="M37 45h10m-4-4 4 4-4 4" fill="none" stroke="#123b35" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg></span><span>운행기록</span>
+      </button>
+      <button type="button" class="documents-tab" data-doc-tab="expenses" aria-pressed="false">
+        <span class="documents-tab-icon" aria-hidden="true"><svg viewBox="0 0 64 64">
+          <path d="M10 56V12a5 5 0 0 1 5-5h22a5 5 0 0 1 5 5v44z" fill="#42d8b1" stroke="#168c78" stroke-width="2.5"/>
+          <path d="M18 14h16v11H18z" fill="#173b3b"/>
+          <path d="M26 29c-4 6-7 9-7 13a7 7 0 0 0 14 0c0-4-3-7-7-13z" fill="#176c60"/>
+          <path d="M42 17h6l7 7v19a4 4 0 0 1-8 0V29h-5" fill="none" stroke="#e9f0f6" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="m43 50 5 5 10-12" fill="none" stroke="#9fe5cb" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M10 56h34" stroke="#a9b7c6" stroke-width="2.5" stroke-linecap="round"/>
+        </svg></span><span>주유/정비내역</span>
+      </button>
     </nav>
 
     <section class="documents-panel" data-doc-panel="weather">
