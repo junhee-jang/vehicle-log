@@ -3323,8 +3323,8 @@
         }
       }
     }
-    // 엑셀 병합 셀 구조를 반영해 자료를 복사합니다.
-    async function copyExportTable(tbodyId, button) {
+    // 엑셀 운행기록 양식의 E:J 병합 구조를 HTML 클립보드에 그대로 표현합니다.
+    async function copyExportTable(tbodyId, button, mergedDriving = false) {
       const tbody = document.getElementById(tbodyId);
       const rows = [...(tbody?.querySelectorAll("tr") || [])]
         .filter(row => !row.querySelector(".documents-empty"));
@@ -3340,9 +3340,26 @@
         return;
       }
       try {
-        // 엑셀의 병합 셀과 HTML 클립보드 구조가 충돌하지 않도록 탭 구분 텍스트만 복사합니다.
-        // 대상 양식의 E~J 병합을 먼저 해제한 뒤 A열부터 붙여넣으면 5개 열이 정확히 들어갑니다.
-        if (navigator.clipboard?.writeText) {
+        if (mergedDriving) {
+          if (!navigator.clipboard?.write || typeof ClipboardItem === "undefined") {
+            throw new Error("HTML 클립보드 복사를 지원하지 않는 브라우저입니다.");
+          }
+          const safe = value => value.replace(/&/g, "&amp;").replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+          const htmlRows = cellRows.map(cells => {
+            const normalCells = cells.slice(0, 4)
+              .map(value => "<td align=\"center\" style=\"text-align:center;vertical-align:middle;\">" + safe(value) + "</td>")
+              .join("");
+            const route = safe(cells[4] || "");
+            return "<tr>" + normalCells + "<td colspan=\"6\" align=\"center\" valign=\"middle\" style=\"text-align:center;vertical-align:middle;\">" + route + "</td></tr>";
+          }).join("");
+          const html = "<html xmlns:o=\"urn:schemas-microsoft-com:office:office\" xmlns:x=\"urn:schemas-microsoft-com:office:excel\" xmlns=\"http://www.w3.org/TR/REC-html40\"><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"><meta name=\"ProgId\" content=\"Excel.Sheet\"><meta name=\"Generator\" content=\"Microsoft Excel 16\"><style><!--table{border-collapse:collapse;}td{font-family:Arial,sans-serif;font-size:10pt;padding:2px;text-align:center;vertical-align:middle;white-space:nowrap;}--></style></head><body><table border=\"0\" cellpadding=\"0\" cellspacing=\"0\"><!--StartFragment-->" + htmlRows + "<!--EndFragment--></table></body></html>";
+          const item = new ClipboardItem({
+            "text/html": new Blob([html], { type: "text/html" }),
+            "text/plain": new Blob([text], { type: "text/plain" })
+          });
+          await navigator.clipboard.write([item]);
+        } else if (navigator.clipboard?.writeText) {
           await navigator.clipboard.writeText(text);
         } else {
           const temporary = document.createElement("textarea");
@@ -3364,11 +3381,13 @@
         }, 1300);
       } catch (error) {
         console.error("자료 복사 실패", error);
-        alert("복사하지 못했습니다. 브라우저의 클립보드 권한을 확인해 주세요.");
+        alert(mergedDriving
+          ? "병합 셀용 복사에 실패했습니다. Chrome 또는 Edge에서 클립보드 권한을 허용해 주세요."
+          : "복사하지 못했습니다. 브라우저의 클립보드 권한을 확인해 주세요.");
       }
     }
     document.getElementById("copyDrivingTable")?.addEventListener("click", event =>
-      copyExportTable("drivingExportRows", event.currentTarget));
+      copyExportTable("drivingExportRows", event.currentTarget, true));
     document.getElementById("copyExpenseTable")?.addEventListener("click", event =>
       copyExportTable("expenseExportRows", event.currentTarget));
 
