@@ -2614,7 +2614,7 @@
       const activityDates = [
         ...exportDailyLogs.map(log => String(log.log_date)),
         ...exportEvents.map(item => String(item.time || "").slice(0, 10))
-      ].filter(date => /^\\d{4}-\\d{2}-\\d{2}$/.test(date)).sort();
+      ].filter(date => date.length === 10 && date[4] === "-" && date[7] === "-").sort();;
       if (activityDates.length) {
         const existingDates = new Set(exportDailyLogs.map(log => String(log.log_date)));
         const start = new Date(activityDates[0] + "T00:00:00");
