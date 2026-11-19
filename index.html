@@ -1830,7 +1830,7 @@
         throw new Error("숫자 입력값을 확인해 줘.");
       }
       addedEvent = {
-        time: (() => { const now = localDateTimeString(new Date()); return isFluid ? loadedLogDate + now.slice(10) : now; })(),
+        time: (() => { const now = localDateTimeString(new Date()); const selectedDate = $("date").value || localDateString(new Date()); return isFluid ? selectedDate + now.slice(10) : now; })(),
         type,
         shop: shopName,
         unitPrice,
