@@ -2010,6 +2010,8 @@
       pinConfirmInput.value = "";
       pinNotice.textContent = "";
       updatePinDots();
+      // PIN 화면에 진입하면 실제 키보드 포커스 성공 여부와 관계없이 동그라미를 먼저 활성 표시한다.
+      pinPanel.classList.add("pin-input-focused");
       // PIN 화면의 실제 표시 상태를 감지하는 관찰자가 포커스를 처리한다.
       // 이미 화면이 표시된 상태에서 PIN 단계만 바뀌는 경우도 놓치지 않도록 한 번 확인한다.
       focusPinInputWhenVisible();
@@ -2061,6 +2063,7 @@
         return false;
       }
       document.body.classList.remove("login-required", "pin-required");
+      pinPanel.classList.remove("pin-input-focused");
       screen.hidden = true;
       pinScreen.hidden = true;
       const resumeScreen = getResumeAppScreen();
@@ -2093,6 +2096,7 @@
       if (!signedIn) {
         if (signedInUserName) signedInUserName.hidden = true;
         document.body.classList.remove("pin-required");
+        pinPanel.classList.remove("pin-input-focused");
         document.body.classList.add("login-required");
         screen.hidden = false;
         pinScreen.hidden = true;
