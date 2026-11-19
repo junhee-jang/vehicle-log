@@ -585,6 +585,7 @@
       }
     }
 
+    /* 앱 전환 시 복구할 시작 스플래시 스타일
     /* 충북제한단속 시스템 시작 스플래시 */
     body.splash-active { overflow: hidden; }
     .system-splash {
@@ -621,6 +622,8 @@
         animation: none !important; transition: none !important;
       }
     }
+
+    */
 
     /* 이메일 로그인 화면 */
     body.login-required { min-height: 100vh; overflow: hidden; padding: 0; }
@@ -686,13 +689,15 @@
     }
   </style>
 </head>
-<body class="splash-active login-required">
+<body class="login-required">
 
+<!-- 앱 전환 시 복구할 시작 스플래시 화면
 <div class="system-splash" id="systemSplash" role="status" aria-label="충북제한단속 시스템 시작">
   <img class="system-splash-logo" src="sv-logo.svg?v=original-trace-2" alt="SV 로고">
   <h1 class="system-splash-title">충북제한단속 시스템</h1>
   <span class="system-splash-accent" aria-hidden="true"></span>
 </div>
+-->
 
 <div class="login-screen" id="loginScreen">
   <div class="login-panel">
@@ -1874,6 +1879,7 @@
 
 
 
+  /* 앱 전환 시 복구할 시작 스플래시 동작
   // 시작 스플래시: 기존 차량운행일지 화면으로 자연스럽게 연결
   (() => {
     const splash = document.getElementById("systemSplash");
@@ -1885,6 +1891,8 @@
     };
     window.setTimeout(finishSplash, 1650);
   })();
+
+  */
 
   // Supabase 이메일/비밀번호 인증 및 로그인 세션 유지
   (() => {
