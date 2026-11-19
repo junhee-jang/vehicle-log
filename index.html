@@ -2201,6 +2201,7 @@
     let lastSavedAt = null;
     let saveTimer = null;
     let exportDailyLogs = [];
+    let exportNextDrivingLog = null;
     let exportEvents = [];
 
     function setLogSaveStatus(label, updatedAt = null) {
@@ -2550,6 +2551,20 @@
         .gte("log_date", first)
         .lt("log_date", dayAfterNextMonth);
       if (logsError) throw logsError;
+      // 선택 월 다음 달에서 가장 먼저 입력된 실제 운행일을 조회해 월말 주행거리 계산에 연결한다.
+      const nextMonthFirst = localDateString(new Date(year, month, 1));
+      const { data: nextDrivingLog, error: nextDrivingError } = await authClient
+        .from("daily_logs")
+        .select("id,log_date,status,previous_km,origin,destination")
+        .eq("team_id", activeTeamId)
+        .gte("log_date", nextMonthFirst)
+        .neq("status", "미운행")
+        .not("previous_km", "is", null)
+        .order("log_date", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      if (nextDrivingError) throw nextDrivingError;
+      exportNextDrivingLog = nextDrivingLog || null;
       const ids = (logs || []).map(log => log.id);
       let stops = [];
       let fluids = [];
@@ -3128,8 +3143,8 @@
             const date = String(log.log_date);
             const isNoDrive = log.status === "미운행";
             // 미운행일은 계기판 수치를 갖지 않으며, 다음 실제 운행일의 시작 수치를 직전 운행일의 종료 수치로 연결한다.
-            const nextDriveLog = isNoDrive ? null : monthLogs.slice(index + 1)
-              .find(item => item.status !== "미운행" && item.previous_km != null);
+            const nextDriveLog = isNoDrive ? null : (monthLogs.slice(index + 1)
+              .find(item => item.status !== "미운행" && item.previous_km != null) || exportNextDrivingLog);
             const beforeKm = isNoDrive || log.previous_km == null ? null : Number(log.previous_km);
             const afterKm = nextDriveLog?.previous_km == null ? null : Number(nextDriveLog.previous_km);
             const distance = beforeKm != null && afterKm != null && afterKm >= beforeKm ? afterKm - beforeKm : null;
