@@ -3351,12 +3351,6 @@
           }
           const safe = value => String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;")
             .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-          const excelDateSerial = value => {
-            const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-            if (!match) return null;
-            const utc = Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
-            return Math.round(utc / 86400000) + 25569;
-          };
           const htmlRows = cellRows.map((cells, rowIndex) => {
             const lastRow = rowIndex === cellRows.length - 1;
             const bottomWidth = lastRow && cellRows.length === 31 ? "1.5pt" : "0.5pt";
@@ -3368,15 +3362,12 @@
             const cellStyle = (align, leftWidth, rightWidth) =>
               common + "text-align:" + align + ";" + sideBorders +
               border("left", leftWidth) + border("right", rightWidth);
-            const dateSerial = excelDateSerial(cells[0] || "");
-            const dateStyle = cellStyle("center", "1.5pt", "0.5pt") +
-              "mso-number-format:'mm\"월\" dd\"일\"';";
-            const dateCell = dateSerial == null
-              ? "<td align='center' valign='middle' style='" + dateStyle + "'>" + safe(cells[0] || "") + "</td>"
-              : "<td x:num='" + dateSerial + "' align='center' valign='middle' style='" + dateStyle + "'>" + dateSerial + "</td>";
+            const dateStyle = cellStyle("center", "1.5pt", "0.5pt");
+            const dateCell = "<td align='center' valign='middle' style='" + dateStyle + "'>" +
+              safe(plainRows[rowIndex][0] || "") + "</td>";
             const normalCells = cells.slice(1, 4).map((value, offset) => {
               const index = offset + 1;
-              const align = index === 2 ? "right" : "center";
+              const align = index === 1 || index === 2 ? "right" : "center";
               const style = cellStyle(align, "0.5pt", "0.5pt");
               return "<td align='" + align + "' valign='middle' style='" + style + "'>" + safe(value) + "</td>";
             }).join("");
