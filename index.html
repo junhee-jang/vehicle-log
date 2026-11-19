@@ -795,13 +795,24 @@
       </button>
       <button class="home-menu-card" type="button" data-home-menu="documents" aria-label="자료받기">
         <span class="home-menu-title">자료받기</span>
-        <svg class="home-menu-image" viewBox="0 0 150 112" role="img" aria-label="문서 다운로드 아이콘">
-          <ellipse cx="76" cy="103" rx="65" ry="7" fill="#080c12" opacity=".35"/>
-          <path d="M36 9h48l28 28v62H36z" fill="#e9eef4" stroke="#aeb9c7" stroke-width="4" stroke-linejoin="round"/>
-          <path d="M84 9v28h28" fill="#cbd5e0" stroke="#aeb9c7" stroke-width="3" stroke-linejoin="round"/>
-          <path d="M51 52h43M51 68h43M51 84h29" stroke="#aab6c5" stroke-width="6" stroke-linecap="round"/>
-          <circle cx="111" cy="83" r="27" fill="#20c99d" stroke="#8af0d2" stroke-width="3"/>
-          <path d="M111 65v29m-11-11 11 11 11-11" fill="none" stroke="#f5fffc" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+        <svg class="home-menu-image" viewBox="0 0 220 126" role="img" aria-label="도로 안내 표지판과 자료 다운로드 아이콘">
+          <defs>
+            <linearGradient id="documentsRoadSign" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#21e0b0"/><stop offset="1" stop-color="#087f78"/></linearGradient>
+            <linearGradient id="documentsRoadSurface" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#4b5866"/><stop offset="1" stop-color="#202833"/></linearGradient>
+          </defs>
+          <ellipse cx="105" cy="119" rx="91" ry="5" fill="#000" opacity=".28"/>
+          <path d="M28 119 76 73h70l49 46z" fill="url(#documentsRoadSurface)"/>
+          <path d="M109 80v8m0 8v8m0 8v5" stroke="#f1f4f6" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="6 6"/>
+          <path d="M63 68V48m88 20V48" stroke="#aab7c4" stroke-width="3.5" stroke-linecap="round"/>
+          <rect x="48" y="12" width="111" height="39" rx="5" fill="url(#documentsRoadSign)" stroke="#76f2d2" stroke-width="2.5"/>
+          <path d="M60 25h39m-39 10h27" stroke="#eafffa" stroke-width="3.5" stroke-linecap="round"/>
+          <path d="m128 36 8-9 8 9m-8-9v16" fill="none" stroke="#eafffa" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M22 116q8-15 18-10 7-12 17-6l7 11-7 8H24zM155 116q6-14 16-9 7-11 16-5l6 13z" fill="#279c68"/>
+          <path d="M158 61h24l14 14v37h-38z" fill="#e9eef4" stroke="#aeb9c7" stroke-width="2.5" stroke-linejoin="round"/>
+          <path d="M182 61v14h14" fill="#cbd5e0" stroke="#aeb9c7" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M166 84h20m-20 8h17" stroke="#aab6c5" stroke-width="3.5" stroke-linecap="round"/>
+          <circle cx="190" cy="105" r="15" fill="#20c99d" stroke="#8af0d2" stroke-width="2"/>
+          <path d="M190 96v17m-6-6 6 6 6-6" fill="none" stroke="#f5fffc" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         <svg class="home-menu-external" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 4h7v7M20 4 10 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
