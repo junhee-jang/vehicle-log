@@ -1004,14 +1004,27 @@
         </svg></span><span>날씨 조회</span>
       </button>
       <button type="button" class="documents-tab" data-doc-tab="driving" aria-pressed="false">
-        <span class="documents-tab-icon" aria-hidden="true"><svg viewBox="0 0 64 64">
-          <path d="M12 7h29l12 12v38H12z" fill="#e8eef5" stroke="#aebdce" stroke-width="2.5" stroke-linejoin="round"/>
-          <path d="M41 7v13h12" fill="#cbd7e4" stroke="#aebdce" stroke-width="2"/>
-          <path d="M21 28h22M21 35h15" stroke="#8298ae" stroke-width="3" stroke-linecap="round"/>
-          <path d="M21 46c5-7 9-10 15-10" fill="none" stroke="#27c99d" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="3 4"/>
-          <circle cx="42" cy="45" r="10" fill="#42d8b1" stroke="#173b37" stroke-width="2"/>
-          <path d="M37 45h10m-4-4 4 4-4 4" fill="none" stroke="#123b35" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg></span><span>운행기록</span>
+        <span class="documents-tab-icon" aria-hidden="true"><svg viewBox="0 0 220 126" role="img" aria-label="도로 안내 표지판과 문서 다운로드 아이콘">
+            <defs>
+              <linearGradient id="docTabRoadSignBoard" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#21e0b0"/><stop offset="1" stop-color="#087f78"/></linearGradient>
+              <linearGradient id="docTabRoadSurface" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#4b5866"/><stop offset="1" stop-color="#202833"/></linearGradient>
+            </defs>
+            <ellipse cx="111" cy="113" rx="91" ry="7" fill="#000" opacity=".32"/>
+            <path d="M57 112 91 58h39l34 54z" fill="url(#docTabRoadSurface)"/>
+            <path d="M108 65v9m0 9v9m0 9v8" stroke="#f1f4f6" stroke-width="4" stroke-linecap="round" stroke-dasharray="7 7"/>
+            <path d="M77 57V24m64 33V24" stroke="#aab7c4" stroke-width="4" stroke-linecap="round"/>
+            <rect x="58" y="12" width="124" height="39" rx="4" fill="url(#docTabRoadSignBoard)" stroke="#76f2d2" stroke-width="3"/>
+            <path d="M72 24h43m-43 10h29" stroke="#eafffa" stroke-width="4" stroke-linecap="round"/>
+            <path d="m148 36 10-11 10 11m-10-11v18" fill="none" stroke="#eafffa" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M27 108q8-17 20-12 6-14 18-8l8 12-8 12H29zM169 111q6-17 17-12 7-13 17-5l7 17z" fill="#279c68"/>
+            <g transform="translate(145 62) scale(.49)">
+              <path d="M8 3h48l28 28v62H8z" fill="#e9eef4" stroke="#aeb9c7" stroke-width="4" stroke-linejoin="round"/>
+              <path d="M56 3v28h28" fill="#cbd5e0" stroke="#aeb9c7" stroke-width="3" stroke-linejoin="round"/>
+              <path d="M23 45h43M23 61h43M23 77h29" stroke="#aab6c5" stroke-width="6" stroke-linecap="round"/>
+              <circle cx="83" cy="76" r="25" fill="#20c99d" stroke="#8af0d2" stroke-width="3"/>
+              <path d="M83 59v27m-10-10 10 10 10-10" fill="none" stroke="#f5fffc" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+            </g>
+          </svg></span><span>운행기록</span>
       </button>
       <button type="button" class="documents-tab" data-doc-tab="expenses" aria-pressed="false">
         <span class="documents-tab-icon" aria-hidden="true"><svg viewBox="0 0 64 64">
