@@ -73,6 +73,8 @@
     .pin-dots { position:absolute; top:26.2%; left:0; right:0; z-index:5; display:flex; justify-content:center; gap:14px; pointer-events:none; }
     .pin-dot { width:13px; height:13px; border:1.5px solid #87909b; border-radius:50%; background:transparent; transition:background .12s,border-color .12s; }
     .pin-dot.filled { background:#dce2e9; border-color:#dce2e9; }
+    .pin-panel.pin-input-focused .pin-dot { border-color:#c5d4e5; box-shadow:0 0 0 5px rgba(153,184,218,.10), 0 0 12px rgba(153,184,218,.22); }
+    .pin-panel.pin-input-focused .pin-dot.filled { background:#eaf1f8; border-color:#eaf1f8; box-shadow:0 0 0 5px rgba(153,184,218,.12), 0 0 14px rgba(220,235,250,.28); }
     .pin-hidden-input { position:absolute; top:24.5%; left:0; z-index:4; width:100% !important; height:54px !important; opacity:.015; padding:0; border:0; border-radius:0; background:transparent; color:transparent; caret-color:transparent; letter-spacing:14px; text-align:center; pointer-events:auto; font-size:24px; }
     .pin-submit { display:none; }
     .pin-notice { position:absolute; top:32%; left:0; right:0; min-height:22px; margin:0; color:#e4c78a; font-size:13px; text-align:center; }
@@ -1932,6 +1934,7 @@
     const pinNotice = document.getElementById("pinNotice");
     const pinSubmit = document.getElementById("pinSubmit");
     const pinDots = document.getElementById("pinDots");
+    const pinPanel = pinDots.closest(".pin-panel");
     const pinReregister = document.getElementById("pinReregister");
     let pinMode = "setup";
     let setupFirstPin = "";
@@ -2038,6 +2041,9 @@
         pinForm.requestSubmit();
       }
     });
+    // 실제 입력창에 포커스가 있으면 동그라미에도 활성 표시를 준다.
+    pinInput.addEventListener("focus", () => pinPanel.classList.add("pin-input-focused"));
+    pinInput.addEventListener("blur", () => pinPanel.classList.remove("pin-input-focused"));
     pinDots.addEventListener("click", () => pinInput.focus({ preventScroll: true }));
     pinScreen.addEventListener("click", event => {
       if (event.target === pinScreen || event.target === pinDots || event.target.classList.contains("pin-dot")) {
