@@ -122,11 +122,9 @@
     .weather-day-memo { min-height:11px; max-height:13px; overflow:hidden; color:#aebbd0; font-size:6px; line-height:1.05; overflow-wrap:anywhere; }
     .weather-day-distance { margin-top:auto; min-height:10px; color:#f0f4fa; font-size:7px; line-height:1.05; font-weight:800; text-align:right; white-space:nowrap; overflow-wrap:normal; }
     .weather-day-bottom { display:block; margin-top:auto; min-width:0; }
-    .weather-day-vacations { display:flex; flex-direction:column; min-width:0; width:100%; max-height:10px; overflow:hidden; line-height:5px; }
-    .weather-day-vacation { display:block; width:max-content; max-width:100%; padding:0 2px; border-radius:3px; color:#fff; font-size:4px; line-height:5px; font-weight:700; letter-spacing:-0.2px; white-space:nowrap; overflow:hidden; text-overflow:clip; }
-    .weather-day-vacation-second-row { display:flex; align-items:center; min-width:0; width:100%; height:5px; }
-    .weather-day-vacation-second-row .weather-day-vacation { flex:0 1 50%; max-width:50%; }
-    .weather-day-vacation-second-row .weather-day-distance { flex:0 0 50%; width:50%; max-width:50%; height:5px; min-height:5px; margin:0; line-height:7px; text-align:right; }
+    .weather-day-vacations { display:block; min-width:0; width:100%; max-height:10px; overflow:hidden; line-height:5px; }
+    .weather-day-vacation { display:block; width:100%; max-width:100%; padding:0 2px; border-radius:3px; color:#fff; font-size:4px; line-height:5px; font-weight:700; letter-spacing:-0.2px; white-space:normal; overflow-wrap:anywhere; word-break:keep-all; }
+    .weather-day-bottom .weather-day-distance { display:block; width:100%; height:10px; min-height:10px; margin:0; line-height:10px; text-align:right; }
     .weather-day-vacation.team-leader { background:#315f91; }
     .weather-day-vacation.team-member { background:#7652a6; }
     .weather-day-vacation.continues-left { border-top-left-radius:0; border-bottom-left-radius:0; }
@@ -3533,12 +3531,12 @@
         bottom.className = "weather-day-bottom";
         const vacationLabels = document.createElement("div");
         vacationLabels.className = "weather-day-vacations";
-        const vacationSecondRow = document.createElement("div");
-        vacationSecondRow.className = "weather-day-vacation-second-row";
         dayVacations.forEach(item => {
-          const labelClass = "weather-day-vacation " + (item.staff_type === "팀장" ? "team-leader" : "team-member");
+          const label = document.createElement("span");
           const isStart = item.start_date === dateKey;
           const isEnd = item.end_date === dateKey;
+          label.className = "weather-day-vacation " + (item.staff_type === "팀장" ? "team-leader" : "team-member") +
+            (isStart ? "" : " continues-left") + (isEnd ? "" : " continues-right");
           const rangeText = item.start_date === item.end_date
             ? item.start_date.slice(5, 7) !== item.end_date.slice(5, 7)
               ? item.start_date.slice(5).replace("-", "/") + "일"
@@ -3546,30 +3544,11 @@
             : item.start_date.slice(5, 7) !== item.end_date.slice(5, 7)
               ? item.start_date.slice(5).replace("-", "/") + "~" + item.end_date.slice(5).replace("-", "/")
               : item.start_date.slice(8) + "~" + item.end_date.slice(8) + "일";
-          const fullText = (item.staff_type === "팀장" ? "팀장 " : "팀원 ") + rangeText + " · 대체자 " + item.substitute_name;
-          const measureCanvas = document.createElement("canvas");
-          const measureContext = measureCanvas.getContext("2d");
-          measureContext.font = "700 4px system-ui";
-          const availableWidth = Math.max(0, (weatherCalendar.getBoundingClientRect().width - 36) / 7 - 12);
-          let splitAt = fullText.length;
-          while (splitAt > 0 && measureContext.measureText(fullText.slice(0, splitAt)).width > availableWidth) splitAt--;
-          const firstLine = document.createElement("span");
-          firstLine.className = labelClass + (isStart ? "" : " continues-left") + (isEnd ? "" : " continues-right");
-          firstLine.textContent = fullText.slice(0, splitAt);
-          firstLine.title = fullText;
-          vacationLabels.appendChild(firstLine);
-          const remainder = fullText.slice(splitAt);
-          if (remainder) {
-            const secondLine = document.createElement("span");
-            secondLine.className = labelClass + (isStart ? "" : " continues-left") + (isEnd ? "" : " continues-right");
-            secondLine.textContent = remainder;
-            secondLine.title = fullText;
-            vacationSecondRow.appendChild(secondLine);
-          }
+          label.textContent = (item.staff_type === "팀장" ? "팀장 " : "팀원 ") + rangeText + " · 대체자 " + item.substitute_name;
+          label.title = label.textContent;
+          vacationLabels.appendChild(label);
         });
-        vacationSecondRow.appendChild(distance);
-        vacationLabels.appendChild(vacationSecondRow);
-        bottom.append(vacationLabels);
+        bottom.append(vacationLabels, distance);
         cell.append(top, branchMemo, dailyMemo, bottom);
         weatherCalendar.appendChild(cell);
       }
