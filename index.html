@@ -3537,9 +3537,13 @@
           label.className = "weather-day-vacation " + (item.staff_type === "팀장" ? "team-leader" : "team-member") +
             (isStart ? "" : " continues-left") + (isEnd ? "" : " continues-right");
           const rangeText = item.start_date === item.end_date
-            ? dateKey.slice(8) + "일"
-            : item.start_date.slice(8) + "~" + item.end_date.slice(8) + "일";
-          label.textContent = (item.staff_type === "팀장" ? "팀장 " : "팀원 ") + rangeText + " · 대체 " + item.substitute_name;
+            ? item.start_date.slice(5, 7) !== item.end_date.slice(5, 7)
+              ? item.start_date.slice(5).replace("-", "/") + "일"
+              : item.start_date.slice(8) + "일"
+            : item.start_date.slice(5, 7) !== item.end_date.slice(5, 7)
+              ? item.start_date.slice(5).replace("-", "/") + "~" + item.end_date.slice(5).replace("-", "/")
+              : item.start_date.slice(8) + "~" + item.end_date.slice(8) + "일";
+          label.textContent = (item.staff_type === "팀장" ? "팀장 " : "팀원 ") + rangeText + " · 대체자 " + item.substitute_name;
           label.title = label.textContent;
           vacationLabels.appendChild(label);
         });
