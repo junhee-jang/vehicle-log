@@ -3550,7 +3550,7 @@
           const measureCanvas = document.createElement("canvas");
           const measureContext = measureCanvas.getContext("2d");
           measureContext.font = "700 4px system-ui";
-          const availableWidth = Math.max(0, vacationLabels.clientWidth - 4);
+          const availableWidth = Math.max(0, (weatherCalendar.getBoundingClientRect().width - 36) / 7 - 12);
           let splitAt = fullText.length;
           while (splitAt > 0 && measureContext.measureText(fullText.slice(0, splitAt)).width > availableWidth) splitAt--;
           const firstLine = document.createElement("span");
