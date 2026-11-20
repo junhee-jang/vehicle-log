@@ -945,7 +945,7 @@
           <path d="M14 13h19v15H14z" fill="#182536" stroke="#ffb0aa" stroke-width="1.5"/>
           <path d="M39 17h5l7 7v18a4 4 0 0 1-8 0V29h-4" fill="none" stroke="#dce5ef" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M43 17v-4" stroke="#dce5ef" stroke-width="3" stroke-linecap="round"/>
-          <path d="M38 54 50 42c2-2 5-2 7 0l-7 7 4 4 7-7c2 3 2 6 0 8L49 66c-3 3-7 3-10 0l-3-3-15 0 5-5z" transform="translate(-2 -7)" fill="#cbd5e1" stroke="#64748b" stroke-width="1.8" stroke-linejoin="round"/>
+          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.8-3.8a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9z" transform="translate(34 30) scale(1.35)" fill="#cbd5e1" stroke="#64748b" stroke-width=".8"/>
           <path d="M7 57h35" stroke="#a9b7c6" stroke-width="2.5" stroke-linecap="round"/>
         </svg></span>주유•정비내역</span>
         <span class="fuel-toggle-actions">
@@ -1060,7 +1060,7 @@
           <path d="M14 13h19v15H14z" fill="#182536" stroke="#ffb0aa" stroke-width="1.5"/>
           <path d="M39 17h5l7 7v18a4 4 0 0 1-8 0V29h-4" fill="none" stroke="#dce5ef" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M43 17v-4" stroke="#dce5ef" stroke-width="3" stroke-linecap="round"/>
-          <path d="M38 54 50 42c2-2 5-2 7 0l-7 7 4 4 7-7c2 3 2 6 0 8L49 66c-3 3-7 3-10 0l-3-3-15 0 5-5z" transform="translate(-2 -7)" fill="#cbd5e1" stroke="#64748b" stroke-width="1.8" stroke-linejoin="round"/>
+          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.8-3.8a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9z" transform="translate(34 30) scale(1.35)" fill="#cbd5e1" stroke="#64748b" stroke-width=".8"/>
           <path d="M7 57h35" stroke="#a9b7c6" stroke-width="2.5" stroke-linecap="round"/>
         </svg></span><span>주유/정비내역</span>
       </button>
@@ -3597,6 +3597,7 @@
           setAppScreen("vehicle-log");
         } else if (menu === "documents") {
           setAppScreen("documents");
+          renderWeatherCalendar();
           refreshExportTables();
         } else if (homeMenuNotice) {
           homeMenuNotice.textContent = menu === "vehicle-spec"
