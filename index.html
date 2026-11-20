@@ -121,6 +121,27 @@
     .weather-day-icon { display:block; width:8px; height:10px; }
     .weather-day-memo { min-height:11px; max-height:13px; overflow:hidden; color:#aebbd0; font-size:6px; line-height:1.05; overflow-wrap:anywhere; }
     .weather-day-distance { margin-top:auto; min-height:10px; color:#f0f4fa; font-size:7px; line-height:1.05; font-weight:800; text-align:right; white-space:nowrap; }
+    .weather-day-bottom { display:flex; align-items:flex-end; gap:2px; margin-top:auto; min-width:0; }
+    .weather-day-vacations { display:flex; flex-direction:column; gap:1px; min-width:0; flex:1 1 auto; }
+    .weather-day-vacation { min-width:0; overflow:hidden; padding:1px 2px; border-radius:3px; color:#fff; font-size:6px; line-height:1.1; font-weight:750; white-space:nowrap; text-overflow:ellipsis; }
+    .weather-day-vacation.team-leader { background:#315f91; }
+    .weather-day-vacation.team-member { background:#7652a6; }
+    .weather-day-vacation.continues-left { border-top-left-radius:0; border-bottom-left-radius:0; }
+    .weather-day-vacation.continues-right { border-top-right-radius:0; border-bottom-right-radius:0; }
+    .weather-day-bottom .weather-day-distance { flex:0 0 auto; margin-top:0; }
+    .weather-day { user-select:none; -webkit-user-select:none; -webkit-touch-callout:none; cursor:pointer; }
+    .vacation-dialog { width:min(420px,calc(100vw - 28px)); max-width:420px; padding:0; border:1px solid #465365; border-radius:16px; background:#1b1f27; color:#e7edf4; box-shadow:0 18px 55px #0009; }
+    .vacation-dialog::backdrop { background:#05080dcc; }
+    .vacation-dialog-inner { padding:18px; }
+    .vacation-dialog h3 { margin:0 0 14px; font-size:17px; }
+    .vacation-dialog label { display:block; margin:10px 0 5px; color:#aebbd0; font-size:12px; }
+    .vacation-dialog input,.vacation-dialog select { width:100%; min-height:42px; padding:9px 11px; border:1px solid #465365; border-radius:9px; background:#111720; color:#f3f5f7; font:inherit; font-size:14px; box-sizing:border-box; }
+    .vacation-dialog .vacation-date-row { display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+    .vacation-dialog .vacation-actions { display:flex; gap:8px; margin-top:17px; }
+    .vacation-dialog .vacation-actions button { min-height:42px; padding:9px 13px; border:1px solid #465365; border-radius:9px; background:#2b3542; color:#f3f5f7; font-weight:700; }
+    .vacation-dialog .vacation-actions .save { flex:1; border-color:#278d69; background:#176849; }
+    .vacation-dialog .vacation-actions .delete { color:#ff9b9b; }
+    .vacation-dialog .vacation-hint { margin:8px 0 0; color:#8795a6; font-size:11px; line-height:1.4; }
     .weather-day-memo:empty, .weather-day-distance:empty { display:none; }
     .calendar-route-toast { position:fixed; left:50%; bottom:calc(22px + env(safe-area-inset-bottom)); z-index:9500; width:max-content; max-width:calc(100vw - 32px); padding:12px 16px; border:1px solid #526071; border-radius:12px; background:#252d39; color:#f3f5f7; font-size:13px; line-height:1.45; text-align:center; box-shadow:0 8px 24px #0008; opacity:0; transform:translate(-50%,12px); pointer-events:none; transition:opacity .18s ease, transform .18s ease; }
     .calendar-route-toast.visible { opacity:1; transform:translate(-50%,0); }
@@ -2271,6 +2292,7 @@
     let exportDailyLogs = [];
     let exportNextDrivingLog = null;
     let exportEvents = [];
+    let exportVacations = [];
 
     function setLogSaveStatus(label, updatedAt = null) {
       const status = $("logSaveStatus");
@@ -2658,6 +2680,16 @@
         .gte("maintenance_date", first)
         .lt("maintenance_date", dayAfterNextMonth);
       if (maintenanceError) throw maintenanceError;
+      const lastDate = localDateString(new Date(year, month, 0));
+      const { data: vacations, error: vacationsError } = await authClient
+        .from("vacation_records")
+        .select("id,staff_type,start_date,end_date,substitute_name,created_by")
+        .eq("team_id", activeTeamId)
+        .lte("start_date", lastDate)
+        .gte("end_date", first)
+        .order("start_date", { ascending: true });
+      if (vacationsError) throw vacationsError;
+      exportVacations = vacations || [];
       exportDailyLogs = (logs || []).map(log => {
         const logStops = stops.filter(stop => stop.log_id === log.id)
           .sort((a, b) => a.stop_order - b.stop_order);
@@ -3223,6 +3255,147 @@
       calendarToastTimer = setTimeout(() => toast.classList.remove("visible"), 2600);
     }
 
+    let vacationDialog = null;
+    let vacationDialogRecords = [];
+    function ensureVacationDialog() {
+      if (vacationDialog) return vacationDialog;
+      vacationDialog = document.createElement("dialog");
+      vacationDialog.id = "vacationDialog";
+      vacationDialog.className = "vacation-dialog";
+      vacationDialog.innerHTML = `
+        <form class="vacation-dialog-inner" id="vacationForm">
+          <h3 id="vacationDialogTitle">휴가 일정 등록</h3>
+          <div id="vacationExistingWrap" hidden>
+            <label for="vacationExisting">이 날짜에 등록된 휴가</label>
+            <select id="vacationExisting"></select>
+          </div>
+          <label for="vacationStaffType">휴가자 구분</label>
+          <select id="vacationStaffType" required>
+            <option value="팀장">팀장</option>
+            <option value="팀원">팀원</option>
+          </select>
+          <div class="vacation-date-row">
+            <div><label for="vacationStart">시작일</label><input id="vacationStart" type="date" required></div>
+            <div><label for="vacationEnd">종료일</label><input id="vacationEnd" type="date" required></div>
+          </div>
+          <label for="vacationSubstitute">대체자</label>
+          <input id="vacationSubstitute" type="text" maxlength="30" placeholder="대체자 이름" required>
+          <p class="vacation-hint">달력에서 길게 누른 날짜가 시작일로 지정돼. 종료일을 바꾸면 연속된 날짜에 색상으로 표시돼.</p>
+          <div class="vacation-actions">
+            <button type="button" class="delete" id="vacationDelete" hidden>삭제</button>
+            <button type="button" id="vacationCancel">취소</button>
+            <button type="submit" class="save" id="vacationSave">저장</button>
+          </div>
+        </form>`;
+      document.body.appendChild(vacationDialog);
+      const form = vacationDialog.querySelector("#vacationForm");
+      const existing = vacationDialog.querySelector("#vacationExisting");
+      const fillRecord = record => {
+        const editing = Boolean(record?.id);
+        vacationDialog.dataset.recordId = record?.id || "";
+        vacationDialog.querySelector("#vacationDialogTitle").textContent = editing ? "휴가 일정 수정" : "휴가 일정 등록";
+        vacationDialog.querySelector("#vacationStaffType").value = record?.staff_type || "팀장";
+        vacationDialog.querySelector("#vacationStart").value = record?.start_date || vacationDialog.dataset.selectedDate;
+        vacationDialog.querySelector("#vacationEnd").value = record?.end_date || vacationDialog.dataset.selectedDate;
+        vacationDialog.querySelector("#vacationSubstitute").value = record?.substitute_name || "";
+        vacationDialog.querySelector("#vacationDelete").hidden = !editing;
+      };
+      existing.addEventListener("change", () => {
+        const record = vacationDialogRecords.find(item => item.id === existing.value);
+        fillRecord(record || null);
+      });
+      form.addEventListener("submit", async event => {
+        event.preventDefault();
+        if (!activeTeamId || !activeUserId) return;
+        const start = form.querySelector("#vacationStart").value;
+        const end = form.querySelector("#vacationEnd").value;
+        const substitute = form.querySelector("#vacationSubstitute").value.trim();
+        if (!start || !end || end < start || !substitute) {
+          alert("휴가 기간과 대체자 이름을 확인해 주세요.");
+          return;
+        }
+        const save = form.querySelector("#vacationSave");
+        save.disabled = true;
+        save.textContent = "저장 중...";
+        const payload = {
+          team_id: activeTeamId,
+          staff_type: form.querySelector("#vacationStaffType").value,
+          start_date: start,
+          end_date: end,
+          substitute_name: substitute,
+          created_by: activeUserId
+        };
+        try {
+          const recordId = vacationDialog.dataset.recordId;
+          const result = recordId
+            ? await authClient.from("vacation_records").update(payload).eq("id", recordId).eq("team_id", activeTeamId)
+            : await authClient.from("vacation_records").insert(payload);
+          if (result.error) throw result.error;
+          vacationDialog.close();
+          await renderWeatherCalendar();
+        } catch (error) {
+          console.error("휴가 일정 저장 실패", error);
+          alert("휴가 일정을 저장하지 못했어. 연결 상태를 확인해 줘.");
+        } finally {
+          save.disabled = false;
+          save.textContent = "저장";
+        }
+      });
+      vacationDialog.querySelector("#vacationDelete").addEventListener("click", async () => {
+        const recordId = vacationDialog.dataset.recordId;
+        if (!recordId || !confirm("이 휴가 일정을 삭제할까?")) return;
+        const button = vacationDialog.querySelector("#vacationDelete");
+        button.disabled = true;
+        try {
+          const { error } = await authClient.from("vacation_records").delete().eq("id", recordId).eq("team_id", activeTeamId);
+          if (error) throw error;
+          vacationDialog.close();
+          await renderWeatherCalendar();
+        } catch (error) {
+          console.error("휴가 일정 삭제 실패", error);
+          alert("휴가 일정을 삭제하지 못했어.");
+        } finally {
+          button.disabled = false;
+        }
+      });
+      vacationDialog.querySelector("#vacationCancel").addEventListener("click", () => vacationDialog.close());
+      vacationDialog.addEventListener("click", event => {
+        if (event.target === vacationDialog) vacationDialog.close();
+      });
+      vacationDialog._fillRecord = fillRecord;
+      return vacationDialog;
+    }
+
+    function openVacationDialog(dateKey) {
+      const dialog = ensureVacationDialog();
+      const records = exportVacations.filter(item => item.start_date <= dateKey && item.end_date >= dateKey);
+      vacationDialogRecords = records;
+      dialog.dataset.selectedDate = dateKey;
+      const wrap = dialog.querySelector("#vacationExistingWrap");
+      const select = dialog.querySelector("#vacationExisting");
+      select.innerHTML = "";
+      if (records.length) {
+        wrap.hidden = false;
+        records.forEach((record, index) => {
+          const option = document.createElement("option");
+          option.value = record.id;
+          option.textContent = record.staff_type + " · " + record.start_date.slice(5).replace("-", "/") + "~" + record.end_date.slice(5).replace("-", "/") + " · " + record.substitute_name;
+          select.appendChild(option);
+        });
+        const addOption = document.createElement("option");
+        addOption.value = "__new__";
+        addOption.textContent = "+ 새 휴가 추가";
+        select.appendChild(addOption);
+        select.value = records[0].id;
+        dialog._fillRecord(records[0]);
+        select.onchange = () => dialog._fillRecord(records.find(item => item.id === select.value) || null);
+      } else {
+        wrap.hidden = true;
+        dialog._fillRecord(null);
+      }
+      dialog.showModal();
+    }
+
     async function renderWeatherCalendar() {
       if (!weatherCalendar) return;
       const year = Number(documentsYear.value);
@@ -3275,7 +3448,39 @@
             ? month + "월 " + day + "일의 운행경로는 " + route + " 입니다."
             : month + "월 " + day + "일은 운행기록이 없습니다.");
         };
-        cell.addEventListener("click", showDayRoute);
+        let longPressTimer = null;
+        let longPressTriggered = false;
+        let pointerStart = null;
+        const cancelLongPress = () => {
+          if (longPressTimer) clearTimeout(longPressTimer);
+          longPressTimer = null;
+          pointerStart = null;
+        };
+        cell.addEventListener("pointerdown", event => {
+          if (event.pointerType === "mouse" && event.button !== 0) return;
+          cancelLongPress();
+          longPressTriggered = false;
+          pointerStart = { x: event.clientX, y: event.clientY };
+          longPressTimer = setTimeout(() => {
+            longPressTriggered = true;
+            openVacationDialog(dateKey);
+          }, 600);
+        });
+        cell.addEventListener("pointermove", event => {
+          if (!pointerStart) return;
+          if (Math.abs(event.clientX - pointerStart.x) > 10 || Math.abs(event.clientY - pointerStart.y) > 10) cancelLongPress();
+        });
+        ["pointerup", "pointercancel", "pointerleave"].forEach(type => cell.addEventListener(type, cancelLongPress));
+        cell.addEventListener("contextmenu", event => event.preventDefault());
+        cell.addEventListener("click", event => {
+          if (longPressTriggered) {
+            event.preventDefault();
+            event.stopPropagation();
+            longPressTriggered = false;
+            return;
+          }
+          showDayRoute();
+        });
         cell.addEventListener("keydown", event => {
           if (event.key === "Enter" || event.key === " ") { event.preventDefault(); showDayRoute(); }
         });
@@ -3320,7 +3525,26 @@
         }
         const fullMemo = [log?.branchMemo, log?.memo].filter(Boolean).join(" · ");
         if (fullMemo) cell.title = [cell.title, fullMemo].filter(Boolean).join("\n");
-        cell.append(top, branchMemo, dailyMemo, distance);
+        const dayVacations = exportVacations.filter(item => item.start_date <= dateKey && item.end_date >= dateKey);
+        const bottom = document.createElement("div");
+        bottom.className = "weather-day-bottom";
+        const vacationLabels = document.createElement("div");
+        vacationLabels.className = "weather-day-vacations";
+        dayVacations.forEach(item => {
+          const label = document.createElement("div");
+          const isStart = item.start_date === dateKey;
+          const isEnd = item.end_date === dateKey;
+          label.className = "weather-day-vacation " + (item.staff_type === "팀장" ? "team-leader" : "team-member") +
+            (isStart ? "" : " continues-left") + (isEnd ? "" : " continues-right");
+          const rangeText = item.start_date === item.end_date
+            ? dateKey.slice(8) + "일"
+            : item.start_date.slice(8) + "~" + item.end_date.slice(8) + "일";
+          label.textContent = (item.staff_type === "팀장" ? "팀장 " : "팀원 ") + rangeText + " · 대체 " + item.substitute_name;
+          label.title = label.textContent;
+          vacationLabels.appendChild(label);
+        });
+        bottom.append(vacationLabels, distance);
+        cell.append(top, branchMemo, dailyMemo, bottom);
         weatherCalendar.appendChild(cell);
       }
       const trailing = (7 - ((firstWeekday + daysInMonth) % 7)) % 7;
