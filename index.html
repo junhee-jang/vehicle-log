@@ -3272,8 +3272,8 @@
         const showDayRoute = () => {
           const route = log?.route;
           showCalendarRouteToast(route && route !== "미운행"
-            ? "해당 일자의 운행경로는 " + route + " 입니다."
-            : "해당 일자는 운행기록이 없습니다.");
+            ? month + "월 " + day + "일의 운행경로는 " + route + " 입니다."
+            : month + "월 " + day + "일은 운행기록이 없습니다.");
         };
         cell.addEventListener("click", showDayRoute);
         cell.addEventListener("keydown", event => {
