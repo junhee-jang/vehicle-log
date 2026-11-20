@@ -108,14 +108,20 @@
     .weather-weekday { padding:7px 2px; text-align:center; color:#9eabb9; font-size:11px; font-weight:700; }
     .weather-weekday:first-child { color:#ff8585; }
     .weather-weekday:last-child { color:#80b9ff; }
-    .weather-day { min-height:66px; padding:7px 5px; border:1px solid #343e4c; border-radius:9px; background:#171c24; color:#e7edf4; }
+    .weather-day { display:flex; flex-direction:column; gap:3px; min-height:112px; padding:5px 4px 4px; border:1px solid #343e4c; border-radius:9px; background:#171c24; color:#e7edf4; overflow:hidden; }
     .weather-day.sunday, .weather-day.holiday { border-color:#704044; background:#281d22; }
     .weather-day.saturday { border-color:#354f70; background:#1b2532; }
     .weather-day.sunday .weather-day-number, .weather-day.holiday .weather-day-number { color:#ff8585; }
     .weather-day.saturday .weather-day-number { color:#80b9ff; }
     .weather-day.holiday .weather-day-number { font-weight:800; }
-    .weather-day-number { display:block; font-size:12px; color:#9eabb9; }
-    .weather-day-value { display:block; margin-top:8px; color:#9fe5cb; font-size:12px; font-weight:700; text-align:center; }
+    .weather-day-top { display:flex; align-items:center; gap:2px; min-width:0; min-height:18px; }
+    .weather-day-number { flex:0 0 auto; font-size:11px; line-height:1.2; color:#e7edf4; font-weight:750; }
+    .weather-day-value { min-width:0; overflow:hidden; color:#9fe5cb; font-size:9px; line-height:1.2; font-weight:700; white-space:nowrap; text-overflow:ellipsis; }
+    .weather-day-icons { display:flex; align-items:center; gap:2px; margin-left:auto; flex:0 0 auto; }
+    .weather-day-icon { display:block; width:11px; height:13px; }
+    .weather-day-memo { min-height:16px; max-height:22px; overflow:hidden; color:#aebbd0; font-size:8px; line-height:1.2; overflow-wrap:anywhere; }
+    .weather-day-distance { margin-top:auto; min-height:13px; color:#f0f4fa; font-size:9px; line-height:1.2; font-weight:800; text-align:right; white-space:nowrap; }
+    .weather-day-distance:empty { display:block; }
     .documents-table-wrap { overflow-x:auto; border:1px solid #343e4c; border-radius:10px; }
     .documents-table { width:100%; min-width:560px; border-collapse:collapse; font-size:12px; }
     .documents-table th,.documents-table td { padding:11px 9px; border-bottom:1px solid #343e4c; text-align:center; white-space:nowrap; }
@@ -151,6 +157,8 @@
     .documents-tab { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; min-width:0; min-height:68px; padding:9px 5px; border:1px solid transparent; border-radius:10px; background:transparent; color:#aab5c2; font-size:12px; font-weight:700; white-space:nowrap; }
     .documents-tab-icon { display:flex; align-items:center; justify-content:center; width:34px; height:34px; flex:0 0 34px; line-height:1; }
     .documents-tab-icon svg { display:block; width:100%; height:100%; overflow:visible; }
+    .fuel-toggle-icon { display:inline-flex; width:27px; height:27px; flex:0 0 27px; vertical-align:middle; margin-right:8px; }
+    .fuel-toggle-icon svg { display:block; width:100%; height:100%; overflow:visible; }
     /* 운행기록 그림만 가로로 확대하고 아이콘 영역 높이는 다른 탭과 동일하게 유지 */
     [data-doc-tab="driving"] .documents-tab-icon svg { width:50px; height:34px; max-width:none; flex:0 0 50px; }
     .documents-tab.active { border-color:#4a8d79; background:#243b36; color:#baf2dc; box-shadow:inset 0 1px 0 #ffffff0b; }
@@ -530,8 +538,13 @@
       .documents-card-heading h2 { font-size:15px; }
       .documents-month { width:100%; }
       .weather-calendar { gap:4px; }
-      .weather-day { min-height:55px; padding:6px 3px; }
-      .weather-day-value { font-size:10px; margin-top:7px; }
+      .weather-day { min-height:104px; padding:4px 2px 3px; gap:3px; }
+      .weather-day-top { min-height:16px; gap:1px; }
+      .weather-day-number { font-size:10px; }
+      .weather-day-value { font-size:8px; }
+      .weather-day-icon { width:9px; height:11px; }
+      .weather-day-memo { min-height:15px; max-height:22px; font-size:7px; line-height:1.15; }
+      .weather-day-distance { font-size:8px; }
       .documents-actions { justify-content:stretch; }
       .documents-actions button { flex:1; }
       .home-screen { min-height: calc(100vh - 20px); }
@@ -927,7 +940,14 @@
 
     <section class="card fuel-card">
       <button type="button" class="fuel-toggle" id="fuelToggle" aria-expanded="false" aria-controls="fuelContent">
-        <span class="fuel-toggle-label">⛽ 주유•정비내역</span>
+        <span class="fuel-toggle-label"><span class="fuel-toggle-icon" aria-hidden="true"><svg viewBox="0 0 64 64">
+          <path d="M8 57V12a5 5 0 0 1 5-5h21a5 5 0 0 1 5 5v45z" fill="#e53935" stroke="#a91f32" stroke-width="2.2" stroke-linejoin="round"/>
+          <path d="M14 13h19v15H14z" fill="#182536" stroke="#ffb0aa" stroke-width="1.5"/>
+          <path d="M39 17h5l7 7v18a4 4 0 0 1-8 0V29h-4" fill="none" stroke="#dce5ef" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M43 17v-4" stroke="#dce5ef" stroke-width="3" stroke-linecap="round"/>
+          <path d="M38 54 50 42c2-2 5-2 7 0l-7 7 4 4 7-7c2 3 2 6 0 8L49 66c-3 3-7 3-10 0l-3-3-15 0 5-5z" transform="translate(-2 -7)" fill="#cbd5e1" stroke="#64748b" stroke-width="1.8" stroke-linejoin="round"/>
+          <path d="M7 57h35" stroke="#a9b7c6" stroke-width="2.5" stroke-linecap="round"/>
+        </svg></span>주유•정비내역</span>
         <span class="fuel-toggle-actions">
           <span class="fuel-chevron" aria-hidden="true">› ›</span>
           <span id="fuelToggleText">펼치기</span>
@@ -1036,18 +1056,12 @@
       </button>
       <button type="button" class="documents-tab" data-doc-tab="expenses" aria-pressed="false">
         <span class="documents-tab-icon" aria-hidden="true"><svg viewBox="0 0 64 64">
-          <defs>
-            <linearGradient id="fuelPumpRed" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ff7777"/><stop offset="1" stop-color="#c92338"/></linearGradient>
-            <linearGradient id="fuelPumpGlass" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#26384a"/><stop offset="1" stop-color="#111c29"/></linearGradient>
-          </defs>
-          <path d="M11 56V12a5 5 0 0 1 5-5h21a5 5 0 0 1 5 5v44z" fill="url(#fuelPumpRed)" stroke="#a91f32" stroke-width="2.5" stroke-linejoin="round"/>
-          <path d="M17 13h19v17H17z" rx="2" fill="url(#fuelPumpGlass)" stroke="#ffb0aa" stroke-width="1.5"/>
-          <path d="M21 18h11m-11 5h7" stroke="#ffdedb" stroke-width="2" stroke-linecap="round"/>
-          <path d="M26.5 34c-4 6-7 9-7 13a7 7 0 0 0 14 0c0-4-3-7-7-13z" fill="#ffdbd4" stroke="#b9283a" stroke-width="1.2"/>
-          <path d="M42 17h5l7 7v18a4 4 0 0 1-8 0V29h-4" fill="none" stroke="#dce5ef" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M47 17v-4" stroke="#dce5ef" stroke-width="3" stroke-linecap="round"/>
-          <path d="M10 56h34" stroke="#a9b7c6" stroke-width="2.5" stroke-linecap="round"/>
-          <path d="M14 10h23" stroke="#ffb0aa" stroke-width="1.5" stroke-linecap="round" opacity=".8"/>
+          <path d="M8 57V12a5 5 0 0 1 5-5h21a5 5 0 0 1 5 5v45z" fill="#e53935" stroke="#a91f32" stroke-width="2.2" stroke-linejoin="round"/>
+          <path d="M14 13h19v15H14z" fill="#182536" stroke="#ffb0aa" stroke-width="1.5"/>
+          <path d="M39 17h5l7 7v18a4 4 0 0 1-8 0V29h-4" fill="none" stroke="#dce5ef" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M43 17v-4" stroke="#dce5ef" stroke-width="3" stroke-linecap="round"/>
+          <path d="M38 54 50 42c2-2 5-2 7 0l-7 7 4 4 7-7c2 3 2 6 0 8L49 66c-3 3-7 3-10 0l-3-3-15 0 5-5z" transform="translate(-2 -7)" fill="#cbd5e1" stroke="#64748b" stroke-width="1.8" stroke-linejoin="round"/>
+          <path d="M7 57h35" stroke="#a9b7c6" stroke-width="2.5" stroke-linecap="round"/>
         </svg></span><span>주유/정비내역</span>
       </button>
     </nav>
@@ -2295,6 +2309,7 @@
       loadedLogDate = $("date").value || localDateString(new Date());
       await loadCurrentLogForDate(loadedLogDate);
       await loadMonthData();
+      await renderWeatherCalendar();
       refreshExportTables();
       setVehicleLogReady(true);
     }
@@ -2598,7 +2613,7 @@
       const dayAfterNextMonth = localDateString(new Date(year, month, 2));
       const { data: logs, error: logsError } = await authClient
         .from("daily_logs")
-        .select("id,log_date,status,previous_km,origin,destination")
+        .select("id,log_date,status,previous_km,origin,origin_memo,destination,weather,memo")
         .eq("team_id", activeTeamId)
         .gte("log_date", first)
         .lt("log_date", dayAfterNextMonth);
@@ -2622,7 +2637,7 @@
       let fluids = [];
       if (ids.length) {
         const { data, error } = await authClient.from("route_stops")
-          .select("log_id,stop_order,place_name")
+          .select("log_id,stop_order,place_name,memo")
           .in("log_id", ids)
           .order("stop_order", { ascending: true });
         if (error) throw error;
@@ -2641,12 +2656,16 @@
         .gte("maintenance_date", first)
         .lt("maintenance_date", dayAfterNextMonth);
       if (maintenanceError) throw maintenanceError;
-      exportDailyLogs = (logs || []).map(log => ({
-        ...log,
-        route: log.status === "미운행" ? "미운행" : [log.origin, ...stops.filter(stop => stop.log_id === log.id)
-          .sort((a, b) => a.stop_order - b.stop_order).map(stop => stop.place_name)]
-          .filter(Boolean).join("-")
-      }));
+      exportDailyLogs = (logs || []).map(log => {
+        const logStops = stops.filter(stop => stop.log_id === log.id)
+          .sort((a, b) => a.stop_order - b.stop_order);
+        return {
+          ...log,
+          branchMemo: [log.origin_memo, ...logStops.map(stop => stop.memo)].filter(value => String(value || "").trim()).join(" · "),
+          route: log.status === "미운행" ? "미운행" : [log.origin, ...logStops.map(stop => stop.place_name)]
+            .filter(Boolean).join("-")
+        };
+      });
       exportEvents = [
         ...fluids.map(record => ({
           time: ((logs || []).find(log => log.id === record.log_id)?.log_date || String(record.recorded_at).slice(0, 10)) + "T" + String(record.recorded_at).replace(" ", "T").slice(11, 16),
@@ -3189,11 +3208,29 @@
       if (!weatherCalendar) return;
       const year = Number(documentsYear.value);
       const month = Number(documentsMonth.value);
+      try { await vehicleDataState.loadMonth(); }
+      catch (error) { console.error("날씨 달력 자료 조회 실패", error); }
       const holidayMap = await getKoreanHolidays(year);
       if (year !== Number(documentsYear.value) || month !== Number(documentsMonth.value)) return;
       weatherCalendar.querySelectorAll(".weather-day").forEach(day => day.remove());
       const firstWeekday = new Date(year, month - 1, 1).getDay();
       const daysInMonth = new Date(year, month, 0).getDate();
+      const monthKey = year + "-" + String(month).padStart(2, "0");
+      const monthLogs = exportDailyLogs.filter(log => String(log.log_date).slice(0, 7) === monthKey);
+      const logByDate = new Map(monthLogs.map(log => [String(log.log_date), log]));
+      const actualReadings = exportDailyLogs
+        .filter(log => log.status !== "미운행" && log.previous_km != null)
+        .sort((a, b) => String(a.log_date).localeCompare(String(b.log_date)));
+      if (exportNextDrivingLog?.previous_km != null) actualReadings.push(exportNextDrivingLog);
+      const eventsByDate = new Map();
+      exportEvents.forEach(event => {
+        const key = String(event.time || "").slice(0, 10);
+        if (!key) return;
+        if (!eventsByDate.has(key)) eventsByDate.set(key, []);
+        eventsByDate.get(key).push(event);
+      });
+      const pumpIcon = `<svg class="weather-day-icon" viewBox="0 0 24 28" aria-label="주유" role="img"><path d="M4 26V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v22z" fill="#ef4444" stroke="#a91f32" stroke-width="1"/><path d="M7 5h7v7H7z" fill="#172333" stroke="#ffc0ba" stroke-width=".8"/><path d="M17 7h2l3 3v10a2 2 0 0 1-4 0v-6h-2" fill="none" stroke="#dce5ef" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 26h15" stroke="#ff6b6b" stroke-width="2" stroke-linecap="round"/></svg>`;
+      const garageIcon = `<svg class="weather-day-icon" viewBox="0 0 28 28" aria-label="정비" role="img"><path d="M2 12 14 3l12 9v14H2z" fill="#e8eef6" stroke="#91a4b9" stroke-width="1.2" stroke-linejoin="round"/><path d="M1 12 14 2l13 10" fill="none" stroke="#1689dc" stroke-width="3" stroke-linejoin="round"/><path d="m17 12 2 2-4 4-2-2z" fill="#334155"/><path d="M12 15a4 4 0 0 0 5 5l-4 4-4-4z" fill="#334155"/></svg>`;
       for (let blank = 0; blank < firstWeekday; blank++) {
         const spacer = document.createElement("div");
         spacer.className = "weather-day calendar-empty";
@@ -3204,8 +3241,12 @@
         const date = new Date(year, month - 1, day);
         const dateKey = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
         const holidayName = holidayMap.get(dateKey);
+        const log = logByDate.get(dateKey);
+        const events = eventsByDate.get(dateKey) || [];
+        const hasFuel = events.some(event => event.type === "주유");
+        const hasMaintenance = events.some(event => event.type !== "주유" && event.type !== "요소수");
         const cell = document.createElement("div");
-        cell.className = "weather-day";
+        cell.className = "weather-day calendar-day";
         if (holidayName) {
           cell.classList.add("holiday");
           cell.title = holidayName;
@@ -3214,12 +3255,40 @@
         } else if (date.getDay() === 6) {
           cell.classList.add("saturday");
         }
+        const top = document.createElement("div");
+        top.className = "weather-day-top";
         const number = document.createElement("span");
         number.className = "weather-day-number";
         number.textContent = String(day);
         const value = document.createElement("span");
         value.className = "weather-day-value";
-        cell.append(number, value);
+        value.textContent = log?.weather || "";
+        top.append(number, value);
+        const icons = document.createElement("span");
+        icons.className = "weather-day-icons";
+        if (hasFuel) icons.insertAdjacentHTML("beforeend", pumpIcon);
+        if (hasMaintenance) icons.insertAdjacentHTML("beforeend", garageIcon);
+        top.appendChild(icons);
+        const branchMemo = document.createElement("div");
+        branchMemo.className = "weather-day-memo";
+        branchMemo.textContent = log?.branchMemo || "";
+        const dailyMemo = document.createElement("div");
+        dailyMemo.className = "weather-day-memo";
+        dailyMemo.textContent = log?.memo || "";
+        const distance = document.createElement("div");
+        distance.className = "weather-day-distance";
+        const readingIndex = actualReadings.findIndex(item => String(item.log_date) === dateKey);
+        if (readingIndex >= 0) {
+          const beforeKm = Number(actualReadings[readingIndex].previous_km);
+          const next = actualReadings.slice(readingIndex + 1).find(item => item.previous_km != null);
+          const afterKm = next?.previous_km != null ? Number(next.previous_km) : null;
+          if (Number.isFinite(beforeKm) && Number.isFinite(afterKm) && afterKm >= beforeKm) {
+            distance.textContent = (afterKm - beforeKm).toLocaleString("ko-KR") + "km";
+          }
+        }
+        const fullMemo = [log?.branchMemo, log?.memo].filter(Boolean).join(" · ");
+        if (fullMemo) cell.title = [cell.title, fullMemo].filter(Boolean).join("\n");
+        cell.append(top, branchMemo, dailyMemo, distance);
         weatherCalendar.appendChild(cell);
       }
       const trailing = (7 - ((firstWeekday + daysInMonth) % 7)) % 7;
