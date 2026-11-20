@@ -122,6 +122,8 @@
     .weather-day-memo { min-height:11px; max-height:13px; overflow:hidden; color:#aebbd0; font-size:6px; line-height:1.05; overflow-wrap:anywhere; }
     .weather-day-distance { margin-top:auto; min-height:10px; color:#f0f4fa; font-size:7px; line-height:1.05; font-weight:800; text-align:right; white-space:nowrap; }
     .weather-day-memo:empty, .weather-day-distance:empty { display:none; }
+    .calendar-route-toast { position:fixed; left:50%; bottom:calc(22px + env(safe-area-inset-bottom)); z-index:9500; width:max-content; max-width:calc(100vw - 32px); padding:12px 16px; border:1px solid #526071; border-radius:12px; background:#252d39; color:#f3f5f7; font-size:13px; line-height:1.45; text-align:center; box-shadow:0 8px 24px #0008; opacity:0; transform:translate(-50%,12px); pointer-events:none; transition:opacity .18s ease, transform .18s ease; }
+    .calendar-route-toast.visible { opacity:1; transform:translate(-50%,0); }
     .documents-table-wrap { overflow-x:auto; border:1px solid #343e4c; border-radius:10px; }
     .documents-table { width:100%; min-width:560px; border-collapse:collapse; font-size:12px; }
     .documents-table th,.documents-table td { padding:11px 9px; border-bottom:1px solid #343e4c; text-align:center; white-space:nowrap; }
@@ -2662,8 +2664,8 @@
         return {
           ...log,
           branchMemo: [log.origin_memo, ...logStops.map(stop => stop.memo)].filter(value => String(value || "").trim()).join(" · "),
-          route: log.status === "미운행" ? "미운행" : [log.origin, ...logStops.map(stop => stop.place_name)]
-            .filter(Boolean).join("-")
+          route: log.status === "미운행" ? "미운행" : [log.origin, ...logStops.map(stop => stop.place_name), log.destination]
+            .filter(value => String(value || "").trim()).join("-")
         };
       });
       exportEvents = [
@@ -3204,6 +3206,23 @@
         return koreanHolidayCache.get(year);
       }
     }
+    let calendarToastTimer = null;
+    function showCalendarRouteToast(message) {
+      let toast = document.getElementById("calendarRouteToast");
+      if (!toast) {
+        toast = document.createElement("div");
+        toast.id = "calendarRouteToast";
+        toast.className = "calendar-route-toast";
+        toast.setAttribute("role", "status");
+        toast.setAttribute("aria-live", "polite");
+        document.body.appendChild(toast);
+      }
+      toast.textContent = message;
+      toast.classList.add("visible");
+      clearTimeout(calendarToastTimer);
+      calendarToastTimer = setTimeout(() => toast.classList.remove("visible"), 2600);
+    }
+
     async function renderWeatherCalendar() {
       if (!weatherCalendar) return;
       const year = Number(documentsYear.value);
@@ -3247,6 +3266,19 @@
         const hasMaintenance = events.some(event => event.type !== "주유" && event.type !== "요소수");
         const cell = document.createElement("div");
         cell.className = "weather-day calendar-day";
+        cell.setAttribute("role", "button");
+        cell.setAttribute("tabindex", "0");
+        cell.setAttribute("aria-label", dateKey + " 운행경로 확인");
+        const showDayRoute = () => {
+          const route = log?.route;
+          showCalendarRouteToast(route && route !== "미운행"
+            ? "해당 일자의 운행경로는 " + route + " 입니다."
+            : "해당 일자는 운행기록이 없습니다.");
+        };
+        cell.addEventListener("click", showDayRoute);
+        cell.addEventListener("keydown", event => {
+          if (event.key === "Enter" || event.key === " ") { event.preventDefault(); showDayRoute(); }
+        });
         if (holidayName) {
           cell.classList.add("holiday");
           cell.title = holidayName;
