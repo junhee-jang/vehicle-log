@@ -2664,8 +2664,8 @@
         return {
           ...log,
           branchMemo: [log.origin_memo, ...logStops.map(stop => stop.memo)].filter(value => String(value || "").trim()).join(" · "),
-          route: log.status === "미운행" ? "미운행" : [log.origin, ...logStops.map(stop => stop.place_name), log.destination]
-            .filter(value => String(value || "").trim()).join("-")
+          route: log.status === "미운행" ? "미운행" : [log.origin, ...logStops.map(stop => stop.place_name)]
+            .filter(Boolean).join("-")
         };
       });
       exportEvents = [
