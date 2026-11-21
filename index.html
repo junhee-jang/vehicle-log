@@ -123,7 +123,7 @@
     .weather-day-distance { margin-top:auto; min-height:10px; color:#f0f4fa; font-size:7px; line-height:1.05; font-weight:800; text-align:right; white-space:nowrap; overflow-wrap:normal; }
     .weather-day-bottom { display:block; margin-top:auto; min-width:0; }
     .weather-day-vacations { display:block; box-sizing:border-box; flex:0 0 12px; min-height:12px; height:12px; width:100%; overflow:hidden; line-height:6px; }
-    .weather-day-vacation { display:block; box-sizing:border-box; width:100%; max-width:100%; height:6px; padding:0 1px; border-radius:3px; color:#fff; font-size:6px; line-height:6px; font-weight:700; letter-spacing:-0.15px; white-space:nowrap; overflow:hidden; text-overflow:clip; overflow-wrap:normal; word-break:normal; }
+    .weather-day-vacation { display:block; box-sizing:border-box; width:100%; max-width:100%; height:6px; padding:0 1px; border-radius:3px; color:#fff; font-size:5.5px; line-height:6px; font-weight:700; letter-spacing:-0.2px; white-space:nowrap; overflow:hidden; text-overflow:clip; overflow-wrap:normal; word-break:normal; }
     .weather-day-bottom .weather-day-distance { display:block; box-sizing:border-box; flex:0 0 10px; width:100%; height:10px; min-height:10px; margin:0; line-height:10px; text-align:right; }
     .weather-day-vacation.team-leader { background:#315f91; }
     .weather-day-vacation.team-member { background:#7652a6; }
@@ -3588,16 +3588,18 @@
             : type === "추석연휴 대비 특별점검" ? "event-chuseok" : "event-other";
           label.className = "weather-day-vacation " + typeClass +
             (isStart ? "" : " continues-left") + (isEnd ? "" : " continues-right");
+          const startMonth = Number(item.start_date.slice(5, 7));
+          const endMonth = Number(item.end_date.slice(5, 7));
+          const startDay = Number(item.start_date.slice(8, 10));
+          const endDay = Number(item.end_date.slice(8, 10));
           const rangeText = item.start_date === item.end_date
-            ? item.start_date.slice(5, 7) !== item.end_date.slice(5, 7)
-              ? item.start_date.slice(5).replace("-", "/") + "일"
-              : item.start_date.slice(8) + "일"
-            : item.start_date.slice(5, 7) !== item.end_date.slice(5, 7)
-              ? item.start_date.slice(5).replace("-", "/") + "~" + item.end_date.slice(5).replace("-", "/")
-              : item.start_date.slice(8) + "~" + item.end_date.slice(8) + "일";
+            ? startDay + "일"
+            : startMonth === endMonth
+              ? startDay + "일~" + endDay + "일"
+              : startMonth + "/" + startDay + "~" + endMonth + "/" + endDay;
           label.textContent = type === "휴가"
-            ? rangeText + " " + (item.staff_type === "팀장" ? "팀장" : "팀원") + " · " + item.substitute_name
-            : rangeText + " " + (type === "기타" ? item.custom_type : type);
+            ? (item.staff_type === "팀장" ? "팀장" : "팀원") + rangeText + " 대체자" + item.substitute_name
+            : rangeText + (type === "기타" ? item.custom_type : type);
           label.title = label.textContent;
           vacationLabels.appendChild(label);
         });
@@ -3605,7 +3607,7 @@
         cell.append(top, branchMemo, dailyMemo, bottom);
         weatherCalendar.appendChild(cell);
         cell.querySelectorAll(".weather-day-vacation").forEach(label => {
-          let fontSize = 6;
+          let fontSize = 5.5;
           label.style.fontSize = fontSize + "px";
           while (label.scrollWidth > label.clientWidth && fontSize > 1.5) {
             fontSize = Math.max(1.5, fontSize - 0.25);
