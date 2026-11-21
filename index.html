@@ -122,8 +122,8 @@
     .weather-day-memo { min-height:11px; max-height:13px; overflow:hidden; color:#aebbd0; font-size:6px; line-height:1.05; overflow-wrap:anywhere; }
     .weather-day-distance { margin-top:auto; min-height:10px; color:#f0f4fa; font-size:7px; line-height:1.05; font-weight:800; text-align:right; white-space:nowrap; overflow-wrap:normal; }
     .weather-day-bottom { display:block; margin-top:auto; min-width:0; }
-    .weather-day-vacations { display:block; box-sizing:border-box; flex:0 0 10px; min-height:10px; height:10px; width:100%; overflow:hidden; line-height:5px; }
-    .weather-day-vacation { display:block; box-sizing:border-box; width:100%; max-width:100%; height:5px; padding:0 1px; border-radius:3px; color:#fff; font-size:3px; line-height:5px; font-weight:700; letter-spacing:-0.15px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; overflow-wrap:normal; word-break:normal; }
+    .weather-day-vacations { display:block; box-sizing:border-box; flex:0 0 12px; min-height:12px; height:12px; width:100%; overflow:hidden; line-height:6px; }
+    .weather-day-vacation { display:block; box-sizing:border-box; width:100%; max-width:100%; height:6px; padding:0 1px; border-radius:3px; color:#fff; font-size:6px; line-height:6px; font-weight:700; letter-spacing:-0.15px; white-space:nowrap; overflow:hidden; text-overflow:clip; overflow-wrap:normal; word-break:normal; }
     .weather-day-bottom .weather-day-distance { display:block; box-sizing:border-box; flex:0 0 10px; width:100%; height:10px; min-height:10px; margin:0; line-height:10px; text-align:right; }
     .weather-day-vacation.team-leader { background:#315f91; }
     .weather-day-vacation.team-member { background:#7652a6; }
@@ -3604,6 +3604,14 @@
         bottom.append(vacationLabels, distance);
         cell.append(top, branchMemo, dailyMemo, bottom);
         weatherCalendar.appendChild(cell);
+        cell.querySelectorAll(".weather-day-vacation").forEach(label => {
+          let fontSize = 6;
+          label.style.fontSize = fontSize + "px";
+          while (label.scrollWidth > label.clientWidth && fontSize > 1.5) {
+            fontSize = Math.max(1.5, fontSize - 0.25);
+            label.style.fontSize = fontSize + "px";
+          }
+        });
       }
       const trailing = (7 - ((firstWeekday + daysInMonth) % 7)) % 7;
       for (let blank = 0; blank < trailing; blank++) {
