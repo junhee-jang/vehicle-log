@@ -3598,7 +3598,7 @@
               ? startDay + "일~" + endDay + "일"
               : startMonth + "/" + startDay + "~" + endMonth + "/" + endDay;
           label.textContent = type === "휴가"
-            ? (item.staff_type === "팀장" ? "팀장" : "팀원") + rangeText + " 대체자" + item.substitute_name
+            ? (item.staff_type === "팀장" ? "팀장" : "팀원") + rangeText + " 대체자 " + item.substitute_name
             : rangeText + (type === "기타" ? item.custom_type : type);
           label.title = label.textContent;
           vacationLabels.appendChild(label);
