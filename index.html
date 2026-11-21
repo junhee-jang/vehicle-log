@@ -127,6 +127,11 @@
     .weather-day-bottom .weather-day-distance { display:block; box-sizing:border-box; flex:0 0 10px; width:100%; height:10px; min-height:10px; margin:0; line-height:10px; text-align:right; }
     .weather-day-vacation.team-leader { background:#315f91; }
     .weather-day-vacation.team-member { background:#7652a6; }
+    .weather-day-vacation.event-newyear { background:#8b5a2b; }
+    .weather-day-vacation.event-thaw { background:#287c78; }
+    .weather-day-vacation.event-flood { background:#356b9b; }
+    .weather-day-vacation.event-chuseok { background:#8b7040; }
+    .weather-day-vacation.event-other { background:#666b75; }
     .weather-day-vacation.continues-left { border-top-left-radius:0; border-bottom-left-radius:0; }
     .weather-day-vacation.continues-right { border-top-right-radius:0; border-bottom-right-radius:0; }
     .weather-day-bottom .weather-day-distance { display:block; float:none; }
@@ -2686,7 +2691,7 @@
       const lastDate = localDateString(new Date(year, month, 0));
       const { data: vacations, error: vacationsError } = await authClient
         .from("vacation_records")
-        .select("id,staff_type,start_date,end_date,substitute_name,created_by")
+        .select("id,record_type,custom_type,staff_type,start_date,end_date,substitute_name,created_by")
         .eq("team_id", activeTeamId)
         .lte("start_date", lastDate)
         .gte("end_date", first)
@@ -3267,23 +3272,38 @@
       vacationDialog.className = "vacation-dialog";
       vacationDialog.innerHTML = `
         <form class="vacation-dialog-inner" id="vacationForm">
-          <h3 id="vacationDialogTitle">휴가 일정 등록</h3>
+          <h3 id="vacationDialogTitle">일정 등록</h3>
           <div id="vacationExistingWrap" hidden>
-            <label for="vacationExisting">이 날짜에 등록된 휴가</label>
+            <label for="vacationExisting">이 날짜에 등록된 일정</label>
             <select id="vacationExisting"></select>
           </div>
-          <label for="vacationStaffType">휴가자 구분</label>
-          <select id="vacationStaffType" required>
-            <option value="팀장">팀장</option>
-            <option value="팀원">팀원</option>
+          <label for="vacationRecordType">일정 구분</label>
+          <select id="vacationRecordType" required>
+            <option value="휴가">휴가</option>
+            <option value="설연휴 대비 특별점검">설연휴 대비 특별점검</option>
+            <option value="해빙기 점검">해빙기 점검</option>
+            <option value="풍수해 점검">풍수해 점검</option>
+            <option value="추석연휴 대비 특별점검">추석연휴 대비 특별점검</option>
+            <option value="기타">기타 (직접입력)</option>
           </select>
+          <div id="vacationStaffFields">
+            <label for="vacationStaffType">휴가자 구분</label>
+            <select id="vacationStaffType">
+              <option value="팀장">팀장</option>
+              <option value="팀원">팀원</option>
+            </select>
+            <label for="vacationSubstitute">대체자</label>
+            <input id="vacationSubstitute" type="text" maxlength="30" placeholder="대체자 이름">
+          </div>
+          <div id="vacationCustomTypeWrap" hidden>
+            <label for="vacationCustomType">일정 내용</label>
+            <input id="vacationCustomType" type="text" maxlength="30" placeholder="일정 내용을 입력해 주세요">
+          </div>
           <div class="vacation-date-row">
             <div><label for="vacationStart">시작일</label><input id="vacationStart" type="date" required></div>
             <div><label for="vacationEnd">종료일</label><input id="vacationEnd" type="date" required></div>
           </div>
-          <label for="vacationSubstitute">대체자</label>
-          <input id="vacationSubstitute" type="text" maxlength="30" placeholder="대체자 이름" required>
-          <p class="vacation-hint">달력에서 길게 누른 날짜가 시작일로 지정돼. 종료일을 바꾸면 연속된 날짜에 색상으로 표시돼.</p>
+           <p class="vacation-hint">달력에서 길게 누른 날짜가 시작일로 지정돼. 종료일을 바꾸면 연속된 날짜에 색상으로 표시돼.</p>
           <div class="vacation-actions">
             <button type="button" class="delete" id="vacationDelete" hidden>삭제</button>
             <button type="button" id="vacationCancel">취소</button>
@@ -3293,14 +3313,32 @@
       document.body.appendChild(vacationDialog);
       const form = vacationDialog.querySelector("#vacationForm");
       const existing = vacationDialog.querySelector("#vacationExisting");
+      vacationDialog.querySelector("#vacationRecordType").addEventListener("change", () => {
+        const type = vacationDialog.querySelector("#vacationRecordType").value;
+        const isVacation = type === "휴가";
+        vacationDialog.querySelector("#vacationStaffFields").hidden = !isVacation;
+        vacationDialog.querySelector("#vacationCustomTypeWrap").hidden = type !== "기타";
+        vacationDialog.querySelector("#vacationStaffType").required = isVacation;
+        vacationDialog.querySelector("#vacationSubstitute").required = isVacation;
+        vacationDialog.querySelector("#vacationCustomType").required = type === "기타";
+      });
       const fillRecord = record => {
         const editing = Boolean(record?.id);
         vacationDialog.dataset.recordId = record?.id || "";
-        vacationDialog.querySelector("#vacationDialogTitle").textContent = editing ? "휴가 일정 수정" : "휴가 일정 등록";
+        const type = record?.record_type || "휴가";
+        vacationDialog.querySelector("#vacationDialogTitle").textContent = editing ? "일정 수정" : "일정 등록";
+        vacationDialog.querySelector("#vacationRecordType").value = type;
         vacationDialog.querySelector("#vacationStaffType").value = record?.staff_type || "팀장";
         vacationDialog.querySelector("#vacationStart").value = record?.start_date || vacationDialog.dataset.selectedDate;
         vacationDialog.querySelector("#vacationEnd").value = record?.end_date || vacationDialog.dataset.selectedDate;
         vacationDialog.querySelector("#vacationSubstitute").value = record?.substitute_name || "";
+        vacationDialog.querySelector("#vacationCustomType").value = record?.custom_type || "";
+        const isVacation = type === "휴가";
+        vacationDialog.querySelector("#vacationStaffFields").hidden = !isVacation;
+        vacationDialog.querySelector("#vacationCustomTypeWrap").hidden = type !== "기타";
+        vacationDialog.querySelector("#vacationStaffType").required = isVacation;
+        vacationDialog.querySelector("#vacationSubstitute").required = isVacation;
+        vacationDialog.querySelector("#vacationCustomType").required = type === "기타";
         vacationDialog.querySelector("#vacationDelete").hidden = !editing;
       };
       existing.addEventListener("change", () => {
@@ -3312,9 +3350,12 @@
         if (!activeTeamId || !activeUserId) return;
         const start = form.querySelector("#vacationStart").value;
         const end = form.querySelector("#vacationEnd").value;
+        const recordType = form.querySelector("#vacationRecordType").value;
+        const isVacation = recordType === "휴가";
         const substitute = form.querySelector("#vacationSubstitute").value.trim();
-        if (!start || !end || end < start || !substitute) {
-          alert("휴가 기간과 대체자 이름을 확인해 주세요.");
+        const customType = form.querySelector("#vacationCustomType").value.trim();
+        if (!start || !end || end < start || (isVacation && !substitute) || (recordType === "기타" && !customType)) {
+          alert("일정 구분과 기간, 필수 입력 내용을 확인해 주세요.");
           return;
         }
         const save = form.querySelector("#vacationSave");
@@ -3322,10 +3363,12 @@
         save.textContent = "저장 중...";
         const payload = {
           team_id: activeTeamId,
-          staff_type: form.querySelector("#vacationStaffType").value,
+          record_type: recordType,
+          custom_type: recordType === "기타" ? customType : null,
+          staff_type: isVacation ? form.querySelector("#vacationStaffType").value : null,
           start_date: start,
           end_date: end,
-          substitute_name: substitute,
+          substitute_name: isVacation ? substitute : null,
           created_by: activeUserId
         };
         try {
@@ -3382,7 +3425,7 @@
         records.forEach((record, index) => {
           const option = document.createElement("option");
           option.value = record.id;
-          option.textContent = record.staff_type + " · " + record.start_date.slice(5).replace("-", "/") + "~" + record.end_date.slice(5).replace("-", "/") + " · " + record.substitute_name;
+          option.textContent = (record.record_type || "휴가") + " · " + record.start_date.slice(5).replace("-", "/") + "~" + record.end_date.slice(5).replace("-", "/") + (record.record_type === "휴가" || !record.record_type ? " · " + record.staff_type + " · " + record.substitute_name : record.record_type === "기타" ? " · " + record.custom_type : "");
           select.appendChild(option);
         });
         const addOption = document.createElement("option");
@@ -3537,7 +3580,13 @@
           const label = document.createElement("span");
           const isStart = item.start_date === dateKey;
           const isEnd = item.end_date === dateKey;
-          label.className = "weather-day-vacation " + (item.staff_type === "팀장" ? "team-leader" : "team-member") +
+          const type = item.record_type || "휴가";
+          const typeClass = type === "휴가" ? (item.staff_type === "팀장" ? "team-leader" : "team-member")
+            : type === "설연휴 대비 특별점검" ? "event-newyear"
+            : type === "해빙기 점검" ? "event-thaw"
+            : type === "풍수해 점검" ? "event-flood"
+            : type === "추석연휴 대비 특별점검" ? "event-chuseok" : "event-other";
+          label.className = "weather-day-vacation " + typeClass +
             (isStart ? "" : " continues-left") + (isEnd ? "" : " continues-right");
           const rangeText = item.start_date === item.end_date
             ? item.start_date.slice(5, 7) !== item.end_date.slice(5, 7)
@@ -3546,7 +3595,9 @@
             : item.start_date.slice(5, 7) !== item.end_date.slice(5, 7)
               ? item.start_date.slice(5).replace("-", "/") + "~" + item.end_date.slice(5).replace("-", "/")
               : item.start_date.slice(8) + "~" + item.end_date.slice(8) + "일";
-          label.textContent = (item.staff_type === "팀장" ? "팀장 " : "팀원 ") + rangeText + " · 대체자 " + item.substitute_name;
+          label.textContent = type === "휴가"
+            ? (item.staff_type === "팀장" ? "팀장 " : "팀원 ") + rangeText + " · 대체자 " + item.substitute_name
+            : (type === "기타" ? item.custom_type : type) + " " + rangeText;
           label.title = label.textContent;
           vacationLabels.appendChild(label);
         });
