@@ -144,6 +144,8 @@
     .vacation-dialog .vacation-actions .delete { color:#ff9b9b; }
     .vacation-dialog .vacation-hint { margin:8px 0 0; color:#8795a6; font-size:11px; line-height:1.4; }
     .weather-day-memo:empty, .weather-day-distance:empty { display:none; }
+    /* 휴가 달력에서는 키로수가 없어도 고정된 표시 줄을 유지 */
+    .weather-day-bottom .weather-day-distance:empty { display:block; }
     .calendar-route-toast { position:fixed; left:50%; bottom:calc(22px + env(safe-area-inset-bottom)); z-index:9500; width:max-content; max-width:calc(100vw - 32px); padding:12px 16px; border:1px solid #526071; border-radius:12px; background:#252d39; color:#f3f5f7; font-size:13px; line-height:1.45; text-align:center; box-shadow:0 8px 24px #0008; opacity:0; transform:translate(-50%,12px); pointer-events:none; transition:opacity .18s ease, transform .18s ease; }
     .calendar-route-toast.visible { opacity:1; transform:translate(-50%,0); }
     .documents-table-wrap { overflow-x:auto; border:1px solid #343e4c; border-radius:10px; }
