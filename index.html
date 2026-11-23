@@ -2836,35 +2836,16 @@
 
         if (!confirm(`${displayDate} 운행기록을 초기화하시겠습니까?\n\n해당 날짜의 운행정보와 경유지만 초기화됩니다. 주유·요소수 기록과 정비기록은 그대로 유지됩니다.\n다른 날짜의 기록은 변경되지 않습니다.`)) return;
 
-        if (log?.id && hasRouteStops) {
-          resetStage = "경유지 초기화";
-          const { error: stopsError } = await authClient.from("route_stops").delete().eq("log_id", log.id);
-          if (stopsError) throw stopsError;
-        }
-
-        // 이후 운행기록이 있으면 이 날짜를 미운행으로 남겨 월별 주행거리 계산에 연결합니다.
-        // 이후 운행기록이 없으면 운행일지 행을 정리해 처음 입력 화면으로 되돌립니다.
-        // 주유·요소수 기록이 연결된 행은 외래키 보존을 위해 남겨 둡니다.
-        const clearedLog = {
-          status: "미운행",
-          previous_km: null,
-          weather: null,
-          origin: "남청주",
-          origin_departure_time: null,
-          origin_memo: null,
-          destination: null,
-          memo: null,
-          updated_by: activeUserId
-        };
-        resetStage = "운행기록 초기화";
-        if (log?.id && (hasLaterDrivingLog || hasFluidRecords)) {
-          const { error: clearLogError } = await authClient.from("daily_logs")
-            .update(clearedLog).eq("id", log.id);
-          if (clearLogError) throw clearLogError;
-        } else if (log?.id) {
-          const { error: deleteLogError } = await authClient.from("daily_logs")
-            .delete().eq("id", log.id);
-          if (deleteLogError) throw deleteLogError;
+        // 경유지 삭제와 운행기록 초기화를 DB 함수 한 번으로 처리해 중간 실패 시 일부만 반영되지 않게 합니다.
+        resetStage = "운행기록 및 경유지 초기화";
+        if (log?.id) {
+          const { error: resetError } = await authClient.rpc("reset_daily_log", {
+            p_log_id: log.id,
+            p_team_id: activeTeamId,
+            p_log_date: date,
+            p_keep_log: hasLaterDrivingLog || hasFluidRecords
+          });
+          if (resetError) throw resetError;
         }
 
         resetStage = "화면 갱신";
