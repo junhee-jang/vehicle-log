@@ -3763,7 +3763,7 @@
             }).join("");
             const route = safe(cells[4] || "");
             const routeStyle = cellStyle("center", "0.5pt", "1.5pt");
-            const routeCell = "<td colspan='6' align='center' valign='middle' style='" + routeStyle + "'>" + route + "</td>";
+            const routeCell = "<td colspan='6' x:MergeAcross='5' align='center' valign='middle' style='" + routeStyle + "'>" + route + "</td>";
             return "<tr>" + dateCell + normalCells + routeCell + "</tr>";
           }).join("");
           const html = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:x='urn:schemas-microsoft-com:office:excel' xmlns='http://www.w3.org/TR/REC-html40'><head><meta http-equiv='Content-Type' content='text/html; charset=utf-8'><meta name='ProgId' content='Excel.Sheet'><meta name='Generator' content='Microsoft Excel 16'><style><!--table{border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;}td{mso-font-charset:129;}--></style></head><body><table border='0' cellpadding='0' cellspacing='0'><!--StartFragment-->" + htmlRows + "<!--EndFragment--></table></body></html>";
