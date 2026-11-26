@@ -2463,8 +2463,16 @@
     }
     $("vehicleNumberInput")?.addEventListener("change", event => {
       if (event.target.value === "__direct_input__") {
+        event.preventDefault();
+        const dialog = $("vehicleRegisterDialog");
         $("newVehicleNumber").value = "";
-        $("vehicleRegisterDialog").showModal();
+        try {
+          if (!dialog.open) dialog.showModal();
+        } catch (error) {
+          console.error("차량번호 입력창 열기 실패", error);
+          dialog.setAttribute("open", "");
+        }
+        $("newVehicleNumber").focus();
         return;
       }
       changeSelectedVehicle(event.target.value, false).catch(error => {
@@ -3025,13 +3033,22 @@
         // 경유지 삭제와 운행기록 초기화를 DB 함수 한 번으로 처리해 중간 실패 시 일부만 반영되지 않게 합니다.
         resetStage = "운행기록 및 경유지 초기화";
         if (log?.id) {
+          const keepLog = hasLaterDrivingLog || hasFluidRecords;
           const { error: resetError } = await authClient.rpc("reset_daily_log", {
             p_log_id: log.id,
             p_team_id: activeTeamId,
             p_log_date: date,
-            p_keep_log: hasLaterDrivingLog || hasFluidRecords
+            p_keep_log: keepLog
           });
           if (resetError) throw resetError;
+          if (keepLog) {
+            const { error: weatherResetError } = await authClient.from("daily_logs")
+              .update({ weather: null })
+              .eq("id", log.id)
+              .eq("team_id", activeTeamId)
+              .eq("vehicle_id", selectedVehicleId);
+            if (weatherResetError) throw weatherResetError;
+          }
         }
 
         resetStage = "화면 갱신";
