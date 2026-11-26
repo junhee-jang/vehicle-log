@@ -96,7 +96,14 @@
     .documents-period label { color:#9da9b8; margin-right:3px; }
     .documents-period select { min-width:58px; width:auto; min-height:32px; padding:4px 5px; border:1px solid #3a4655; border-radius:7px; background:#202833; color:#edf4fa; font-size:13px; }
     .documents-period select:last-of-type { min-width:48px; }
+    .vehicle-select-wrap { display:flex; align-items:center; gap:7px; min-width:0; }
+    .vehicle-select-wrap label { color:#aeb9c7; font-size:12px; white-space:nowrap; }
+    .vehicle-select-wrap input, .documents-vehicle-select { width:150px; min-width:0; min-height:38px; padding:7px 9px; border:1px solid #3a4655; border-radius:8px; background:#202833; color:#edf4fa; font-size:13px; }
+    .documents-vehicle-select { width:154px; flex:0 0 154px; }
+    @media(max-width:560px) { .vehicle-select-wrap { flex:1 1 100%; order:3; } .vehicle-select-wrap input { flex:1; width:auto; } .documents-vehicle-select { order:2; flex:1 1 100%; width:100%; } .documents-back { order:1; } }
     @media(max-width:560px) { .documents-header { flex-wrap:wrap; gap:10px; } .documents-title-group { flex:1 1 calc(100% - 105px); } .documents-period { order:3; flex:1; justify-content:center; } .documents-back { order:2; } }
+    @media(max-width:560px) { .documents-vehicle-select { order:2; flex:0 1 154px; width:154px; } .documents-back { order:2; } }
+    @media(max-width:520px) { .vehicle-log-page > header { flex-wrap:wrap; } .vehicle-log-page > header .vehicle-select-wrap { order:3; flex:1 1 100%; } .vehicle-log-page > header .vehicle-select-wrap input { flex:1; width:auto; } .vehicle-log-page > header .logout-button { order:2; } }
     .documents-card { background:var(--panel); border:1px solid var(--border); border-radius:15px; padding:17px; margin-bottom:14px; }
     .documents-card-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; }
     .documents-card-heading h2 { margin:0; font-size:17px; }
@@ -739,6 +746,7 @@
   </style>
 </head>
 <body class="login-required">
+<datalist id="vehicleNumberOptions"></datalist>
 
 <!-- 앱 전환 시 복구할 시작 스플래시 화면
 <div class="system-splash" id="systemSplash" role="status" aria-label="충북제한단속 시스템 시작">
@@ -879,9 +887,9 @@
         <p class="signed-in-name" id="signedInUserName" hidden></p>
       </div>
     </div>
+    <div class="vehicle-select-wrap"><label for="vehicleNumberInput">차량번호</label><input id="vehicleNumberInput" list="vehicleNumberOptions" autocomplete="off" placeholder="차량번호 선택 또는 입력"></div>
     <button class="logout-button" id="logoutButton" type="button">메인으로</button>
   </header>
-
   <div id="logForm">
     <div class="log-record-heading">
       <div class="log-record-title"><h2>운행기록</h2><span class="log-save-status" id="logSaveStatus" role="status" aria-live="polite">(불러오는 중)</span></div>
@@ -1045,6 +1053,7 @@
         </select>
         <span>월</span>
       </div>
+      <input class="documents-vehicle-select" id="documentsVehicleNumberInput" list="vehicleNumberOptions" autocomplete="off" aria-label="자료 조회 차량번호" placeholder="차량번호 선택 또는 입력">
       <button class="secondary documents-back" id="documentsBackButton" type="button">메인으로</button>
     </header>
 
@@ -2304,6 +2313,8 @@
     // 팀원 권한으로 제한된 하나의 팀 DB에 운행일지 데이터를 저장한다.
     let activeTeamId = null;
     let activeUserId = null;
+    let selectedVehicleId = null;
+    let selectedVehicleNumber = "181나3704";
     let currentDailyLogId = null;
     let loadedLogDate = $("date").value;
     let isLoadingVehicleData = false;
@@ -2339,6 +2350,55 @@
       $("resetLogButton").disabled = !ready;
     }
 
+    function normalizeVehicleNumber(value) { return String(value || "").replace(/\s+/g, ""); }
+    function syncVehicleSelectors() {
+      if ($("vehicleNumberInput")) $("vehicleNumberInput").value = selectedVehicleNumber;
+      if ($("documentsVehicleNumberInput")) $("documentsVehicleNumberInput").value = selectedVehicleNumber;
+    }
+    async function loadVehicles(preferredNumber = "181나3704") {
+      const { data, error } = await authClient.from("vehicles").select("id,vehicle_number").eq("team_id", activeTeamId).order("vehicle_number", { ascending: true });
+      if (error) throw error;
+      let vehicles = data || [];
+      const number = normalizeVehicleNumber(preferredNumber) || "181나3704";
+      let selected = vehicles.find(item => item.vehicle_number === number);
+      if (!selected) {
+        const { data: inserted, error: insertError } = await authClient.from("vehicles").insert({ team_id: activeTeamId, vehicle_number: number, created_by: activeUserId }).select("id,vehicle_number").single();
+        if (insertError) {
+          const retry = await authClient.from("vehicles").select("id,vehicle_number").eq("team_id", activeTeamId).eq("vehicle_number", number).single();
+          if (retry.error) throw insertError;
+          selected = retry.data;
+        } else selected = inserted;
+        vehicles.push(selected);
+      }
+      const options = $("vehicleNumberOptions");
+      if (options) { options.replaceChildren(); vehicles.forEach(item => { const option = document.createElement("option"); option.value = item.vehicle_number; options.appendChild(option); }); }
+      selectedVehicleId = selected.id; selectedVehicleNumber = selected.vehicle_number; syncVehicleSelectors();
+    }
+    async function changeSelectedVehicle(rawValue) {
+      const number = normalizeVehicleNumber(rawValue);
+      if (!number || number === selectedVehicleNumber) { syncVehicleSelectors(); return; }
+      if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; await saveCurrentLogNow(loadedLogDate); }
+      await currentLogSaveQueue;
+      let result = await authClient.from("vehicles").select("id,vehicle_number").eq("team_id", activeTeamId).eq("vehicle_number", number).maybeSingle();
+      if (result.error) throw result.error;
+      let vehicle = result.data;
+      if (!vehicle) {
+        result = await authClient.from("vehicles").insert({ team_id: activeTeamId, vehicle_number: number, created_by: activeUserId }).select("id,vehicle_number").single();
+        if (result.error) {
+          const retry = await authClient.from("vehicles").select("id,vehicle_number").eq("team_id", activeTeamId).eq("vehicle_number", number).single();
+          if (retry.error) throw result.error;
+          vehicle = retry.data;
+        } else vehicle = result.data;
+        const option = document.createElement("option"); option.value = vehicle.vehicle_number; $("vehicleNumberOptions")?.appendChild(option);
+      }
+      selectedVehicleId = vehicle.id; selectedVehicleNumber = vehicle.vehicle_number;
+      localStorage.setItem("vehicleLogSelectedVehicle:" + activeTeamId, selectedVehicleNumber); syncVehicleSelectors();
+      await loadCurrentLogForDate(loadedLogDate); await loadMonthData(); await renderWeatherCalendar(); refreshExportTables();
+    }
+    ["vehicleNumberInput", "documentsVehicleNumberInput"].forEach(id => $(id)?.addEventListener("change", event => {
+      changeSelectedVehicle(event.target.value).catch(error => { console.error("차량 선택 실패", error); alert("차량을 선택하거나 등록하지 못했습니다. 차량번호를 확인해 주세요."); syncVehicleSelectors(); });
+    }));
+
     async function initializeVehicleData(userId) {
       setVehicleLogReady(false);
       setLogSaveStatus("loading");
@@ -2352,6 +2412,8 @@
       if (error) throw error;
       if (!membership?.team_id) throw new Error("active_team_membership_not_found");
       activeTeamId = membership.team_id;
+      const savedVehicleNumber = localStorage.getItem("vehicleLogSelectedVehicle:" + activeTeamId) || "181나3704";
+      await loadVehicles(savedVehicleNumber);
       // 로그인 도중 브라우저가 이전 날짜를 복원하더라도 DB 조회 직전에 오늘 날짜로 다시 고정합니다.
       loadedLogDate = localDateString(new Date());
       $("date").value = loadedLogDate;
@@ -2367,6 +2429,7 @@
       const previousKmText = $("previousKm").value.trim();
       const payload = {
         team_id: activeTeamId,
+        vehicle_id: selectedVehicleId,
         log_date: date,
         status: "운행",
         previous_km: previousKmText ? parseNumber(previousKmText) : null,
@@ -2384,6 +2447,7 @@
           .from("daily_logs")
           .select("id")
           .eq("team_id", activeTeamId)
+          .eq("vehicle_id", selectedVehicleId)
           .eq("log_date", date)
           .maybeSingle();
         if (findError) throw findError;
@@ -2473,6 +2537,7 @@
           .from("daily_logs")
           .select("id")
           .eq("team_id", activeTeamId)
+          .eq("vehicle_id", selectedVehicleId)
           .eq("log_date", loadedLogDate)
           .maybeSingle();
         if (findLogError) throw findLogError;
@@ -2484,11 +2549,12 @@
             .from("daily_logs")
             .upsert({
               team_id: activeTeamId,
+              vehicle_id: selectedVehicleId,
               log_date: loadedLogDate,
               status: "미운행",
               origin: "남청주",
               created_by: activeUserId
-            }, { onConflict: "team_id,log_date", ignoreDuplicates: true })
+            }, { onConflict: "team_id,vehicle_id,log_date", ignoreDuplicates: true })
             .select("id")
             .maybeSingle();
           if (createLogError) throw createLogError;
@@ -2499,6 +2565,7 @@
               .from("daily_logs")
               .select("id")
               .eq("team_id", activeTeamId)
+              .eq("vehicle_id", selectedVehicleId)
               .eq("log_date", loadedLogDate)
               .single();
             if (retryLogError) throw retryLogError;
@@ -2524,6 +2591,7 @@
         // 정비 기록은 daily_logs와 무관하게 독립 테이블에 바로 저장한다.
         const { data, error } = await authClient.from("maintenance_records").insert({
           team_id: activeTeamId,
+          vehicle_id: selectedVehicleId,
           maintenance_date: item.time.slice(0, 10),
           category: item.type,
           description: item.shop || (item.type === "기타" ? item.memo : item.type),
@@ -2559,6 +2627,7 @@
           .from("daily_logs")
           .select("*")
           .eq("team_id", activeTeamId)
+          .eq("vehicle_id", selectedVehicleId)
           .eq("log_date", date)
           .maybeSingle();
         if (error) throw error;
@@ -2625,6 +2694,7 @@
           .from("maintenance_records")
           .select("*")
           .eq("team_id", activeTeamId)
+          .eq("vehicle_id", selectedVehicleId)
           .eq("maintenance_date", date)
           .order("created_at", { ascending: true });
         if (maintenanceError) throw maintenanceError;
@@ -2663,6 +2733,7 @@
         .from("daily_logs")
         .select("id,log_date,status,previous_km,origin,origin_memo,destination,weather,memo")
         .eq("team_id", activeTeamId)
+        .eq("vehicle_id", selectedVehicleId)
         .gte("log_date", first)
         .lt("log_date", dayAfterNextMonth);
       if (logsError) throw logsError;
@@ -2672,6 +2743,7 @@
         .from("daily_logs")
         .select("id,log_date,status,previous_km,origin,destination")
         .eq("team_id", activeTeamId)
+        .eq("vehicle_id", selectedVehicleId)
         .gte("log_date", nextMonthFirst)
         .neq("status", "미운행")
         .not("previous_km", "is", null)
@@ -2701,6 +2773,7 @@
         .from("maintenance_records")
         .select("maintenance_date,category,description,amount_krw,memo")
         .eq("team_id", activeTeamId)
+        .eq("vehicle_id", selectedVehicleId)
         .gte("maintenance_date", first)
         .lt("maintenance_date", dayAfterNextMonth);
       if (maintenanceError) throw maintenanceError;
@@ -2802,7 +2875,7 @@
       try {
         const { data: log, error: findError } = await authClient.from("daily_logs")
           .select("id,status,previous_km,weather,origin,origin_departure_time,origin_memo,destination,memo")
-          .eq("team_id", activeTeamId).eq("log_date", date).maybeSingle();
+           .eq("team_id", activeTeamId).eq("vehicle_id", selectedVehicleId).eq("log_date", date).maybeSingle();
         if (findError) throw findError;
 
         let hasRouteStops = false;
@@ -2820,7 +2893,7 @@
         }
         resetStage = "정비 기록 확인";
         const { data: maintenance, error: maintenanceFindError } = await authClient.from("maintenance_records")
-          .select("id").eq("team_id", activeTeamId).eq("maintenance_date", date).limit(1);
+          .select("id").eq("team_id", activeTeamId).eq("vehicle_id", selectedVehicleId).eq("maintenance_date", date).limit(1);
         if (maintenanceFindError) throw maintenanceFindError;
 
         // 초기화 날짜 이후 같은 달에 실제 운행 기록이 있는지 확인합니다.
@@ -2830,6 +2903,7 @@
         const { data: laterDrivingLog, error: laterDrivingError } = await authClient.from("daily_logs")
           .select("id,log_date,previous_km")
           .eq("team_id", activeTeamId)
+          .eq("vehicle_id", selectedVehicleId)
           .gt("log_date", date)
           .lt("log_date", nextMonthStart)
           .neq("status", "미운행")
