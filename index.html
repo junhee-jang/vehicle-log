@@ -2477,7 +2477,7 @@
         syncVehicleSelectors();
       });
     });
-    $("cancelVehicleRegister")?.addEventListener("click", () => $("vehicleRegisterDialog").close());
+    $("cancelVehicleRegister")?.addEventListener("click", () => { $("vehicleRegisterDialog").close(); syncVehicleSelectors(); });
     $("vehicleRegisterForm")?.addEventListener("submit", async event => {
       event.preventDefault();
       const number = normalizeVehicleNumber($("newVehicleNumber").value);
@@ -2488,6 +2488,7 @@
       } catch (error) {
         console.error("차량 등록 실패", error);
         alert("차량번호 등록에 실패했습니다. 이미 등록된 번호인지 확인해 주세요.");
+        syncVehicleSelectors();
       }
     });
 
