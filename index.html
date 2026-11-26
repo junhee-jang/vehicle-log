@@ -2270,11 +2270,13 @@
       screen.hidden = true;
       pinScreen.hidden = true;
       const resumeScreen = getResumeAppScreen();
+      // 새로고침 뒤에도 앱 내부 화면을 브라우저 방문 기록에 다시 연결합니다.
+      // 메뉴 화면에서 뒤로가기를 누르면 탭이 닫히지 않고 홈 메뉴로 돌아갑니다.
+      window.history.replaceState({ vehicleLogApp: true, screen: "home" }, "", window.location.href);
       if (resumeScreen !== "home") {
-        window.history.replaceState({ vehicleLogApp: true, screen: "home" }, "", window.location.href);
         window.history.pushState({ vehicleLogApp: true, screen: resumeScreen }, "", window.location.href);
-        appHistoryInitialized = true;
       }
+      appHistoryInitialized = true;
       renderAppScreen(resumeScreen);
       window.scrollTo(0, 0);
       // 로그인 및 PIN 인증을 마칠 때마다 운행일지는 오늘 날짜부터 시작합니다.
@@ -3064,24 +3066,6 @@
           .select("id").eq("team_id", activeTeamId).eq("vehicle_id", selectedVehicleId).eq("maintenance_date", date).limit(1);
         if (maintenanceFindError) throw maintenanceFindError;
 
-        // 초기화 날짜 이후 같은 달에 실제 운행 기록이 있는지 확인합니다.
-        const [resetYear, resetMonth] = date.split("-").map(Number);
-        const nextMonthStart = localDateString(new Date(resetYear, resetMonth, 1));
-        resetStage = "이후 운행기록 확인";
-        const { data: laterDrivingLog, error: laterDrivingError } = await authClient.from("daily_logs")
-          .select("id,log_date,previous_km")
-          .eq("team_id", activeTeamId)
-          .eq("vehicle_id", selectedVehicleId)
-          .gt("log_date", date)
-          .lt("log_date", nextMonthStart)
-          .neq("status", "미운행")
-          .not("previous_km", "is", null)
-          .order("log_date", { ascending: true })
-          .limit(1)
-          .maybeSingle();
-        if (laterDrivingError) throw laterDrivingError;
-        const hasLaterDrivingLog = Boolean(laterDrivingLog);
-
         const hasDrivingDetails = Boolean(log && (
           log.previous_km != null || log.weather || log.origin_departure_time || log.origin_memo ||
           log.destination || log.memo || hasRouteStops || (log.status && log.status !== "미운행")
@@ -3097,7 +3081,7 @@
         // 경유지 삭제와 운행기록 초기화를 DB 함수 한 번으로 처리해 중간 실패 시 일부만 반영되지 않게 합니다.
         resetStage = "운행기록 및 경유지 초기화";
         if (log?.id) {
-          const keepLog = hasLaterDrivingLog || hasFluidRecords;
+          // 주유·요소수 기록이 연결된 경우에만 기준 행을 남깁니다.\n          // 이후 날짜에 운행기록이 있더라도 초기화한 날짜 자체는 자료받기에 나타나지 않아야 합니다.\n          const keepLog = hasFluidRecords;
           const { error: resetError } = await authClient.rpc("reset_daily_log", {
             p_log_id: log.id,
             p_team_id: activeTeamId,
