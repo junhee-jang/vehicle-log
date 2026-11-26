@@ -2412,6 +2412,10 @@
           direct.value = "__direct_input__";
           direct.textContent = "＋ 직접입력";
           select.appendChild(direct);
+          const remove = document.createElement("option");
+          remove.value = "__delete_selected_vehicle__";
+          remove.textContent = "－ 현재 차량 삭제";
+          select.appendChild(remove);
         }
         select.value = selectedVehicleNumber;
       });
@@ -2438,6 +2442,62 @@
       registeredVehicles = vehicles.sort((a, b) => a.vehicle_number.localeCompare(b.vehicle_number, "ko"));
       selectedVehicleId = selected.id; selectedVehicleNumber = selected.vehicle_number; renderVehicleSelectors();
     }
+    async function deleteSelectedVehicle() {
+      if (!selectedVehicleId || !selectedVehicleNumber) return;
+      if (registeredVehicles.length <= 1) {
+        alert("등록된 차량이 1대뿐이어서 삭제할 수 없습니다.");
+        syncVehicleSelectors();
+        return;
+      }
+      if (!confirm(`차량번호 ${selectedVehicleNumber}을(를) 삭제할까요? 운행·정비 기록이 없는 차량만 삭제할 수 있습니다.`)) {
+        syncVehicleSelectors();
+        return;
+      }
+      try {
+        if (saveTimer) {
+          clearTimeout(saveTimer);
+          saveTimer = null;
+          await saveCurrentLogNow(loadedLogDate);
+        }
+        await currentLogSaveQueue;
+        const [dailyResult, maintenanceResult] = await Promise.all([
+          authClient.from("daily_logs").select("id", { count: "exact", head: true }).eq("team_id", activeTeamId).eq("vehicle_id", selectedVehicleId),
+          authClient.from("maintenance_records").select("id", { count: "exact", head: true }).eq("team_id", activeTeamId).eq("vehicle_id", selectedVehicleId)
+        ]);
+        if (dailyResult.error) throw dailyResult.error;
+        if (maintenanceResult.error) throw maintenanceResult.error;
+        if ((dailyResult.count || 0) > 0 || (maintenanceResult.count || 0) > 0) {
+          alert("운행기록 또는 정비기록이 있어 삭제할 수 없습니다.");
+          syncVehicleSelectors();
+          return;
+        }
+        const fallback = registeredVehicles.find(vehicle => vehicle.id !== selectedVehicleId);
+        if (!fallback) {
+          alert("삭제할 수 있는 다른 차량이 없습니다.");
+          syncVehicleSelectors();
+          return;
+        }
+        const { data, error } = await authClient.from("vehicles").delete()
+          .eq("id", selectedVehicleId).eq("team_id", activeTeamId).select("id").maybeSingle();
+        if (error) throw error;
+        if (!data) throw new Error("vehicle_delete_not_allowed");
+        registeredVehicles = registeredVehicles.filter(vehicle => vehicle.id !== selectedVehicleId);
+        selectedVehicleId = fallback.id;
+        selectedVehicleNumber = fallback.vehicle_number;
+        localStorage.setItem("vehicleLogSelectedVehicle:" + activeTeamId, selectedVehicleNumber);
+        renderVehicleSelectors();
+        await loadCurrentLogForDate(loadedLogDate);
+        await loadMonthData();
+        await renderWeatherCalendar();
+        refreshExportTables();
+        alert("차량이 삭제되었습니다.");
+      } catch (error) {
+        console.error("차량 삭제 실패", error);
+        alert("차량 삭제에 실패했습니다. 기록이 있거나 권한이 없는 차량인지 확인해 주세요.");
+        syncVehicleSelectors();
+      }
+    }
+
     async function changeSelectedVehicle(rawValue, allowCreate = true) {
       const number = normalizeVehicleNumber(rawValue);
       if (!number || number === selectedVehicleNumber) { syncVehicleSelectors(); return; }
@@ -2462,6 +2522,10 @@
       await loadCurrentLogForDate(loadedLogDate); await loadMonthData(); await renderWeatherCalendar(); refreshExportTables();
     }
     $("vehicleNumberInput")?.addEventListener("change", event => {
+      if (event.target.value === "__delete_selected_vehicle__") {
+        deleteSelectedVehicle();
+        return;
+      }
       if (event.target.value === "__direct_input__") {
         event.preventDefault();
         const dialog = $("vehicleRegisterDialog");
