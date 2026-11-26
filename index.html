@@ -2349,7 +2349,7 @@
       $("resetLogButton").disabled = !ready;
     }
 
-    function normalizeVehicleNumber(value) { return String(value || "").replace(/\\s+/g, ""); }
+    function normalizeVehicleNumber(value) { return String(value || "").replace(/\s+/g, ""); }
     function syncVehicleSelectors() {
       if ($("vehicleNumberInput")) $("vehicleNumberInput").value = selectedVehicleNumber;
       if ($("documentsVehicleNumberInput")) $("documentsVehicleNumberInput").value = selectedVehicleNumber;
