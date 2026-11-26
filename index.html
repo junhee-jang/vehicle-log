@@ -3070,7 +3070,9 @@
           log.previous_km != null || log.weather || log.origin_departure_time || log.origin_memo ||
           log.destination || log.memo || hasRouteStops || (log.status && log.status !== "미운행")
         ));
-        const hasAnyResetTarget = hasDrivingDetails || hasFluidRecords || Boolean(maintenance?.length);
+        // 내용이 비어 있어도 날짜 행 자체가 생성돼 있으면 초기화 대상으로 봅니다.
+        // 주유·요소수 기록이 없으면 행까지 삭제해 자료받기에 미운행으로 남지 않게 합니다.
+        const hasAnyResetTarget = Boolean(log?.id) || hasDrivingDetails || hasFluidRecords || Boolean(maintenance?.length);
         if (!hasAnyResetTarget) {
           alert("초기화 대상 자료가 없습니다.");
           return;
