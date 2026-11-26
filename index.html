@@ -746,6 +746,7 @@
   </style>
 </head>
 <body class="login-required">
+<datalist id="vehicleNumberOptions"></datalist>
 
 <!-- 앱 전환 시 복구할 시작 스플래시 화면
 <div class="system-splash" id="systemSplash" role="status" aria-label="충북제한단속 시스템 시작">
@@ -889,8 +890,6 @@
     <div class="vehicle-select-wrap"><label for="vehicleNumberInput">차량번호</label><input id="vehicleNumberInput" list="vehicleNumberOptions" autocomplete="off" placeholder="차량번호 선택 또는 입력"></div>
     <button class="logout-button" id="logoutButton" type="button">메인으로</button>
   </header>
-  <datalist id="vehicleNumberOptions"></datalist>
-
   <div id="logForm">
     <div class="log-record-heading">
       <div class="log-record-title"><h2>운행기록</h2><span class="log-save-status" id="logSaveStatus" role="status" aria-live="polite">(불러오는 중)</span></div>
