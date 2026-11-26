@@ -96,14 +96,41 @@
     .documents-period label { color:#9da9b8; margin-right:3px; }
     .documents-period select { min-width:58px; width:auto; min-height:32px; padding:4px 5px; border:1px solid #3a4655; border-radius:7px; background:#202833; color:#edf4fa; font-size:13px; }
     .documents-period select:last-of-type { min-width:48px; }
-    .vehicle-select-wrap { display:flex; align-items:center; gap:7px; min-width:0; }
-    .vehicle-select-wrap label { color:#aeb9c7; font-size:12px; white-space:nowrap; }
-    .vehicle-select-wrap input, .documents-vehicle-select { width:150px; min-width:0; min-height:38px; padding:7px 9px; border:1px solid #3a4655; border-radius:8px; background:#202833; color:#edf4fa; font-size:13px; }
+    .vehicle-select-wrap { display:flex; align-items:center; gap:7px; min-width:0; flex:0 0 auto; }
+    .vehicle-select-wrap label { color:#aeb9c7; font-size:11px; white-space:nowrap; }
+    .vehicle-select-wrap select, .documents-vehicle-select { width:142px; min-width:0; min-height:36px; padding:6px 26px 6px 9px; border:1px solid #3a4655; border-radius:8px; background:#202833; color:#edf4fa; font-size:12px; }
+    .documents-vehicle-actions { display:flex; align-items:center; gap:8px; flex:0 0 auto; margin-left:auto; }
     .documents-vehicle-select { width:154px; flex:0 0 154px; }
-    @media(max-width:560px) { .vehicle-select-wrap { flex:1 1 100%; order:3; } .vehicle-select-wrap input { flex:1; width:auto; } .documents-vehicle-select { order:2; flex:1 1 100%; width:100%; } .documents-back { order:1; } }
-    @media(max-width:560px) { .documents-header { flex-wrap:wrap; gap:10px; } .documents-title-group { flex:1 1 calc(100% - 105px); } .documents-period { order:3; flex:1; justify-content:center; } .documents-back { order:2; } }
-    @media(max-width:560px) { .documents-vehicle-select { order:2; flex:0 1 154px; width:154px; } .documents-back { order:2; } }
-    @media(max-width:520px) { .vehicle-log-page > header { flex-wrap:wrap; } .vehicle-log-page > header .vehicle-select-wrap { order:3; flex:1 1 100%; } .vehicle-log-page > header .vehicle-select-wrap input { flex:1; width:auto; } .vehicle-log-page > header .logout-button { order:2; } }
+    @media(max-width:560px) {
+      .documents-header { flex-wrap:wrap; gap:9px; }
+      .documents-title-group { flex:1 1 calc(100% - 105px); }
+      .documents-period { order:3; flex:1 1 100%; justify-content:center; }
+      .documents-vehicle-actions { order:2; margin-left:auto; }
+      .documents-vehicle-select { width:135px; flex-basis:135px; }
+      .documents-back { min-height:36px; padding:7px 9px; font-size:11px; }
+    }
+    @media(max-width:520px) {
+      .vehicle-log-page > header { flex-wrap:nowrap; gap:7px; padding:13px 10px; }
+      .vehicle-log-page > header .brand-logo { width:36px; height:36px; flex:0 0 36px; }
+      .vehicle-log-page > header .app-header-copy { flex:1 1 auto; min-width:0; }
+      .vehicle-log-page > header .app-header-copy h1 { font-size:15px; white-space:nowrap; }
+      .vehicle-log-page > header .app-header-subline { gap:3px; flex-wrap:nowrap; }
+      .vehicle-log-page > header .app-header-subline p { font-size:9px; white-space:nowrap; }
+      .vehicle-log-page > header .signed-in-name { font-size:9px; }
+      .vehicle-log-page > header .vehicle-select-wrap { flex:0 1 auto; gap:4px; }
+      .vehicle-log-page > header .vehicle-select-wrap label { display:none; }
+      .vehicle-log-page > header .vehicle-select-wrap select { width:112px; min-height:34px; font-size:11px; padding-left:6px; }
+      .vehicle-log-page > header .logout-button { min-height:34px; padding:6px 7px; font-size:10px; }
+    }
+    .vehicle-register-dialog { width:min(390px,calc(100vw - 28px)); padding:0; border:1px solid #465365; border-radius:15px; background:#1b1f27; color:#edf4fa; box-shadow:0 18px 55px #0009; }
+    .vehicle-register-dialog::backdrop { background:#05080dcc; }
+    .vehicle-register-inner { padding:19px; }
+    .vehicle-register-inner h3 { margin:0 0 16px; font-size:17px; }
+    .vehicle-register-inner label { display:block; margin:0 0 7px; color:#aeb9c7; font-size:12px; }
+    .vehicle-register-inner input { width:100%; min-height:44px; padding:9px 11px; border:1px solid #465365; border-radius:9px; background:#111720; color:#f3f5f7; font:inherit; font-size:15px; }
+    .vehicle-register-actions { display:flex; gap:8px; margin-top:16px; }
+    .vehicle-register-actions button { min-height:40px; padding:8px 13px; }
+    .vehicle-register-actions button[type="submit"] { flex:1; }
     .documents-card { background:var(--panel); border:1px solid var(--border); border-radius:15px; padding:17px; margin-bottom:14px; }
     .documents-card-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; }
     .documents-card-heading h2 { margin:0; font-size:17px; }
@@ -747,6 +774,17 @@
 </head>
 <body class="login-required">
 <datalist id="vehicleNumberOptions"></datalist>
+<dialog class="vehicle-register-dialog" id="vehicleRegisterDialog">
+  <form method="dialog" id="vehicleRegisterForm" class="vehicle-register-inner">
+    <h3>차량번호 직접입력</h3>
+    <label for="newVehicleNumber">차량번호를 입력하세요</label>
+    <input id="newVehicleNumber" type="text" autocomplete="off" maxlength="20" placeholder="예: 123가4567" required>
+    <div class="vehicle-register-actions">
+      <button type="button" class="secondary" id="cancelVehicleRegister">취소</button>
+      <button type="submit" class="primary" id="saveVehicleRegister">등록</button>
+    </div>
+  </form>
+</dialog>
 
 <!-- 앱 전환 시 복구할 시작 스플래시 화면
 <div class="system-splash" id="systemSplash" role="status" aria-label="충북제한단속 시스템 시작">
@@ -887,7 +925,7 @@
         <p class="signed-in-name" id="signedInUserName" hidden></p>
       </div>
     </div>
-    <div class="vehicle-select-wrap"><label for="vehicleNumberInput">차량번호</label><input id="vehicleNumberInput" list="vehicleNumberOptions" autocomplete="off" placeholder="차량번호 선택 또는 입력"></div>
+    <div class="vehicle-select-wrap"><label for="vehicleNumberInput">차량</label><select id="vehicleNumberInput" aria-label="차량번호 선택"><option value="">불러오는 중</option></select></div>
     <button class="logout-button" id="logoutButton" type="button">메인으로</button>
   </header>
   <div id="logForm">
@@ -1053,8 +1091,10 @@
         </select>
         <span>월</span>
       </div>
-      <input class="documents-vehicle-select" id="documentsVehicleNumberInput" list="vehicleNumberOptions" autocomplete="off" aria-label="자료 조회 차량번호" placeholder="차량번호 선택 또는 입력">
-      <button class="secondary documents-back" id="documentsBackButton" type="button">메인으로</button>
+      <div class="documents-vehicle-actions">
+        <select class="documents-vehicle-select" id="documentsVehicleNumberInput" aria-label="자료 조회 차량번호"><option value="">불러오는 중</option></select>
+        <button class="secondary documents-back" id="documentsBackButton" type="button">메인으로</button>
+      </div>
     </header>
 
     <nav class="documents-tabs" aria-label="자료 종류">
@@ -2350,7 +2390,29 @@
       $("resetLogButton").disabled = !ready;
     }
 
+    let registeredVehicles = [];
     function normalizeVehicleNumber(value) { return String(value || "").replace(/\s+/g, ""); }
+    function renderVehicleSelectors() {
+      const mainSelect = $("vehicleNumberInput");
+      const docsSelect = $("documentsVehicleNumberInput");
+      [mainSelect, docsSelect].forEach((select, index) => {
+        if (!select) return;
+        select.replaceChildren();
+        registeredVehicles.forEach(vehicle => {
+          const option = document.createElement("option");
+          option.value = vehicle.vehicle_number;
+          option.textContent = vehicle.vehicle_number;
+          select.appendChild(option);
+        });
+        if (index === 0) {
+          const direct = document.createElement("option");
+          direct.value = "__direct_input__";
+          direct.textContent = "＋ 직접입력";
+          select.appendChild(direct);
+        }
+        select.value = selectedVehicleNumber;
+      });
+    }
     function syncVehicleSelectors() {
       if ($("vehicleNumberInput")) $("vehicleNumberInput").value = selectedVehicleNumber;
       if ($("documentsVehicleNumberInput")) $("documentsVehicleNumberInput").value = selectedVehicleNumber;
@@ -2370,11 +2432,10 @@
         } else selected = inserted;
         vehicles.push(selected);
       }
-      const options = $("vehicleNumberOptions");
-      if (options) { options.replaceChildren(); vehicles.forEach(item => { const option = document.createElement("option"); option.value = item.vehicle_number; options.appendChild(option); }); }
-      selectedVehicleId = selected.id; selectedVehicleNumber = selected.vehicle_number; syncVehicleSelectors();
+      registeredVehicles = vehicles.sort((a, b) => a.vehicle_number.localeCompare(b.vehicle_number, "ko"));
+      selectedVehicleId = selected.id; selectedVehicleNumber = selected.vehicle_number; renderVehicleSelectors();
     }
-    async function changeSelectedVehicle(rawValue) {
+    async function changeSelectedVehicle(rawValue, allowCreate = true) {
       const number = normalizeVehicleNumber(rawValue);
       if (!number || number === selectedVehicleNumber) { syncVehicleSelectors(); return; }
       if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; await saveCurrentLogNow(loadedLogDate); }
@@ -2382,6 +2443,7 @@
       let result = await authClient.from("vehicles").select("id,vehicle_number").eq("team_id", activeTeamId).eq("vehicle_number", number).maybeSingle();
       if (result.error) throw result.error;
       let vehicle = result.data;
+      if (!vehicle && !allowCreate) throw new Error("등록되지 않은 차량입니다.");
       if (!vehicle) {
         result = await authClient.from("vehicles").insert({ team_id: activeTeamId, vehicle_number: number, created_by: activeUserId }).select("id,vehicle_number").single();
         if (result.error) {
@@ -2389,15 +2451,45 @@
           if (retry.error) throw result.error;
           vehicle = retry.data;
         } else vehicle = result.data;
-        const option = document.createElement("option"); option.value = vehicle.vehicle_number; $("vehicleNumberOptions")?.appendChild(option);
+        registeredVehicles.push(vehicle);
+        registeredVehicles.sort((a, b) => a.vehicle_number.localeCompare(b.vehicle_number, "ko"));
       }
       selectedVehicleId = vehicle.id; selectedVehicleNumber = vehicle.vehicle_number;
-      localStorage.setItem("vehicleLogSelectedVehicle:" + activeTeamId, selectedVehicleNumber); syncVehicleSelectors();
+      localStorage.setItem("vehicleLogSelectedVehicle:" + activeTeamId, selectedVehicleNumber); renderVehicleSelectors();
       await loadCurrentLogForDate(loadedLogDate); await loadMonthData(); await renderWeatherCalendar(); refreshExportTables();
     }
-    ["vehicleNumberInput", "documentsVehicleNumberInput"].forEach(id => $(id)?.addEventListener("change", event => {
-      changeSelectedVehicle(event.target.value).catch(error => { console.error("차량 선택 실패", error); alert("차량을 선택하거나 등록하지 못했습니다. 차량번호를 확인해 주세요."); syncVehicleSelectors(); });
-    }));
+    $("vehicleNumberInput")?.addEventListener("change", event => {
+      if (event.target.value === "__direct_input__") {
+        $("newVehicleNumber").value = "";
+        $("vehicleRegisterDialog").showModal();
+        return;
+      }
+      changeSelectedVehicle(event.target.value, false).catch(error => {
+        console.error("차량 선택 실패", error);
+        alert("차량을 선택하지 못했습니다. 다시 시도해 주세요.");
+        syncVehicleSelectors();
+      });
+    });
+    $("documentsVehicleNumberInput")?.addEventListener("change", event => {
+      changeSelectedVehicle(event.target.value, false).catch(error => {
+        console.error("자료 조회 차량 선택 실패", error);
+        alert("등록된 차량만 선택할 수 있습니다.");
+        syncVehicleSelectors();
+      });
+    });
+    $("cancelVehicleRegister")?.addEventListener("click", () => $("vehicleRegisterDialog").close());
+    $("vehicleRegisterForm")?.addEventListener("submit", async event => {
+      event.preventDefault();
+      const number = normalizeVehicleNumber($("newVehicleNumber").value);
+      if (!number) { alert("차량번호를 입력하세요."); return; }
+      try {
+        await changeSelectedVehicle(number, true);
+        $("vehicleRegisterDialog").close();
+      } catch (error) {
+        console.error("차량 등록 실패", error);
+        alert("차량번호 등록에 실패했습니다. 이미 등록된 번호인지 확인해 주세요.");
+      }
+    });
 
     async function initializeVehicleData(userId) {
       setVehicleLogReady(false);
