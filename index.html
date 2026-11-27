@@ -2928,64 +2928,86 @@
         }
         $("customWeather").classList.toggle("hidden", $("weather").value !== "기타");
 
+        // 경유지는 운행경로의 핵심 자료입니다. 조회 실패를 별도 기록해 원인을 확인하되,
+        // 주 운행기록 저장 기능까지 잠그지는 않습니다.
+        let routeLoadError = null;
         if (log?.id) {
           const { data: stops, error: stopsError } = await authClient
             .from("route_stops")
             .select("*")
             .eq("log_id", log.id)
             .order("stop_order", { ascending: true });
-          if (stopsError) throw stopsError;
-          (stops || []).forEach(stop => waypointList.push({
-            name: stop.place_name,
-            arrivalTime: stop.arrival_time ? String(stop.arrival_time).slice(0, 5) : "",
-            departureTime: stop.departure_time ? String(stop.departure_time).slice(0, 5) : "",
-            memo: stop.memo || "",
-            _dbId: stop.id
-          }));
+          if (stopsError) {
+            routeLoadError = stopsError;
+            console.error("경유지 조회 실패", { date, logId: log.id, error: stopsError });
+          } else {
+            (stops || []).forEach(stop => waypointList.push({
+              name: stop.place_name,
+              arrivalTime: stop.arrival_time ? String(stop.arrival_time).slice(0, 5) : "",
+              departureTime: stop.departure_time ? String(stop.departure_time).slice(0, 5) : "",
+              memo: stop.memo || "",
+              _dbId: stop.id
+            }));
+          }
 
-          const { data: fluids, error: fluidsError } = await authClient
-            .from("fuel_adblue_records")
-            .select("*")
-            .eq("log_id", log.id)
-            .order("recorded_at", { ascending: true });
-          if (fluidsError) throw fluidsError;
-          (fluids || []).forEach(record => eventList.push({
-            time: loadedLogDate + "T" + String(record.recorded_at).replace(" ", "T").slice(11, 16),
-            type: record.event_type,
-            shop: "",
-            unitPrice: record.unit_price == null ? null : Number(record.unit_price),
-            amount: record.quantity_l == null ? null : Number(record.quantity_l),
-            cost: record.amount_krw == null ? null : Number(record.amount_krw),
-            memo: record.memo || "",
-            _dbId: record.id,
-            _dbTable: "fuel_adblue_records"
-          }));
+          // 주유·요소수 자료는 운행기록과 별도 기능이므로 조회 실패가 운행기록을 막지 않게 합니다.
+          try {
+            const { data: fluids, error: fluidsError } = await authClient
+              .from("fuel_adblue_records")
+              .select("*")
+              .eq("log_id", log.id)
+              .order("recorded_at", { ascending: true });
+            if (fluidsError) throw fluidsError;
+            (fluids || []).forEach(record => eventList.push({
+              time: loadedLogDate + "T" + String(record.recorded_at).replace(" ", "T").slice(11, 16),
+              type: record.event_type,
+              shop: "",
+              unitPrice: record.unit_price == null ? null : Number(record.unit_price),
+              amount: record.quantity_l == null ? null : Number(record.quantity_l),
+              cost: record.amount_krw == null ? null : Number(record.amount_krw),
+              memo: record.memo || "",
+              _dbId: record.id,
+              _dbTable: "fuel_adblue_records"
+            }));
+          } catch (eventError) {
+            console.error("주유·요소수 자료 조회 실패(운행기록은 계속 사용 가능)", { date, logId: log.id, error: eventError });
+          }
         }
 
-        const { data: maintenance, error: maintenanceError } = await authClient
-          .from("maintenance_records")
-          .select("*")
-          .eq("team_id", activeTeamId)
-          .eq("vehicle_id", selectedVehicleId)
-          .eq("maintenance_date", date)
-          .order("created_at", { ascending: true });
-        if (maintenanceError) throw maintenanceError;
-        (maintenance || []).forEach(record => eventList.push({
-          time: date + "T12:00",
-          type: record.category,
-          shop: record.category === "기타" ? "" : (record.description === record.category ? "" : record.description),
-          unitPrice: null,
-          amount: null,
-          cost: record.amount_krw == null ? null : Number(record.amount_krw),
-          memo: record.memo || (record.category === "기타" ? record.description : ""),
-          _dbId: record.id,
-          _dbTable: "maintenance_records"
-        }));
+        // 정비 자료도 독립적으로 조회합니다.
+        try {
+          const { data: maintenance, error: maintenanceError } = await authClient
+            .from("maintenance_records")
+            .select("*")
+            .eq("team_id", activeTeamId)
+            .eq("vehicle_id", selectedVehicleId)
+            .eq("maintenance_date", date)
+            .order("created_at", { ascending: true });
+          if (maintenanceError) throw maintenanceError;
+          (maintenance || []).forEach(record => eventList.push({
+            time: date + "T12:00",
+            type: record.category,
+            shop: record.category === "기타" ? "" : (record.description === record.category ? "" : record.description),
+            unitPrice: null,
+            amount: null,
+            cost: record.amount_krw == null ? null : Number(record.amount_krw),
+            memo: record.memo || (record.category === "기타" ? record.description : ""),
+            _dbId: record.id,
+            _dbTable: "maintenance_records"
+          }));
+        } catch (maintenanceError) {
+          console.error("정비 자료 조회 실패(운행기록은 계속 사용 가능)", { date, error: maintenanceError });
+        }
         eventList.sort((a, b) => a.time.localeCompare(b.time));
         resetEventEntryFields();
         renderWaypoints();
         renderEvents();
         refreshExportTables();
+        if (routeLoadError && homeMenuNotice) {
+          homeMenuNotice.textContent = "운행기록은 불러왔지만 경유지 조회에 실패했습니다. 콘솔의 '경유지 조회 실패' 오류를 확인해 주세요.";
+        } else if (homeMenuNotice && homeMenuNotice.textContent.includes("경유지 조회에 실패")) {
+          homeMenuNotice.textContent = "";
+        }
       } finally {
         isLoadingVehicleData = false;
       }
