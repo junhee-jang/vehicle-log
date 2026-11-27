@@ -4097,6 +4097,56 @@
     window.history.pushState({ vehicleLogApp: true, screen: "home" }, "", window.location.href);
     appHistoryInitialized = true;
 
+    // 임시 모바일 뒤로가기 진단: 화면/기록 상태만 기록하고 앱 동작은 변경하지 않습니다.
+    const NAV_DIAG_KEY = "vehicleLogNavigationDiagnostics";
+    const navDiagRead = () => {
+      try { return JSON.parse(localStorage.getItem(NAV_DIAG_KEY) || "[]"); }
+      catch { return []; }
+    };
+    const navDiagPanel = document.createElement("section");
+    navDiagPanel.style.cssText = "position:fixed;z-index:99999;right:8px;bottom:8px;width:min(94vw,430px);font:12px system-ui;color:#f3f5f7;background:#171b22;border:1px solid #596575;border-radius:10px;padding:8px;box-shadow:0 4px 24px #0009";
+    navDiagPanel.innerHTML = '<button type="button" id="navDiagToggle" style="width:100%;padding:8px;background:#303640;color:#fff;border:1px solid #596575;border-radius:7px">뒤로가기 진단 기록 열기</button><div id="navDiagBody" hidden><p style="margin:8px 0">문제 재현 후 기록 복사해서 보내줘.</p><textarea id="navDiagText" readonly style="width:100%;height:170px;background:#0d1015;color:#dce4ee;border:1px solid #46505e;border-radius:6px;font:11px monospace"></textarea><div style="display:flex;gap:6px;margin-top:6px"><button type="button" id="navDiagCopy" style="flex:1;padding:8px">기록 복사</button><button type="button" id="navDiagClear" style="flex:1;padding:8px">기록 지우기</button></div></div>';
+    document.body.appendChild(navDiagPanel);
+    const navDiagText = navDiagPanel.querySelector("#navDiagText");
+    const navDiagRefresh = () => { navDiagText.value = navDiagRead().map(x => JSON.stringify(x)).join("\n"); navDiagText.scrollTop = navDiagText.scrollHeight; };
+    const navDiagLog = (eventName, extra = {}) => {
+      const rows = navDiagRead();
+      const navEntry = performance.getEntriesByType("navigation")[0];
+      rows.push({
+        time: new Date().toLocaleTimeString("ko-KR", { hour12: false }),
+        event: eventName,
+        historyLength: history.length,
+        state: history.state,
+        url: location.href,
+        navType: navEntry?.type || "unknown",
+        visibility: document.visibilityState,
+        screen: typeof currentAppScreen === "undefined" ? "initializing" : currentAppScreen,
+        ...extra
+      });
+      try { localStorage.setItem(NAV_DIAG_KEY, JSON.stringify(rows.slice(-100))); } catch {}
+      navDiagRefresh();
+    };
+    navDiagPanel.querySelector("#navDiagToggle").addEventListener("click", event => {
+      const body = navDiagPanel.querySelector("#navDiagBody");
+      body.hidden = !body.hidden;
+      event.currentTarget.textContent = body.hidden ? "뒤로가기 진단 기록 열기" : "뒤로가기 진단 기록 닫기";
+      navDiagRefresh();
+    });
+    navDiagPanel.querySelector("#navDiagCopy").addEventListener("click", async () => {
+      try { await navigator.clipboard.writeText(navDiagText.value); }
+      catch { navDiagText.focus(); navDiagText.select(); document.execCommand("copy"); }
+    });
+    navDiagPanel.querySelector("#navDiagClear").addEventListener("click", () => {
+      try { localStorage.removeItem(NAV_DIAG_KEY); } catch {}
+      navDiagRefresh();
+    });
+    ["pageshow", "pagehide", "popstate", "beforeunload", "visibilitychange"].forEach(eventName => {
+      window.addEventListener(eventName, event => navDiagLog(eventName, {
+        persisted: "persisted" in event ? event.persisted : undefined
+      }), true);
+    });
+    navDiagLog("APP_HISTORY_GUARD_READY");
+
     const APP_RESUME_SCREEN_KEY = "vehicleLogResumeScreen";
     const APP_HIDDEN_AT_KEY = "vehicleLogHiddenAt";
     function getResumeAppScreen() {
