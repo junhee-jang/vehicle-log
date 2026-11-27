@@ -3237,11 +3237,17 @@
     // 자정이 지나면 현재 선택 날짜를 오늘로 맞춥니다.
     // loadCurrentLogForDate()가 이전 날짜의 자동저장 대기분을 먼저 처리하므로 입력 중인 내용은 보존됩니다.
     let midnightDateTimer = null;
+    let midnightDateSyncPromise = null;
     async function syncLogDateToToday() {
       if (!vehicleDataReady || !activeTeamId || !activeUserId) return;
+      if (midnightDateSyncPromise) return midnightDateSyncPromise;
       const today = localDateString(new Date());
-      if (today !== loadedLogDate || today !== $("date").value) {
-        await vehicleDataState.loadDate(today);
+      if (today === loadedLogDate && today === $("date").value) return;
+      midnightDateSyncPromise = vehicleDataState.loadDate(today);
+      try {
+        await midnightDateSyncPromise;
+      } finally {
+        midnightDateSyncPromise = null;
       }
     }
     function scheduleMidnightDateSync() {
