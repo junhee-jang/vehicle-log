@@ -28,10 +28,18 @@
 
       window.__vehicleLogAppReady = false;
       window.__vehicleLogBackPressedDuringStartup = false;
+      window.__vehicleLogBackBouncePending = false;
       window.addEventListener("popstate", () => {
         if (window.__vehicleLogAppReady) return;
+        // 본문 스크립트와 인증 처리가 준비되기 전에도 이전 사이트로 이탈하지 않도록
+        // 기존 앱 항목으로 즉시 앞으로 이동합니다. pushState를 새로 쌓지 않습니다.
+        if (window.__vehicleLogBackBouncePending) {
+          window.__vehicleLogBackBouncePending = false;
+          return;
+        }
         window.__vehicleLogBackPressedDuringStartup = true;
-        window.history.pushState(homeState, "", window.location.href);
+        window.__vehicleLogBackBouncePending = true;
+        window.history.forward();
       }, true);
     })();
   </script>
@@ -4244,8 +4252,18 @@
       }
       renderAppScreen("home");
     }
+    let appBackBouncePending = false;
     window.addEventListener("popstate", () => {
       if (!appHistoryInitialized) return;
+
+      // 직전 뒤로가기로 guard에 도달한 뒤 원래 앱 항목으로 복귀한 이벤트입니다.
+      // 새 기록을 추가하지 않고 현재 앱 항목을 홈 상태로 정리합니다.
+      if (appBackBouncePending) {
+        appBackBouncePending = false;
+        window.history.replaceState({ vehicleLogApp: true, screen: currentAppScreen }, "", window.location.href);
+        navDiagLog("APP_BACK_BOUNCE_RESTORED", { restoredScreen: currentAppScreen });
+        return;
+      }
 
       const openDialog = document.querySelector("dialog[open]");
       if (openDialog) {
@@ -4256,10 +4274,10 @@
         renderAppScreen("home");
       }
 
-      // 현재 문서에는 guard 아래의 앱 상태 항목 하나만 유지합니다.
-      // 뒤로가기로 guard에 도달하면 같은 문서의 앱 상태를 다시 올려
-      // 브라우저가 이전 Google/외부 페이지로 빠져나가지 않게 합니다.
-      window.history.pushState({ vehicleLogApp: true, screen: currentAppScreen }, "", window.location.href);
+      // guard로 한 단계 이동한 브라우저 기록을 앞으로 되돌려 앱을 유지합니다.
+      // pushState를 반복해서 쌓는 방식보다 방문 기록을 안정적으로 보존합니다.
+      appBackBouncePending = true;
+      window.history.forward();
     });
     // 정상 popstate 처리기가 설치된 뒤에만 초기 로딩 보호를 넘깁니다.
     window.__vehicleLogAppReady = true;
