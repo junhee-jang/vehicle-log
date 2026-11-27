@@ -3233,6 +3233,32 @@
         alert("해당 날짜 기록을 불러오지 못했습니다. 인터넷 연결을 확인해 주세요.");
       }
     };
+
+    // 자정이 지나면 현재 선택 날짜를 오늘로 맞춥니다.
+    // loadCurrentLogForDate()가 이전 날짜의 자동저장 대기분을 먼저 처리하므로 입력 중인 내용은 보존됩니다.
+    let midnightDateTimer = null;
+    async function syncLogDateToToday() {
+      if (!vehicleDataReady || !activeTeamId || !activeUserId) return;
+      const today = localDateString(new Date());
+      if (today !== loadedLogDate || today !== $("date").value) {
+        await vehicleDataState.loadDate(today);
+      }
+    }
+    function scheduleMidnightDateSync() {
+      clearTimeout(midnightDateTimer);
+      const now = new Date();
+      const nextMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 1);
+      midnightDateTimer = setTimeout(async () => {
+        await syncLogDateToToday();
+        scheduleMidnightDateSync();
+      }, Math.max(1000, nextMidnight.getTime() - now.getTime()));
+    }
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") syncLogDateToToday();
+    });
+    window.addEventListener("pageshow", () => syncLogDateToToday());
+    scheduleMidnightDateSync();
+
     vehicleDataState.saveEvent = persistEventRecord;
     vehicleDataState.deleteEvent = removeEventRecord;
     vehicleDataState.loadMonth = loadMonthData;
