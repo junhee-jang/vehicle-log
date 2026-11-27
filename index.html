@@ -2738,9 +2738,14 @@
         if (error) throw error;
         saved = data;
       }
+      // 운행기록 저장과 초기화 표시 해제는 별개 작업입니다.
+      // 초기화 표시 테이블의 삭제 권한/정책 오류가 운행기록 저장 전체를 실패 처리하면
+      // 날짜 변경 전 대기 저장 단계까지 중단되므로, 본 저장은 계속 진행하고 별도 경고만 남깁니다.
       const { error: clearResetError } = await authClient.from("daily_log_reset_dates").delete()
         .eq("team_id", activeTeamId).eq("vehicle_id", selectedVehicleId).eq("log_date", date);
-      if (clearResetError) throw clearResetError;
+      if (clearResetError) {
+        console.warn("초기화 표시 해제 실패(운행기록 저장은 완료)", { date, error: clearResetError });
+      }
       if (date === loadedLogDate) {
         currentDailyLogId = saved.id;
         lastSavedAt = new Date();
