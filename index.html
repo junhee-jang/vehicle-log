@@ -3,95 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script>
-    // 뒤로가기 원인 진단용: 주소 뒤에 ?backdiag=1 을 붙였을 때만 화면에 기록을 표시합니다.
-    (function () {
-      const enabled = new URLSearchParams(location.search).get("backdiag") === "1";
-      const storageKey = "vehicleLogBackDiagnostic";
-      function readLogs() {
-        try { return JSON.parse(sessionStorage.getItem(storageKey) || "[]"); }
-        catch (_) { return []; }
-      }
-      function record(eventName, extra = {}) {
-        try {
-          const logs = readLogs();
-          logs.push({
-            time: new Date().toLocaleTimeString("ko-KR", { hour12: false }),
-            event: eventName,
-            historyLength: history.length,
-            state: history.state,
-            visibility: document.visibilityState,
-            ...extra
-          });
-          sessionStorage.setItem(storageKey, JSON.stringify(logs.slice(-30)));
-        } catch (_) {}
-        if (enabled) render();
-      }
-      function render() {
-        if (!enabled || !document.body) return;
-        let panel = document.getElementById("backDiagnosticPanel");
-        if (!panel) {
-          panel = document.createElement("section");
-          panel.id = "backDiagnosticPanel";
-          panel.style.cssText = "position:fixed;left:8px;right:8px;bottom:8px;z-index:99999;max-height:42vh;overflow:auto;padding:10px;border:1px solid #8293a8;border-radius:10px;background:#101820f2;color:#fff;font:11px/1.45 monospace;box-shadow:0 4px 24px #0009";
-          const heading = document.createElement("div");
-          heading.textContent = "뒤로가기 진단 기록";
-          heading.style.cssText = "font:bold 12px system-ui;margin-bottom:6px";
-          const copy = document.createElement("button");
-          copy.type = "button";
-          copy.textContent = "기록 복사";
-          copy.style.cssText = "float:right;margin-left:8px;padding:4px 8px;background:#34465b;color:#fff;border:1px solid #71839a;border-radius:6px";
-          copy.addEventListener("click", async () => {
-            const value = JSON.stringify(readLogs(), null, 2);
-            try {
-              await navigator.clipboard.writeText(value);
-              copy.textContent = "복사 완료";
-            } catch (_) {
-              const area = document.createElement("textarea");
-              area.value = value;
-              panel.appendChild(area);
-              area.focus();
-              area.select();
-              copy.textContent = "길게 눌러 복사";
-            }
-          });
-          const close = document.createElement("button");
-          close.type = "button";
-          close.textContent = "닫기";
-          close.style.cssText = "float:right;padding:4px 8px;background:#34465b;color:#fff;border:1px solid #71839a;border-radius:6px";
-          close.addEventListener("click", () => panel.remove());
-          const output = document.createElement("pre");
-          output.id = "backDiagnosticOutput";
-          output.style.cssText = "white-space:pre-wrap;overflow-wrap:anywhere;margin:8px 0 0";
-          panel.append(heading, copy, close, output);
-          document.body.appendChild(panel);
-        }
-        const output = document.getElementById("backDiagnosticOutput");
-        if (output) output.textContent = readLogs().map(item =>
-          item.time + " | " + item.event + " | len=" + item.historyLength +
-          " | state=" + JSON.stringify(item.state) +
-          (item.persisted === undefined ? "" : " | persisted=" + item.persisted) +
-          (item.note ? " | " + item.note : "")
-        ).join("\n");
-      }
-      record("HEAD_SCRIPT_START", {
-        note: "nav=" + (performance.getEntriesByType("navigation")[0]?.type || "unknown") +
-          ", url=" + location.pathname + location.search
-      });
-      addEventListener("popstate", event => record("POPSTATE", { state: event.state }));
-      addEventListener("pagehide", event => record("PAGEHIDE", { persisted: event.persisted }));
-      addEventListener("pageshow", event => record("PAGESHOW", { persisted: event.persisted }));
-      addEventListener("beforeunload", () => record("BEFOREUNLOAD"));
-      document.addEventListener("visibilitychange", () => record("VISIBILITY_" + document.visibilityState));
-      addEventListener("error", event => record("JS_ERROR", { note: event.message || "unknown" }));
-      addEventListener("unhandledrejection", event => record("PROMISE_ERROR", { note: String(event.reason || "unknown") }));
-      if (enabled) {
-        if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", render, { once: true });
-        else render();
-      }
-      addEventListener("pageshow", () => { if (enabled) render(); });
-    })();
-  </script>
   <title>충북제한단속 시스템</title>
   <style>
     :root {
@@ -4182,7 +4093,7 @@
     // 앱 문서가 로드되는 즉시 뒤로가기 기준점을 만듭니다.
     // Supabase 세션 복원 및 PIN 상태 확인은 비동기이므로 unlockApp()까지
     // 기다리면 그 사이 Android 뒤로가기가 이전 Google 페이지로 빠질 수 있습니다.
-    window.history.replaceState({ vehicleLogApp: true, screen: "home" }, "", window.location.href);
+    window.history.replaceState({ vehicleLogApp: true, screen: "home", guard: true }, "", window.location.href);
     window.history.pushState({ vehicleLogApp: true, screen: "home" }, "", window.location.href);
     appHistoryInitialized = true;
 
@@ -4233,10 +4144,14 @@
     });
     function setAppScreen(name) {
       if (!appHistoryInitialized) {
-        window.history.replaceState({ vehicleLogApp: true, screen: "home" }, "", window.location.href);
+        window.history.replaceState({ vehicleLogApp: true, screen: "home", guard: true }, "", window.location.href);
+        window.history.pushState({ vehicleLogApp: true, screen: name }, "", window.location.href);
         appHistoryInitialized = true;
+      } else {
+        // 메뉴 이동은 브라우저 방문 기록을 늘리지 않고 현재 앱 화면만 갱신합니다.
+        // 아래에 남겨 둔 단일 guard 항목으로 Android 시스템 뒤로가기를 받습니다.
+        window.history.replaceState({ vehicleLogApp: true, screen: name }, "", window.location.href);
       }
-      window.history.pushState({ vehicleLogApp: true, screen: name }, "", window.location.href);
       renderAppScreen(name);
     }
     function returnToHome() {
@@ -4245,27 +4160,22 @@
       }
       renderAppScreen("home");
     }
-    window.addEventListener("popstate", event => {
+    window.addEventListener("popstate", () => {
       if (!appHistoryInitialized) return;
 
       const openDialog = document.querySelector("dialog[open]");
       if (openDialog) {
         openDialog.close();
-        // 다이얼로그를 닫은 뒤에도 앱 내부에 뒤로가기 기준점을 유지합니다.
-        window.history.pushState({ vehicleLogApp: true, screen: currentAppScreen }, "", window.location.href);
-        return;
+        // 다이얼로그만 닫고 현재 화면을 유지합니다.
+      } else if (currentAppScreen !== "home") {
+        // 앱 내부 화면에서 시스템 뒤로가기를 누르면 홈으로 돌아갑니다.
+        renderAppScreen("home");
       }
 
-      // 앱 상태로 돌아오면 해당 화면을 복원합니다.
-      // 상태가 없는 이전 페이지 경계에 도달한 경우에도 홈을 표시합니다.
-      const nextScreen = event.state?.vehicleLogApp
-        ? (event.state.screen || "home")
-        : "home";
-      renderAppScreen(nextScreen);
-
-      // 중요: popstate가 발생한 직후 같은 앱 상태를 다시 쌓아 둡니다.
-      // 이 처리가 없으면 새로고침 전의 Google/외부 페이지까지 뒤로가기가 빠져나갑니다.
-      window.history.pushState({ vehicleLogApp: true, screen: nextScreen }, "", window.location.href);
+      // 현재 문서에는 guard 아래의 앱 상태 항목 하나만 유지합니다.
+      // 뒤로가기로 guard에 도달하면 같은 문서의 앱 상태를 다시 올려
+      // 브라우저가 이전 Google/외부 페이지로 빠져나가지 않게 합니다.
+      window.history.pushState({ vehicleLogApp: true, screen: currentAppScreen }, "", window.location.href);
     });
     document.addEventListener("keydown", event => {
       if (event.key !== "Backspace" || event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
