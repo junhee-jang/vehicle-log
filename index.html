@@ -2673,11 +2673,21 @@
       // 같은 날의 선택 날짜는 복원하고, 날짜가 바뀌어 재접속하면 오늘 날짜로 시작합니다.
       loadedLogDate = getInitialLogDate();
       $("date").value = loadedLogDate;
+      // 핵심 운행기록을 정상적으로 불러오면 저장 기능부터 활성화합니다.
+      // 월별 내보내기 자료와 날씨 달력은 부가 기능이므로 실패해도 운행기록 입력을 막지 않습니다.
       await loadCurrentLogForDate(loadedLogDate);
-      await loadMonthData();
-      await renderWeatherCalendar();
-      refreshExportTables();
       setVehicleLogReady(true);
+      try {
+        await loadMonthData();
+        refreshExportTables();
+      } catch (error) {
+        console.error("월별 자료 조회 실패(운행기록 입력은 계속 사용 가능)", error);
+      }
+      try {
+        await renderWeatherCalendar();
+      } catch (error) {
+        console.error("날씨 달력 갱신 실패(운행기록 입력은 계속 사용 가능)", error);
+      }
     }
 
     async function performCurrentLogSave(date = loadedLogDate) {
