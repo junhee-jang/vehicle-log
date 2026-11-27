@@ -1966,6 +1966,9 @@
   $("weather").addEventListener("change", () => vehicleDataState.scheduleSave());
   $("customWeather").addEventListener("input", () => vehicleDataState.scheduleSave());
   $("memo").addEventListener("input", () => vehicleDataState.scheduleSave());
+  // 날짜 선호 설정 함수와 인증/운행 데이터 로직이 같은 팀·차량 식별자를 공유하도록 상위 범위에 둡니다.
+  let activeTeamId = null;
+  let selectedVehicleId = null;
   function logDatePreferenceKey() {
     return activeTeamId && selectedVehicleId
       ? "vehicleLogDatePreference:" + activeTeamId + ":" + selectedVehicleId
@@ -2445,9 +2448,7 @@
 
 
     // 팀원 권한으로 제한된 하나의 팀 DB에 운행일지 데이터를 저장한다.
-    let activeTeamId = null;
     let activeUserId = null;
-    let selectedVehicleId = null;
     let selectedVehicleNumber = "181나3704";
     let currentDailyLogId = null;
     let loadedLogDate = $("date").value;
