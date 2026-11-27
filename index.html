@@ -4,6 +4,25 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>충북제한단속 시스템</title>
+  <script>
+    // 앱 본문 스크립트가 준비되기 전에도 Android 시스템 뒤로가기를 먼저 가로챕니다.
+    (() => {
+      const navigationEntry = performance.getEntriesByType("navigation")[0];
+      const isReload = navigationEntry?.type === "reload";
+      const homeState = { vehicleLogApp: true, screen: "home", guard: true };
+      window.history.replaceState(homeState, "", window.location.href);
+      if (!isReload) {
+        window.history.pushState({ vehicleLogApp: true, screen: "home" }, "", window.location.href);
+      }
+      window.__vehicleLogAppReady = false;
+      window.__vehicleLogBackPressedDuringStartup = false;
+      window.addEventListener("popstate", () => {
+        if (window.__vehicleLogAppReady) return;
+        window.__vehicleLogBackPressedDuringStartup = true;
+        window.history.pushState(homeState, "", window.location.href);
+      }, true);
+    })();
+  </script>
   <style>
     :root {
       color-scheme: dark;
@@ -4090,15 +4109,10 @@
     let currentAppScreen = "home";
     let appHistoryInitialized = false;
 
-    // 앱 최초 진입 때만 뒤로가기 기준점 아래에 앱 상태 항목을 추가합니다.
-    // 새로고침에서는 현재 방문 기록 항목을 재사용해야 기록이 누적되지 않습니다.
-    const navigationEntry = performance.getEntriesByType("navigation")[0];
-    const isReload = navigationEntry?.type === "reload";
-    window.history.replaceState({ vehicleLogApp: true, screen: "home", guard: true }, "", window.location.href);
-    if (!isReload) {
-      window.history.pushState({ vehicleLogApp: true, screen: "home" }, "", window.location.href);
-    }
+    // head에서 먼저 설치한 뒤로가기 보호 장치를 앱 본문에서도 이어서 사용합니다.
+    // 새로고침 때 기록을 추가하지 않으며, 로딩 중 뒤로가기는 홈 복귀 요청으로 보관합니다.
     appHistoryInitialized = true;
+    window.__vehicleLogAppReady = true;
 
     // 임시 모바일 뒤로가기 진단: 화면/기록 상태만 기록하고 앱 동작은 변경하지 않습니다.
     const NAV_DIAG_KEY = "vehicleLogNavigationDiagnostics";
@@ -4153,6 +4167,12 @@
     const APP_RESUME_SCREEN_KEY = "vehicleLogResumeScreen";
     const APP_HIDDEN_AT_KEY = "vehicleLogHiddenAt";
     function getResumeAppScreen() {
+      if (window.__vehicleLogBackPressedDuringStartup) {
+        window.__vehicleLogBackPressedDuringStartup = false;
+        sessionStorage.setItem(APP_RESUME_SCREEN_KEY, "home");
+        sessionStorage.removeItem(APP_HIDDEN_AT_KEY);
+        return "home";
+      }
       const hiddenAt = Number(sessionStorage.getItem(APP_HIDDEN_AT_KEY));
       const savedScreen = sessionStorage.getItem(APP_RESUME_SCREEN_KEY);
       sessionStorage.removeItem(APP_HIDDEN_AT_KEY);
