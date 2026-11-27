@@ -5,15 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>충북제한단속 시스템</title>
   <script>
-    // 앱 본문 스크립트가 준비되기 전에도 Android 시스템 뒤로가기를 먼저 가로챕니다.
+    // Android 뒤로가기를 위한 guard와 실제 앱 화면 항목을 분리해 유지합니다.
     (() => {
       const navigationEntry = performance.getEntriesByType("navigation")[0];
       const isReload = navigationEntry?.type === "reload";
+      const currentState = window.history.state;
       const homeState = { vehicleLogApp: true, screen: "home", guard: true };
-      window.history.replaceState(homeState, "", window.location.href);
-      if (!isReload) {
+
+      if (isReload && currentState?.vehicleLogApp && !currentState.guard) {
+        // 새로고침이면 기존 앱 화면 항목을 보존합니다.
+        // 이 항목을 guard로 덮어쓰면 뒤로가기 시 두 guard 사이를 이동하게 됩니다.
+      } else if (isReload && currentState?.vehicleLogApp && currentState.guard) {
+        // 이전 버전에서 현재 항목까지 guard로 덮인 경우 앱 화면 항목을 한 번 복구합니다.
+        const screen = ["vehicle-log", "documents"].includes(currentState.screen)
+          ? currentState.screen : "home";
+        window.history.pushState({ vehicleLogApp: true, screen }, "", window.location.href);
+      } else {
+        // 외부 페이지에서 처음 진입한 경우에만 guard + 앱 화면 항목을 만듭니다.
+        window.history.replaceState(homeState, "", window.location.href);
         window.history.pushState({ vehicleLogApp: true, screen: "home" }, "", window.location.href);
       }
+
       window.__vehicleLogAppReady = false;
       window.__vehicleLogBackPressedDuringStartup = false;
       window.addEventListener("popstate", () => {
