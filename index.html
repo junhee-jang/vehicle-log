@@ -2270,15 +2270,15 @@
       screen.hidden = true;
       pinScreen.hidden = true;
       const resumeScreen = getResumeAppScreen();
-      // 새로고침 뒤에도 앱 내부 화면을 브라우저 방문 기록에 다시 연결합니다.
-      // 메뉴 화면에서 뒤로가기를 누르면 탭이 닫히지 않고 홈 메뉴로 돌아갑니다.
-      window.history.replaceState({ vehicleLogApp: true, screen: "home" }, "", window.location.href);
-      // 홈 화면도 안전한 뒤로가기 진입점을 확보하고, 메뉴 화면이면 그 위에 복원합니다.
-      window.history.pushState({ vehicleLogApp: true, screen: "home" }, "", window.location.href);
-      if (resumeScreen !== "home") {
+      // 새로고침 뒤 현재 문서를 앱의 뒤로가기 기준점으로 다시 등록합니다.
+      // 인증 이벤트가 중복 호출되더라도 방문 기록을 반복해서 쌓지 않습니다.
+      if (!appHistoryInitialized) {
+        window.history.replaceState({ vehicleLogApp: true, screen: "home" }, "", window.location.href);
         window.history.pushState({ vehicleLogApp: true, screen: resumeScreen }, "", window.location.href);
+        appHistoryInitialized = true;
+      } else {
+        window.history.replaceState({ vehicleLogApp: true, screen: resumeScreen }, "", window.location.href);
       }
-      appHistoryInitialized = true;
       renderAppScreen(resumeScreen);
       window.scrollTo(0, 0);
       // 로그인 및 PIN 인증을 마칠 때마다 운행일지는 오늘 날짜부터 시작합니다.
@@ -4149,21 +4149,26 @@
       renderAppScreen("home");
     }
     window.addEventListener("popstate", event => {
+      if (!appHistoryInitialized) return;
+
       const openDialog = document.querySelector("dialog[open]");
       if (openDialog) {
         openDialog.close();
-        if (appHistoryInitialized) {
-          window.history.pushState({ vehicleLogApp: true, screen: currentAppScreen }, "", window.location.href);
-        }
+        // 다이얼로그를 닫은 뒤에도 앱 내부에 뒤로가기 기준점을 유지합니다.
+        window.history.pushState({ vehicleLogApp: true, screen: currentAppScreen }, "", window.location.href);
         return;
       }
-      if (event.state?.vehicleLogApp) {
-        appHistoryInitialized = true;
-        renderAppScreen(event.state.screen || "home");
-      } else if (appHistoryInitialized) {
-        renderAppScreen("home");
-        window.history.pushState({ vehicleLogApp: true, screen: "home" }, "", window.location.href);
-      }
+
+      // 앱 상태로 돌아오면 해당 화면을 복원합니다.
+      // 상태가 없는 이전 페이지 경계에 도달한 경우에도 홈을 표시합니다.
+      const nextScreen = event.state?.vehicleLogApp
+        ? (event.state.screen || "home")
+        : "home";
+      renderAppScreen(nextScreen);
+
+      // 중요: popstate가 발생한 직후 같은 앱 상태를 다시 쌓아 둡니다.
+      // 이 처리가 없으면 새로고침 전의 Google/외부 페이지까지 뒤로가기가 빠져나갑니다.
+      window.history.pushState({ vehicleLogApp: true, screen: nextScreen }, "", window.location.href);
     });
     document.addEventListener("keydown", event => {
       if (event.key !== "Backspace" || event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
