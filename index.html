@@ -2339,6 +2339,9 @@
       }
       renderAppScreen(resumeScreen);
       window.scrollTo(0, 0);
+      // 실제 화면 복원과 PIN 인증이 끝난 뒤에만 초기 로딩 보호를 해제합니다.
+      // 그 전의 뒤로가기는 head의 시작 단계 보호기가 받아 홈 복귀 요청으로 보관합니다.
+      window.__vehicleLogAppReady = true;
       // 로그인 및 PIN 인증을 마칠 때마다 운행일지는 오늘 날짜부터 시작합니다.
       $("date").value = localDateString(new Date());
       initializeVehicleData(userId).catch(error => {
@@ -4322,8 +4325,7 @@
       else window.location.replace("https://www.google.com/");
     });
     appExitDialog?.addEventListener("cancel", () => navDiagLog("APP_EXIT_DIALOG_DISMISSED"));
-    // 정상 popstate 처리기가 설치된 뒤에만 초기 로딩 보호를 넘깁니다.
-    window.__vehicleLogAppReady = true;
+    // 앱 준비 완료 시점은 unlockApp()에서 화면 복원까지 끝난 뒤로 미룹니다.
     document.addEventListener("keydown", event => {
       if (event.key !== "Backspace" || event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
       const target = event.target;
