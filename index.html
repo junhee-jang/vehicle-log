@@ -4252,14 +4252,13 @@
       }
       renderAppScreen("home");
     }
-    let appBackBouncePending = false;
     window.addEventListener("popstate", () => {
       if (!appHistoryInitialized) return;
 
-      // 직전 뒤로가기로 guard에 도달한 뒤 원래 앱 항목으로 복귀한 이벤트입니다.
-      // 새 기록을 추가하지 않고 현재 앱 항목을 홈 상태로 정리합니다.
-      if (appBackBouncePending) {
-        appBackBouncePending = false;
+      // head의 초기 로딩 보호 또는 본문 뒤로가기 처리에서 앞으로 복귀한 이벤트입니다.
+      // head와 본문이 동일한 표시를 공유해야 초기화 도중 이벤트도 중복 처리하지 않습니다.
+      if (window.__vehicleLogBackBouncePending) {
+        window.__vehicleLogBackBouncePending = false;
         window.history.replaceState({ vehicleLogApp: true, screen: currentAppScreen }, "", window.location.href);
         navDiagLog("APP_BACK_BOUNCE_RESTORED", { restoredScreen: currentAppScreen });
         return;
@@ -4276,7 +4275,7 @@
 
       // guard로 한 단계 이동한 브라우저 기록을 앞으로 되돌려 앱을 유지합니다.
       // pushState를 반복해서 쌓는 방식보다 방문 기록을 안정적으로 보존합니다.
-      appBackBouncePending = true;
+      window.__vehicleLogBackBouncePending = true;
       window.history.forward();
     });
     // 정상 popstate 처리기가 설치된 뒤에만 초기 로딩 보호를 넘깁니다.
