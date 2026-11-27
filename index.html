@@ -4112,7 +4112,6 @@
     // head에서 먼저 설치한 뒤로가기 보호 장치를 앱 본문에서도 이어서 사용합니다.
     // 새로고침 때 기록을 추가하지 않으며, 로딩 중 뒤로가기는 홈 복귀 요청으로 보관합니다.
     appHistoryInitialized = true;
-    window.__vehicleLogAppReady = true;
 
     // 임시 모바일 뒤로가기 진단: 화면/기록 상태만 기록하고 앱 동작은 변경하지 않습니다.
     const NAV_DIAG_KEY = "vehicleLogNavigationDiagnostics";
@@ -4250,6 +4249,8 @@
       // 브라우저가 이전 Google/외부 페이지로 빠져나가지 않게 합니다.
       window.history.pushState({ vehicleLogApp: true, screen: currentAppScreen }, "", window.location.href);
     });
+    // 정상 popstate 처리기가 설치된 뒤에만 초기 로딩 보호를 넘깁니다.
+    window.__vehicleLogAppReady = true;
     document.addEventListener("keydown", event => {
       if (event.key !== "Backspace" || event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
       const target = event.target;
