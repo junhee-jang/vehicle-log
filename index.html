@@ -3238,10 +3238,14 @@
     // loadCurrentLogForDate()가 이전 날짜의 자동저장 대기분을 먼저 처리하므로 입력 중인 내용은 보존됩니다.
     let midnightDateTimer = null;
     let midnightDateSyncPromise = null;
-    async function syncLogDateToToday() {
+    let dateWhenAppWasHidden = null;
+    async function syncLogDateToToday(force = false) {
       if (!vehicleDataReady || !activeTeamId || !activeUserId) return;
       if (midnightDateSyncPromise) return midnightDateSyncPromise;
       const today = localDateString(new Date());
+      // 같은 날 복귀하면 사용자가 선택한 날짜를 유지하고, 백그라운드 체류 중 날짜가 바뀐 경우에만 오늘로 전환합니다.
+      if (!force && (!dateWhenAppWasHidden || dateWhenAppWasHidden === today)) return;
+      dateWhenAppWasHidden = null;
       if (today === loadedLogDate && today === $("date").value) return;
       midnightDateSyncPromise = vehicleDataState.loadDate(today);
       try {
@@ -3260,7 +3264,11 @@
       }, Math.max(1000, nextMidnight.getTime() - now.getTime()));
     }
     document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible") syncLogDateToToday();
+      if (document.visibilityState === "hidden") {
+        dateWhenAppWasHidden = localDateString(new Date());
+      } else if (document.visibilityState === "visible") {
+        syncLogDateToToday();
+      }
     });
     window.addEventListener("pageshow", () => syncLogDateToToday());
     scheduleMidnightDateSync();
