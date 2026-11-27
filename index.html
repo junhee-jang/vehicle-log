@@ -3100,7 +3100,9 @@
         // 경유지 삭제와 운행기록 초기화를 DB 함수 한 번으로 처리해 중간 실패 시 일부만 반영되지 않게 합니다.
         resetStage = "운행기록 및 경유지 초기화";
         if (log?.id) {
-          // 주유·요소수 기록이 연결된 경우에만 기준 행을 남깁니다.\n          // 이후 날짜에 운행기록이 있더라도 초기화한 날짜 자체는 자료받기에 나타나지 않아야 합니다.\n          const keepLog = hasFluidRecords;
+          // 주유·요소수 기록이 연결된 경우에만 기준 행을 남깁니다.
+          // 이후 날짜에 운행기록이 있더라도 초기화한 날짜 자체는 자료받기에 나타나지 않아야 합니다.
+          const keepLog = hasFluidRecords;
           const { error: resetError } = await authClient.rpc("reset_daily_log", {
             p_log_id: log.id,
             p_team_id: activeTeamId,
