@@ -3,6 +3,95 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>
+    // 뒤로가기 원인 진단용: 주소 뒤에 ?backdiag=1 을 붙였을 때만 화면에 기록을 표시합니다.
+    (function () {
+      const enabled = new URLSearchParams(location.search).get("backdiag") === "1";
+      const storageKey = "vehicleLogBackDiagnostic";
+      function readLogs() {
+        try { return JSON.parse(sessionStorage.getItem(storageKey) || "[]"); }
+        catch (_) { return []; }
+      }
+      function record(eventName, extra = {}) {
+        try {
+          const logs = readLogs();
+          logs.push({
+            time: new Date().toLocaleTimeString("ko-KR", { hour12: false }),
+            event: eventName,
+            historyLength: history.length,
+            state: history.state,
+            visibility: document.visibilityState,
+            ...extra
+          });
+          sessionStorage.setItem(storageKey, JSON.stringify(logs.slice(-30)));
+        } catch (_) {}
+        if (enabled) render();
+      }
+      function render() {
+        if (!enabled || !document.body) return;
+        let panel = document.getElementById("backDiagnosticPanel");
+        if (!panel) {
+          panel = document.createElement("section");
+          panel.id = "backDiagnosticPanel";
+          panel.style.cssText = "position:fixed;left:8px;right:8px;bottom:8px;z-index:99999;max-height:42vh;overflow:auto;padding:10px;border:1px solid #8293a8;border-radius:10px;background:#101820f2;color:#fff;font:11px/1.45 monospace;box-shadow:0 4px 24px #0009";
+          const heading = document.createElement("div");
+          heading.textContent = "뒤로가기 진단 기록";
+          heading.style.cssText = "font:bold 12px system-ui;margin-bottom:6px";
+          const copy = document.createElement("button");
+          copy.type = "button";
+          copy.textContent = "기록 복사";
+          copy.style.cssText = "float:right;margin-left:8px;padding:4px 8px;background:#34465b;color:#fff;border:1px solid #71839a;border-radius:6px";
+          copy.addEventListener("click", async () => {
+            const value = JSON.stringify(readLogs(), null, 2);
+            try {
+              await navigator.clipboard.writeText(value);
+              copy.textContent = "복사 완료";
+            } catch (_) {
+              const area = document.createElement("textarea");
+              area.value = value;
+              panel.appendChild(area);
+              area.focus();
+              area.select();
+              copy.textContent = "길게 눌러 복사";
+            }
+          });
+          const close = document.createElement("button");
+          close.type = "button";
+          close.textContent = "닫기";
+          close.style.cssText = "float:right;padding:4px 8px;background:#34465b;color:#fff;border:1px solid #71839a;border-radius:6px";
+          close.addEventListener("click", () => panel.remove());
+          const output = document.createElement("pre");
+          output.id = "backDiagnosticOutput";
+          output.style.cssText = "white-space:pre-wrap;overflow-wrap:anywhere;margin:8px 0 0";
+          panel.append(heading, copy, close, output);
+          document.body.appendChild(panel);
+        }
+        const output = document.getElementById("backDiagnosticOutput");
+        if (output) output.textContent = readLogs().map(item =>
+          item.time + " | " + item.event + " | len=" + item.historyLength +
+          " | state=" + JSON.stringify(item.state) +
+          (item.persisted === undefined ? "" : " | persisted=" + item.persisted) +
+          (item.note ? " | " + item.note : "")
+        ).join("\n");
+      }
+      record("HEAD_SCRIPT_START", {
+        note: "nav=" + (performance.getEntriesByType("navigation")[0]?.type || "unknown") +
+          ", url=" + location.pathname + location.search
+      });
+      addEventListener("popstate", event => record("POPSTATE", { state: event.state }));
+      addEventListener("pagehide", event => record("PAGEHIDE", { persisted: event.persisted }));
+      addEventListener("pageshow", event => record("PAGESHOW", { persisted: event.persisted }));
+      addEventListener("beforeunload", () => record("BEFOREUNLOAD"));
+      document.addEventListener("visibilitychange", () => record("VISIBILITY_" + document.visibilityState));
+      addEventListener("error", event => record("JS_ERROR", { note: event.message || "unknown" }));
+      addEventListener("unhandledrejection", event => record("PROMISE_ERROR", { note: String(event.reason || "unknown") }));
+      if (enabled) {
+        if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", render, { once: true });
+        else render();
+      }
+      addEventListener("pageshow", () => { if (enabled) render(); });
+    })();
+  </script>
   <title>충북제한단속 시스템</title>
   <style>
     :root {
