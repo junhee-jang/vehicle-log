@@ -4233,12 +4233,10 @@
       if (window.__vehicleLogBackBouncePending) {
         window.__vehicleLogBackBouncePending = false;
         window.history.replaceState({ vehicleLogApp: true, screen: currentAppScreen }, "", window.location.href);
-        navDiagLog("APP_BACK_BOUNCE_RESTORED", { restoredScreen: currentAppScreen });
         if (window.__vehicleLogShowExitDialogAfterBounce && currentAppScreen === "home") {
           window.__vehicleLogShowExitDialogAfterBounce = false;
           if (appExitDialog && !appExitDialog.open) {
             appExitDialog.showModal();
-            navDiagLog("APP_EXIT_DIALOG_OPENED");
           }
         }
         return;
@@ -4263,18 +4261,15 @@
     });
     document.getElementById("appExitCancel")?.addEventListener("click", () => {
       appExitDialog?.close();
-      navDiagLog("APP_EXIT_CANCELLED");
     });
     document.getElementById("appExitConfirm")?.addEventListener("click", () => {
       if (!appExitDialog) return;
       appExitDialog.close();
       window.__vehicleLogExitConfirmed = true;
-      navDiagLog("APP_EXIT_CONFIRMED", { historyLength: window.history.length });
       // 앱 진입 직전의 방문 기록으로 이동합니다. 이전 기록이 없으면 기본 시작 페이지로 이동합니다.
       if (window.history.length > 2) window.history.go(-2);
       else window.location.replace("https://www.google.com/");
     });
-    appExitDialog?.addEventListener("cancel", () => navDiagLog("APP_EXIT_DIALOG_DISMISSED"));
     // 앱 준비 완료 시점은 unlockApp()에서 화면 복원까지 끝난 뒤로 미룹니다.
     document.addEventListener("keydown", event => {
       if (event.key !== "Backspace" || event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
