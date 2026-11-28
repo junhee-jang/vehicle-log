@@ -3330,14 +3330,15 @@
     // loadCurrentLogForDate()가 이전 날짜의 자동저장 대기분을 먼저 처리하므로 입력 중인 내용은 보존됩니다.
     let midnightDateTimer = null;
     let midnightDateSyncPromise = null;
-    let dateWhenAppWasHidden = null;
+    // 마지막으로 확인한 달력 날짜를 기준으로 복귀 시 날짜 변경을 감지합니다.
+    // 숨김 이벤트가 누락되거나 페이지가 BFCache에서 복원돼도 날짜 변경을 놓치지 않습니다.
+    let lastDateSyncDay = localDateString(new Date());
     async function syncLogDateToToday(force = false) {
       if (!vehicleDataReady || !activeTeamId || !activeUserId) return;
       if (midnightDateSyncPromise) return midnightDateSyncPromise;
       const today = localDateString(new Date());
-      // 같은 날 복귀하면 사용자가 선택한 날짜를 유지하고, 백그라운드 체류 중 날짜가 바뀐 경우에만 오늘로 전환합니다.
-      if (!force && (!dateWhenAppWasHidden || dateWhenAppWasHidden === today)) return;
-      dateWhenAppWasHidden = null;
+      if (!force && lastDateSyncDay === today) return;
+      lastDateSyncDay = today;
       if (today === loadedLogDate && today === $("date").value) return;
       midnightDateSyncPromise = vehicleDataState.loadDate(today);
       try {
